@@ -1,0 +1,5 @@
+{
+  "dernierID" : 11,
+  "dateEnregistrement" : 1556059872375,
+  "fichierRegistre" : "MANIFEST.man"
+}

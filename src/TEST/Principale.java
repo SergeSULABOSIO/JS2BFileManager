@@ -25,6 +25,8 @@ public class Principale {
         System.out.println("Output - Noms: " + Uouput.getNom() + " " + Uouput.getPostnom() + " " + Uouput.getPrenom());
         */
         
+        
+        /*
         FileManager fm = new FileManager("dossierTest.js2b");
         
         Vector<LiaisonClasseFrais> liclasse = new Vector<>();
@@ -52,6 +54,18 @@ public class Principale {
         for(LiaisonPeriodeFrais lp: Uouput.getLiaisonsPeriodes()){
             System.out.println(" - " + lp.getNomPeriode());
         }
+        */
+        
+        
+        FileManager fm = new FileManager("ANNEE XX/FRAIS");
+        XX_Utilisateur Uinput = new XX_Utilisateur(-1, 1, "SULA", "BOSIO", "Serge", "sulabosiog@gmail.com", "sulabosio", InterfaceUtilisateur.TYPE_ADMIN, (new Date().getTime()), InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.BETA_EXISTANT);
+        
+        if(fm.enregistrer(Uinput)){
+            System.out.println("Enregistré avec succès!");
+        }else{
+            System.out.println(" **** Erreur !");
+        }
+        System.out.println("" + Uinput.toString());
         
     }
     

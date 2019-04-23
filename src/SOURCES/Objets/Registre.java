@@ -16,7 +16,7 @@ import java.util.Date;
 public class Registre {
     private int dernierID;
     private Date dateEnregistrement;
-    private String fichierRegistre = ".reg";    //Fichier qui contient le dernier ID
+    private String fichierRegistre = "MANIFEST.man";    //Fichier qui contient le dernier ID
 
     public Registre() {
     }
@@ -25,7 +25,18 @@ public class Registre {
         this.dernierID = dernierID;
         this.dateEnregistrement = dateEnregistrement;
     }
+    
+    public void incrementer(boolean confirmed){
+        if(confirmed == true){
+            this.dernierID++;
+        }
+        this.dateEnregistrement = new Date();
+    }
 
+    public String getFichierRegistre() {
+        return fichierRegistre;
+    }
+    
     public int getDernierID() {
         return dernierID;
     }

@@ -1,0 +1,38 @@
+{
+  "id" : 12,
+  "idUtilisateur" : 1,
+  "idEntreprise" : 1,
+  "idExercice" : 1,
+  "idMonnaie" : 1,
+  "montantDefaut" : 100.0,
+  "nom" : "INSCRIPTION",
+  "monnaie" : "$",
+  "signatureMonnaie" : 1556050149202,
+  "liaisonsClasses" : [ {
+    "idClasse" : 1,
+    "nomClasse" : "G1",
+    "montant" : 10.0
+  }, {
+    "idClasse" : 2,
+    "nomClasse" : "G2",
+    "montant" : 8.0
+  }, {
+    "idClasse" : 3,
+    "nomClasse" : "G3",
+    "montant" : 5.0
+  }, {
+    "idClasse" : 4,
+    "nomClasse" : "L1",
+    "montant" : 0.0
+  } ],
+  "liaisonsPeriodes" : [ {
+    "idPeriode" : 1,
+    "nomPeriode" : "1ère Trimestre",
+    "pourcentage" : 50.0
+  }, {
+    "idPeriode" : 2,
+    "nomPeriode" : "2ème Trimestre",
+    "pourcentage" : 50.0
+  } ],
+  "beta" : 0
+}

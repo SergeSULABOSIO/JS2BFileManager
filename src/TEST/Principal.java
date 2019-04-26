@@ -7,6 +7,7 @@ package TEST;
 
 import SOURCES.Callback.EcouteurOuverture;
 import SOURCES.Callback.EcouteurStandard;
+import SOURCES.Callback.EcouteurSuppression;
 import SOURCES.Objets.FileManager;
 import SOURCES.Objets.Registre;
 import java.util.Date;
@@ -129,6 +130,30 @@ public class Principal extends javax.swing.JFrame {
             etat.setText("Erreur  lors de la réinitialisation!");
         }
     }
+    
+    private void viderTout(String dossier){
+        ecran.setText("");
+        
+        fm.supprimerTout(dossier, new EcouteurSuppression() {
+            @Override
+            public void onDone(String message, Object[] idsNonSupprimes) {
+                etat.setText(message);
+                ecran.setText("Objets non supprimés:\n");
+            }
+
+            @Override
+            public void onError(String message) {
+                etat.setText(message);
+            }
+
+            @Override
+            public void onProcessing(String message) {
+                etat.setText(message);
+            }
+        });
+    }
+    
+    
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -491,7 +516,7 @@ public class Principal extends javax.swing.JFrame {
     private void btViderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btViderActionPerformed
         // TODO add your handling code here:
         if (chUtilisateur.isSelected()) {
-
+            fm.supprimerTout(dossier, tabIds, ecouteurSuppression);
         } else {
 
         }

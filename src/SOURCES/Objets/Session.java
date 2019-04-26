@@ -9,9 +9,11 @@ package SOURCES.Objets;
  *
  * @author HP Pavilion
  */
-public class Lession {
+public class Session {
     private Entreprise ecole;
     private Utilisateur utilisateur;
+    private String token;
+    
     
     
 }

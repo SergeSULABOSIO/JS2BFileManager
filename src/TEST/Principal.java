@@ -128,17 +128,18 @@ public class Principal extends javax.swing.JFrame {
         }
     }
 
-    private void reinitRegistre(String cheminDossier) {
-        if (fm.reinitialiserRegistre(cheminDossier)) {
+    private void reinitRegistre(String dossier) {
+        if (fm.reinitialiserRegistre(dossier)) {
             etat.setText("Registre réinitialisé !");
         } else {
             etat.setText("Erreur  lors de la réinitialisation!");
         }
+        updateInfosRegistre(dossier);
     }
 
     private void supprimer(String dossier, String id) {
         ecran.setText("");
-
+        
         boolean rep = fm.supprimer(dossier, Integer.parseInt(id));
         if (rep == true) {
             ecran.append("Suppression de " + id + " dans " + dossier + " reussie !");
@@ -159,7 +160,7 @@ public class Principal extends javax.swing.JFrame {
                 etat.setText(message);
                 
                 if(idsNonSupprimes.length != 0){
-                    ecran.append("Ids des objets non supprimés:");
+                    ecran.append("Ids des objets non supprimés:\n");
                     for(Object oId: idsNonSupprimes){
                         ecran.append(" * " + oId+"\n");
                     }
@@ -212,6 +213,17 @@ public class Principal extends javax.swing.JFrame {
             }
         });
     }
+    
+    private void ouvrirObjet(Class NomClasse, String dossier, String idObj){
+        ecran.setText("");
+        Object obj = fm.ouvrir(NomClasse, dossier, Integer.parseInt(idObj+""));
+        if(obj != null){
+            ecran.setText(obj.toString()+"\n");
+        }else{
+            ecran.setText("Objet introuvable !");
+        }
+        
+    }
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -240,7 +252,7 @@ public class Principal extends javax.swing.JFrame {
         jLabel1 = new javax.swing.JLabel();
         btLister = new javax.swing.JButton();
         jButton1 = new javax.swing.JButton();
-        jTextField1 = new javax.swing.JTextField();
+        chId = new javax.swing.JTextField();
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
@@ -368,8 +380,13 @@ public class Principal extends javax.swing.JFrame {
         });
 
         jButton1.setText("Ouvrir");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
 
-        jTextField1.setText("1");
+        chId.setText("1");
 
         jLabel2.setText("(Id)");
 
@@ -404,7 +421,7 @@ public class Principal extends javax.swing.JFrame {
                             .addGroup(jPanel2Layout.createSequentialGroup()
                                 .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(chId, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addComponent(chIDS, javax.swing.GroupLayout.PREFERRED_SIZE, 129, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -435,7 +452,7 @@ public class Principal extends javax.swing.JFrame {
                     .addComponent(btVider)
                     .addComponent(btLister)
                     .addComponent(jButton1)
-                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(chId, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel2))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -608,6 +625,15 @@ public class Principal extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_chFraisItemStateChanged
 
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        // TODO add your handling code here:
+        if(chUtilisateur.isSelected()){
+            ouvrirObjet(XX_Utilisateur.class, dossierUtilisateur.getText(), chId.getText());
+        }else{
+            ouvrirObjet(XX_Frais.class, dossierFrais.getText(), chId.getText());
+        }
+    }//GEN-LAST:event_jButton1ActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -654,6 +680,7 @@ public class Principal extends javax.swing.JFrame {
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JRadioButton chFrais;
     private javax.swing.JTextField chIDS;
+    private javax.swing.JTextField chId;
     private javax.swing.JLabel chLastId;
     private javax.swing.JTextField chNB;
     private javax.swing.JRadioButton chUtilisateur;
@@ -671,6 +698,5 @@ public class Principal extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTextField jTextField1;
     // End of variables declaration//GEN-END:variables
 }

@@ -1,19 +1,30 @@
 {
   "id" : 9,
+  "idUtilisateur" : 1,
   "idEntreprise" : 1,
-  "email" : "sulabosiog@gmail.com",
-  "motDePasse" : "sulabosio",
-  "type" : 0,
-  "signature" : 1556059814939,
-  "nom" : "SULA",
-  "postnom" : "BOSIO",
-  "prenom" : "Serge",
-  "droitLitige" : 2,
-  "droitExercice" : 2,
-  "droitFacture" : 2,
-  "droitInscription" : 2,
-  "droitPaie" : 2,
-  "droitTresorerie" : 2,
-  "droitUtilisateur" : 2,
+  "idExercice" : 1,
+  "idMonnaie" : 1,
+  "montantDefaut" : 100.0,
+  "nom" : "FRAISX",
+  "monnaie" : "$",
+  "signatureMonnaie" : 1556295499444,
+  "liaisonsClasses" : [ {
+    "idClasse" : 1,
+    "nomClasse" : "CM1",
+    "montant" : 100.0
+  }, {
+    "idClasse" : 2,
+    "nomClasse" : "CM2",
+    "montant" : 100.0
+  } ],
+  "liaisonsPeriodes" : [ {
+    "idPeriode" : 1,
+    "nomPeriode" : "1ere Trime",
+    "pourcentage" : 50.0
+  }, {
+    "idPeriode" : 2,
+    "nomPeriode" : "2ème Trime",
+    "pourcentage" : 50.0
+  } ],
   "beta" : 0
 }

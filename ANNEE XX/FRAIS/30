@@ -1,0 +1,30 @@
+{
+  "id" : 30,
+  "idUtilisateur" : 1,
+  "idEntreprise" : 1,
+  "idExercice" : 1,
+  "idMonnaie" : 1,
+  "montantDefaut" : 100.0,
+  "nom" : "FRAISX",
+  "monnaie" : "$",
+  "signatureMonnaie" : 1556295936761,
+  "liaisonsClasses" : [ {
+    "idClasse" : 1,
+    "nomClasse" : "CM1",
+    "montant" : 100.0
+  }, {
+    "idClasse" : 2,
+    "nomClasse" : "CM2",
+    "montant" : 100.0
+  } ],
+  "liaisonsPeriodes" : [ {
+    "idPeriode" : 1,
+    "nomPeriode" : "1ere Trime",
+    "pourcentage" : 50.0
+  }, {
+    "idPeriode" : 2,
+    "nomPeriode" : "2ème Trime",
+    "pourcentage" : 50.0
+  } ],
+  "beta" : 0
+}

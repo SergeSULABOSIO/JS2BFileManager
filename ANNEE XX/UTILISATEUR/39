@@ -1,0 +1,19 @@
+{
+  "id" : 39,
+  "idEntreprise" : 1,
+  "email" : "sulabosiog@gmail.com",
+  "motDePasse" : "sulabosio",
+  "type" : 0,
+  "signature" : 1556293163980,
+  "nom" : "SULA",
+  "postnom" : "BOSIO",
+  "prenom" : "Serge",
+  "droitLitige" : 2,
+  "droitExercice" : 2,
+  "droitFacture" : 2,
+  "droitInscription" : 2,
+  "droitPaie" : 2,
+  "droitTresorerie" : 2,
+  "droitUtilisateur" : 2,
+  "beta" : 0
+}

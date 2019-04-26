@@ -96,15 +96,15 @@ public class Principal extends javax.swing.JFrame {
             @Override
             public void onDone(String message, Vector data) {
                 etat.setText(message);
-                if(data.size() != 0){
+                if (data.size() != 0) {
                     ecran.append("Liste d'enregistrements:\n");
-                for (Object oRetrieved : data) {
-                    ecran.append(" * " + oRetrieved.toString() + "\n");
-                }
-                }else{
+                    for (Object oRetrieved : data) {
+                        ecran.append(" * " + oRetrieved.toString() + "\n");
+                    }
+                } else {
                     ecran.setText("Dossier vide !");
                 }
-                
+
             }
 
             @Override
@@ -134,6 +134,52 @@ public class Principal extends javax.swing.JFrame {
         } else {
             etat.setText("Erreur  lors de la réinitialisation!");
         }
+    }
+
+    private void supprimer(String dossier, String id) {
+        ecran.setText("");
+
+        boolean rep = fm.supprimer(dossier, Integer.parseInt(id));
+        if (rep == true) {
+            ecran.append("Suppression de " + id + " dans " + dossier + " reussie !");
+            etat.setText("Suppression effectuée  avec succès.");
+        } else {
+            ecran.append("Echec");
+            etat.setText("Echec de suppression");
+        }
+    }
+
+    private void supprimerGroupe(String dossier, String[] tabIDS) {
+        ecran.setText("");
+
+        fm.supprimerTout(dossier, tabIDS, new EcouteurSuppression() {
+            @Override
+            public void onDone(String message, Object[] idsNonSupprimes) {
+                ecran.setText(message);
+                etat.setText(message);
+                
+                if(idsNonSupprimes.length != 0){
+                    ecran.append("Ids des objets non supprimés:");
+                    for(Object oId: idsNonSupprimes){
+                        ecran.append(" * " + oId+"\n");
+                    }
+                }else{
+                    ecran.setText("les " + tabIDS.length + " ids sont tous supprimés !");
+                }
+            }
+
+            @Override
+            public void onError(String message) {
+                ecran.setText(message);
+                etat.setText(message);
+            }
+
+            @Override
+            public void onProcessing(String message) {
+                ecran.setText(message);
+                etat.setText(message);
+            }
+        });
     }
 
     private void viderTout(Class NomClasse, String dossier) {
@@ -347,7 +393,7 @@ public class Principal extends javax.swing.JFrame {
                     .addComponent(btSaveGroup, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(btDeleteGroup, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(btLister, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addComponent(chNB, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -361,9 +407,9 @@ public class Principal extends javax.swing.JFrame {
                                 .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addComponent(chIDS, javax.swing.GroupLayout.PREFERRED_SIZE, 129, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                            .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))))
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -510,18 +556,18 @@ public class Principal extends javax.swing.JFrame {
     private void btDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btDeleteActionPerformed
         // TODO add your handling code here:
         if (chUtilisateur.isSelected()) {
-
+            supprimer(dossierUtilisateur.getText(), chIDS.getText().trim().split(",")[0]);
         } else {
-
+            supprimer(dossierFrais.getText(), chIDS.getText().trim().split(",")[0]);
         }
     }//GEN-LAST:event_btDeleteActionPerformed
 
     private void btDeleteGroupActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btDeleteGroupActionPerformed
         // TODO add your handling code here:
         if (chUtilisateur.isSelected()) {
-
+            supprimerGroupe(dossierUtilisateur.getText(), chIDS.getText().trim().split(","));
         } else {
-
+            supprimerGroupe(dossierFrais.getText(), chIDS.getText().trim().split(","));
         }
     }//GEN-LAST:event_btDeleteGroupActionPerformed
 

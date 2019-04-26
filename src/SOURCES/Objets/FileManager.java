@@ -216,7 +216,7 @@ public class FileManager {
         int index = 1;
         for (String id : tabIds) {
             String status = "[ok]";
-            boolean deleted = supprimer(dossierSource, Integer.parseInt(id));
+            boolean deleted = supprimer(dossierSource, Integer.parseInt(id.trim()));
             if (deleted == false) {
                 tabIdsNotDeleted.add(id);
                 status = "[Erreur]";

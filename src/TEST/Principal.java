@@ -96,10 +96,15 @@ public class Principal extends javax.swing.JFrame {
             @Override
             public void onDone(String message, Vector data) {
                 etat.setText(message);
-                ecran.append("Liste d'enregistrements:\n");
+                if(data.size() != 0){
+                    ecran.append("Liste d'enregistrements:\n");
                 for (Object oRetrieved : data) {
                     ecran.append(" * " + oRetrieved.toString() + "\n");
                 }
+                }else{
+                    ecran.setText("Dossier vide !");
+                }
+                
             }
 
             @Override
@@ -130,15 +135,24 @@ public class Principal extends javax.swing.JFrame {
             etat.setText("Erreur  lors de la réinitialisation!");
         }
     }
-    
-    private void viderTout(String dossier){
+
+    private void viderTout(Class NomClasse, String dossier) {
         ecran.setText("");
-        
+
         fm.supprimerTout(dossier, new EcouteurSuppression() {
             @Override
             public void onDone(String message, Object[] idsNonSupprimes) {
                 etat.setText(message);
-                ecran.setText("Objets non supprimés:\n");
+                if (idsNonSupprimes.length != 0) {
+                    ecran.setText("Objets non supprimés:\n");
+                    for (Object oID : idsNonSupprimes) {
+                        ecran.setText(" * " + oID + "\n");
+                    }
+                } else {
+                    ecran.setText("Le dossier vidé!\n");
+                }
+
+                listerDossier(NomClasse, dossier);
             }
 
             @Override
@@ -152,8 +166,6 @@ public class Principal extends javax.swing.JFrame {
             }
         });
     }
-    
-    
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -516,9 +528,9 @@ public class Principal extends javax.swing.JFrame {
     private void btViderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btViderActionPerformed
         // TODO add your handling code here:
         if (chUtilisateur.isSelected()) {
-            fm.supprimerTout(dossier, tabIds, ecouteurSuppression);
+            viderTout(XX_Utilisateur.class, dossierUtilisateur.getText().trim());
         } else {
-
+            viderTout(XX_Frais.class, dossierFrais.getText().trim());
         }
     }//GEN-LAST:event_btViderActionPerformed
 
@@ -536,6 +548,7 @@ public class Principal extends javax.swing.JFrame {
 
     private void chUtilisateurItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_chUtilisateurItemStateChanged
         // TODO add your handling code here:
+        ecran.setText("");
         if (chUtilisateur.isSelected()) {
             showRegistre();
         }
@@ -543,6 +556,7 @@ public class Principal extends javax.swing.JFrame {
 
     private void chFraisItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_chFraisItemStateChanged
         // TODO add your handling code here:
+        ecran.setText("");
         if (chFrais.isSelected()) {
             showRegistre();
         }

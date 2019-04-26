@@ -1,5 +1,5 @@
 {
-  "id" : 34,
+  "id" : 165,
   "idUtilisateur" : 1,
   "idEntreprise" : 1,
   "idExercice" : 1,
@@ -7,7 +7,7 @@
   "montantDefaut" : 100.0,
   "nom" : "FRAISX",
   "monnaie" : "$",
-  "signatureMonnaie" : 1556295938752,
+  "signatureMonnaie" : 1556314282949,
   "liaisonsClasses" : [ {
     "idClasse" : 1,
     "nomClasse" : "CM1",

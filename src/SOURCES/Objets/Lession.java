@@ -10,6 +10,8 @@ package SOURCES.Objets;
  * @author HP Pavilion
  */
 public class Lession {
+    private Entreprise ecole;
+    private Utilisateur utilisateur;
     
     
 }

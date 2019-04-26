@@ -3,13 +3,15 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package TEST;
+package SOURCES.Objets;
+
+import SOURCES.Interfaces.InterfaceUtilisateur;
 
 /**
  *
  * @author HP Pavilion
  */
-public class XX_Utilisateur implements InterfaceUtilisateur{
+public class Utilisateur implements InterfaceUtilisateur{
     
     public int id;
     public int idEntreprise;
@@ -30,10 +32,12 @@ public class XX_Utilisateur implements InterfaceUtilisateur{
     public int droitUtilisateur;
     public int beta;
 
-    public XX_Utilisateur() {
+    public Utilisateur() {
     }
+    
+    
 
-    public XX_Utilisateur(int id, int idEntreprise, String nom, String postnom, String prenom, String email, String motDePasse, int type, long signature, int droitLitige, int droitExercice, int droitFacture, int droitInscription, int droitPaie, int droitTresorerie, int droitUtilisateur, int beta) {
+    public Utilisateur(int id, int idEntreprise, String email, String motDePasse, int type, long signature, String nom, String postnom, String prenom, int droitLitige, int droitExercice, int droitFacture, int droitInscription, int droitPaie, int droitTresorerie, int droitUtilisateur, int beta) {
         this.id = id;
         this.idEntreprise = idEntreprise;
         this.email = email;
@@ -191,9 +195,8 @@ public class XX_Utilisateur implements InterfaceUtilisateur{
 
     @Override
     public String toString() {
-        return "XX_Utilisateur{" + "id=" + id + ", idEntreprise=" + idEntreprise + ", email=" + email + ", motDePasse=" + motDePasse + ", type=" + type + ", signature=" + signature + ", nom=" + nom + ", postnom=" + postnom + ", prenom=" + prenom + ", droitLitige=" + droitLitige + ", droitExercice=" + droitExercice + ", droitFacture=" + droitFacture + ", droitInscription=" + droitInscription + ", droitPaie=" + droitPaie + ", droitTresorerie=" + droitTresorerie + ", droitUtilisateur=" + droitUtilisateur + ", beta=" + beta + '}';
+        return "Utilisateur{" + "id=" + id + ", idEntreprise=" + idEntreprise + ", email=" + email + ", motDePasse=" + motDePasse + ", type=" + type + ", signature=" + signature + ", nom=" + nom + ", postnom=" + postnom + ", prenom=" + prenom + ", droitLitige=" + droitLitige + ", droitExercice=" + droitExercice + ", droitFacture=" + droitFacture + ", droitInscription=" + droitInscription + ", droitPaie=" + droitPaie + ", droitTresorerie=" + droitTresorerie + ", droitUtilisateur=" + droitUtilisateur + ", beta=" + beta + '}';
     }
+
+    
 }
-
-
-

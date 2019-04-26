@@ -53,16 +53,16 @@ public class FileManager {
         return registre;
     }
 
-    private void enregistrer_NoThread(Object NewObj, String dossierDestination, EcouteurStandard ecouteur) {
+    private void enregistrer_NoThread(Object NewObj, String nomDossier, EcouteurStandard ecouteur) {
         try {
             //On doit initialiser le dossier des données avant toute chose
-            boolean canSave = initDataFolder(dossierDestination);
+            boolean canSave = initDataFolder(nomDossier);
             if (canSave == true) {
                 //En suite on procède à l'enregistrement
                 int idNewObj = getIdObjet(NewObj);
                 boolean mustIncrement = false;
                 if (idNewObj == -1) {
-                    setIdToNewObject(NewObj, getIdDisponible(dossierDestination));
+                    setIdToNewObject(NewObj, getIdDisponible(nomDossier));
                     idNewObj = getIdObjet(NewObj);
                     mustIncrement = true;
                 }
@@ -71,11 +71,11 @@ public class FileManager {
                     ecouteur.onProcessing("Enregistrement...");
                 }
 
-                boolean rep = ecrire(dossierDestination + "/" + idNewObj, NewObj);
+                boolean rep = ecrire(nomDossier + "/" + idNewObj, NewObj);
                 if (rep == true) {
                     registre.incrementer(mustIncrement);
-                    saveRegistre(dossierDestination);
-                    chargerRegistreEnMemoire(dossierDestination);
+                    saveRegistre(nomDossier);
+                    chargerRegistreEnMemoire(nomDossier);
 
                     if (ecouteur != null) {
                         ecouteur.onDone("Enregistré avec succès.");

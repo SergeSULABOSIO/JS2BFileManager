@@ -5,6 +5,8 @@
  */
 package SOURCES.Objets;
 
+import java.util.Date;
+
 /**
  *
  * @author HP Pavilion
@@ -13,6 +15,10 @@ public class Session {
     private Entreprise ecole;
     private Utilisateur utilisateur;
     private String token;
+    private Date derniereConnexion;
+    
+    
+    
     
     
     

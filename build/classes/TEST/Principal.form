@@ -447,11 +447,11 @@
                               <EmptySpace max="-2" attributes="0"/>
                               <Group type="103" groupAlignment="0" max="-2" attributes="0">
                                   <Component id="jButton2" max="32767" attributes="0"/>
-                                  <Component id="jTextField2" max="32767" attributes="0"/>
-                                  <Component id="jPasswordField1" pref="273" max="32767" attributes="0"/>
+                                  <Component id="chIdEcole" max="32767" attributes="0"/>
+                                  <Component id="chPassWord" pref="273" max="32767" attributes="0"/>
                               </Group>
                           </Group>
-                          <Component id="jLabel8" alignment="0" max="32767" attributes="0"/>
+                          <Component id="labLogin" alignment="0" max="32767" attributes="0"/>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
                   </Group>
@@ -463,12 +463,12 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="3" attributes="0">
                           <Component id="jLabel5" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="jPasswordField1" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="chPassWord" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="3" attributes="0">
                           <Component id="jLabel6" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="jTextField2" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="chIdEcole" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="3" attributes="0">
@@ -478,7 +478,7 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="jProgressBar1" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
-                      <Component id="jLabel8" min="-2" max="-2" attributes="0"/>
+                      <Component id="labLogin" min="-2" max="-2" attributes="0"/>
                       <EmptySpace pref="352" max="32767" attributes="0"/>
                   </Group>
               </Group>
@@ -489,6 +489,9 @@
               <Properties>
                 <Property name="text" type="java.lang.String" value="Connexion"/>
               </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButton2ActionPerformed"/>
+              </Events>
             </Component>
             <Component class="javax.swing.JLabel" name="jLabel5">
               <Properties>
@@ -502,9 +505,9 @@
                 <Property name="text" type="java.lang.String" value="ID &#xe9;cole"/>
               </Properties>
             </Component>
-            <Component class="javax.swing.JTextField" name="jTextField2">
+            <Component class="javax.swing.JTextField" name="chIdEcole">
             </Component>
-            <Component class="javax.swing.JPasswordField" name="jPasswordField1">
+            <Component class="javax.swing.JPasswordField" name="chPassWord">
               <Properties>
                 <Property name="text" type="java.lang.String" value="jPasswordField1"/>
               </Properties>
@@ -514,7 +517,7 @@
                 <Property name="text" type="java.lang.String" value="Cr&#xe9;er un nouveau compte"/>
               </Properties>
             </Component>
-            <Component class="javax.swing.JLabel" name="jLabel8">
+            <Component class="javax.swing.JLabel" name="labLogin">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Pr&#xea;t."/>
               </Properties>

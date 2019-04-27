@@ -5,12 +5,14 @@
  */
 package TEST;
 
+import SOURCES.Callback.EcouteurLongin;
 import SOURCES.Callback.EcouteurOuverture;
 import SOURCES.Callback.EcouteurStandard;
 import SOURCES.Callback.EcouteurSuppression;
 import SOURCES.Interfaces.InterfaceUtilisateur;
 import SOURCES.Objets.FileManager;
 import SOURCES.Objets.Registre;
+import SOURCES.Objets.Session;
 import SOURCES.Objets.Utilisateur;
 import java.util.Date;
 import java.util.Vector;
@@ -28,9 +30,32 @@ public class Principal extends javax.swing.JFrame {
 
     public Principal() {
         initComponents();
-        
-        //tabPrincipal.remove(panUser);
-        showRegistre();
+        //tabPrincipal.remove(panLogin);
+        tabPrincipal.remove(panUser);
+
+        fm.loadSession(new EcouteurLongin() {
+            @Override
+            public void onConnected(String message, Session session) {
+                if (session != null) {
+                    tabPrincipal.add("Espace de Travail", panUser);
+                    tabPrincipal.remove(panLogin);
+                    showRegistre();
+                }else{
+                    //On ne fait rien
+                    labLogin.setText("Utilisateur non reconnu !, Merci de saisie vos identifiants.");
+                }
+            }
+
+            @Override
+            public void onEchec(String message) {
+                //tabPrincipal.remove(panUser);
+            }
+
+            @Override
+            public void onProcessing(String message) {
+                //tabPrincipal.remove(panUser);
+            }
+        });
     }
 
     private void showRegistre() {
@@ -143,7 +168,7 @@ public class Principal extends javax.swing.JFrame {
 
     private void supprimer(String dossier, String id) {
         ecran.setText("");
-        
+
         boolean rep = fm.supprimer(dossier, Integer.parseInt(id));
         if (rep == true) {
             ecran.append("Suppression de " + id + " dans " + dossier + " reussie !");
@@ -162,13 +187,13 @@ public class Principal extends javax.swing.JFrame {
             public void onDone(String message, Object[] idsNonSupprimes) {
                 ecran.setText(message);
                 etat.setText(message);
-                
-                if(idsNonSupprimes.length != 0){
+
+                if (idsNonSupprimes.length != 0) {
                     ecran.append("Ids des objets non supprimés:\n");
-                    for(Object oId: idsNonSupprimes){
-                        ecran.append(" * " + oId+"\n");
+                    for (Object oId : idsNonSupprimes) {
+                        ecran.append(" * " + oId + "\n");
                     }
-                }else{
+                } else {
                     ecran.setText("les " + tabIDS.length + " ids sont tous supprimés !");
                 }
             }
@@ -217,16 +242,16 @@ public class Principal extends javax.swing.JFrame {
             }
         });
     }
-    
-    private void ouvrirObjet(Class NomClasse, String dossier, String idObj){
+
+    private void ouvrirObjet(Class NomClasse, String dossier, String idObj) {
         ecran.setText("");
-        Object obj = fm.ouvrir(NomClasse, dossier, Integer.parseInt(idObj+""));
-        if(obj != null){
-            ecran.setText(obj.toString()+"\n");
-        }else{
+        Object obj = fm.ouvrir(NomClasse, dossier, Integer.parseInt(idObj + ""));
+        if (obj != null) {
+            ecran.setText(obj.toString() + "\n");
+        } else {
             ecran.setText("Objet introuvable !");
         }
-        
+
     }
 
     /**
@@ -272,10 +297,10 @@ public class Principal extends javax.swing.JFrame {
         jButton2 = new javax.swing.JButton();
         jLabel5 = new javax.swing.JLabel();
         jLabel6 = new javax.swing.JLabel();
-        jTextField2 = new javax.swing.JTextField();
-        jPasswordField1 = new javax.swing.JPasswordField();
+        chIdEcole = new javax.swing.JTextField();
+        chPassWord = new javax.swing.JPasswordField();
         jLabel7 = new javax.swing.JLabel();
-        jLabel8 = new javax.swing.JLabel();
+        labLogin = new javax.swing.JLabel();
         jProgressBar1 = new javax.swing.JProgressBar();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -533,6 +558,11 @@ public class Principal extends javax.swing.JFrame {
         tabPrincipal.addTab("Espace USER", panUser);
 
         jButton2.setText("Connexion");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
 
         jLabel5.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel5.setText("Mot de passe utilisateur");
@@ -540,11 +570,11 @@ public class Principal extends javax.swing.JFrame {
         jLabel6.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel6.setText("ID école");
 
-        jPasswordField1.setText("jPasswordField1");
+        chPassWord.setText("jPasswordField1");
 
         jLabel7.setText("Créer un nouveau compte");
 
-        jLabel8.setText("Prêt.");
+        labLogin.setText("Prêt.");
 
         javax.swing.GroupLayout panLoginLayout = new javax.swing.GroupLayout(panLogin);
         panLogin.setLayout(panLoginLayout);
@@ -562,9 +592,9 @@ public class Principal extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(panLoginLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jTextField2)
-                            .addComponent(jPasswordField1, javax.swing.GroupLayout.DEFAULT_SIZE, 273, Short.MAX_VALUE)))
-                    .addComponent(jLabel8, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                            .addComponent(chIdEcole)
+                            .addComponent(chPassWord, javax.swing.GroupLayout.DEFAULT_SIZE, 273, Short.MAX_VALUE)))
+                    .addComponent(labLogin, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         panLoginLayout.setVerticalGroup(
@@ -573,11 +603,11 @@ public class Principal extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(panLoginLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel5)
-                    .addComponent(jPasswordField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(chPassWord, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(panLoginLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel6)
-                    .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(chIdEcole, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(panLoginLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButton2)
@@ -585,7 +615,7 @@ public class Principal extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jProgressBar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel8)
+                .addComponent(labLogin)
                 .addContainerGap(352, Short.MAX_VALUE))
         );
 
@@ -725,12 +755,36 @@ public class Principal extends javax.swing.JFrame {
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         // TODO add your handling code here:
-        if(chUtilisateur.isSelected()){
+        if (chUtilisateur.isSelected()) {
             ouvrirObjet(Utilisateur.class, dossierUtilisateur.getText(), chId.getText());
-        }else{
+        } else {
             ouvrirObjet(XX_Frais.class, dossierFrais.getText(), chId.getText());
         }
     }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        // TODO add your handling code here:
+        fm.login(Integer.parseInt(chIdEcole.getText().trim()), chPassWord.getText(), new EcouteurLongin() {
+            @Override
+            public void onConnected(String message, Session session) {
+                if(session != null){
+                    tabPrincipal.remove(panLogin);
+                    tabPrincipal.add("Bien venu " + session.getUtilisateur().getPrenom()+" | " + session.getEntreprise().getNom(), panUser);
+                    showRegistre();
+                }
+            }
+
+            @Override
+            public void onEchec(String message) {
+                labLogin.setText(message);
+            }
+
+            @Override
+            public void onProcessing(String message) {
+                labLogin.setText(message);
+            }
+        });
+    }//GEN-LAST:event_jButton2ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -779,8 +833,10 @@ public class Principal extends javax.swing.JFrame {
     private javax.swing.JRadioButton chFrais;
     private javax.swing.JTextField chIDS;
     private javax.swing.JTextField chId;
+    private javax.swing.JTextField chIdEcole;
     private javax.swing.JLabel chLastId;
     private javax.swing.JTextField chNB;
+    private javax.swing.JPasswordField chPassWord;
     private javax.swing.JRadioButton chUtilisateur;
     private javax.swing.JTextField chVitesseTraitement;
     private javax.swing.JTextField dossierFrais;
@@ -797,13 +853,11 @@ public class Principal extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
-    private javax.swing.JLabel jLabel8;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
-    private javax.swing.JPasswordField jPasswordField1;
     private javax.swing.JProgressBar jProgressBar1;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTextField jTextField2;
+    private javax.swing.JLabel labLogin;
     private javax.swing.JPanel panLogin;
     private javax.swing.JPanel panUser;
     private javax.swing.JTabbedPane tabPrincipal;

@@ -9,8 +9,10 @@ import SOURCES.Callback.EcouteurLongin;
 import SOURCES.Callback.EcouteurOuverture;
 import SOURCES.Callback.EcouteurStandard;
 import SOURCES.Callback.EcouteurSuppression;
+import SOURCES.Interfaces.InterfaceUtilisateur;
 import SOURCES.Utilitaires.Util;
 import java.io.File;
+import static java.lang.Thread.sleep;
 import java.lang.reflect.Field;
 import java.util.Date;
 import java.util.Vector;
@@ -22,33 +24,133 @@ import java.util.logging.Logger;
  * @author user
  */
 public class FileManager {
-    
+
     private Registre registre = new Registre(0, new Date());
     private Session session = null;
 
     public FileManager() {
-        
+
     }
-    
-    public void login(int vitesse, int idEcole, String motDePasse, EcouteurLongin ecouteurLongin){
-        new Thread(){
+
+    private Session getSession(Thread processus, int idEcole, String motDePasse, EcouteurLongin ecouteurLongin) {
+        try {
+            if (ecouteurLongin != null) {
+                ecouteurLongin.onProcessing("Vérification des données...");
+            }
+            processus.sleep(1000);
+            if (idEcole == 10 && motDePasse.trim().equals("abc")) {
+                if (ecouteurLongin != null) {
+                    ecouteurLongin.onProcessing("Chargement des données...");
+                }
+
+                Entreprise entreprise = new Entreprise(10, "ECOLE CARTESIENNE DE KINSHASA", "Limeté - Kinshasa/RDC", "+243844803514", "info@cartesien.org", "www.cartesien.org", "EquityBank RDC", "CARTESIEN DE KINSHASA", "0123654100001248", "IBAN0145400", "WFTCDKIN", "logo.png", "RCCM00BT45", "ID00145", "IP4551220");
+                Utilisateur utilisateur = new Utilisateur(1, entreprise.getId(), "sulabosiog@gmail.com", "abc", InterfaceUtilisateur.TYPE_ADMIN, new Date().getTime(), "SULA", "BOSIO", "Serge", InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.BETA_EXISTANT);
+                Date dateConnexion = new Date();
+
+                if (ecouteurLongin != null) {
+                    ecouteurLongin.onProcessing("Ouverture des données...");
+                }
+                processus.sleep(1000);
+                return new Session(entreprise, utilisateur, dateConnexion.getTime() + "", dateConnexion);
+            } else {
+                if (ecouteurLongin != null) {
+                    ecouteurLongin.onProcessing("Coordonnées incorrectes!");
+                }
+                return null;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (ecouteurLongin != null) {
+                ecouteurLongin.onEchec("Erreur !");
+            }
+        }
+        return null;
+    }
+
+    public void login(int idEcole, String motDePasse, EcouteurLongin ecouteurLongin) {
+        new Thread() {
             @Override
             public void run() {
                 try {
-                    
+                    if (motDePasse.trim().length() != 0) {
+                        if (ecouteurLongin != null) {
+                            ecouteurLongin.onProcessing("Authentification...");
+                        }
+                        sleep(1000);
+                        Session session = getSession(this, idEcole, motDePasse, ecouteurLongin);
+                        if (session != null) {
+                            if (ecouteurLongin != null) {
+                                //C'est ici que la session doit être enregistrée dans un fichier JSON
+                                
+                                ecouteurLongin.onConnected("Connexion reussie !", session);
+                            } else {
+                                ecouteurLongin.onEchec("Accès refusé.");
+                            }
+                        }
+
+                    } else {
+                        if (ecouteurLongin != null) {
+                            ecouteurLongin.onEchec("Désolé, aucun mot de passe.");
+                        }
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
-                    if(ecouteurLongin != null){
+                    if (ecouteurLongin != null) {
                         ecouteurLongin.onEchec("Erreur de connexion.");
                     }
                 }
             }
-            
+
         }.start();
     }
-    
-    public void logout(EcouteurStandard ecouteurStandard){
-        
+
+    public void logout(EcouteurStandard ecouteurStandard) {
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    if (ecouteurStandard != null) {
+                        ecouteurStandard.onProcessing("Deconnexion...");
+                    }
+                    sleep(1000);
+                    if (ecouteurStandard != null) {
+                        ecouteurStandard.onDone("Déconnecté!");
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    if (ecouteurStandard != null) {
+                        ecouteurStandard.onError("Erreur!");
+                    }
+                }
+            }
+
+        }.start();
+    }
+
+    public void loadSession(EcouteurLongin ecouteurLongin) {
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    //C'est ici que l'on lire le contenu de l'objet Session renregistré
+                    //Si l'objet est nul, c'est que le USER S'était déconnecté
+                    if (ecouteurLongin != null) {
+                        ecouteurLongin.onProcessing("Vérification de la session...");
+                    }
+                    sleep(1000);
+
+                    if (ecouteurLongin != null) {
+                        ecouteurLongin.onConnected("Connexion reussi!", null);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    if (ecouteurLongin != null) {
+                        ecouteurLongin.onEchec("Erreur de connexion.");
+                    }
+                }
+            }
+
+        }.start();
     }
 
     private boolean initDataFolder(String dossier) {
@@ -312,15 +414,15 @@ public class FileManager {
 
     private int getIdDisponible(String dossier) {
         chargerRegistreEnMemoire(dossier);
-        if(registre != null){
+        if (registre != null) {
             return registre.getDernierID() + 1;
-        }else{
+        } else {
             return -1;
         }
     }
 
     private void saveRegistre(String dossier) {
-        ecrire(new File(dossier+"/"+Registre.fichierRegistre).getAbsolutePath(), registre);
+        ecrire(new File(dossier + "/" + Registre.fichierRegistre).getAbsolutePath(), registre);
     }
 
     private boolean ecrire(String chemin, Object obj) {
@@ -342,42 +444,3 @@ public class FileManager {
     }
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

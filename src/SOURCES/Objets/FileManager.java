@@ -5,6 +5,7 @@
  */
 package SOURCES.Objets;
 
+import SOURCES.Callback.EcouteurLongin;
 import SOURCES.Callback.EcouteurOuverture;
 import SOURCES.Callback.EcouteurStandard;
 import SOURCES.Callback.EcouteurSuppression;
@@ -23,8 +24,30 @@ import java.util.logging.Logger;
 public class FileManager {
     
     private Registre registre = new Registre(0, new Date());
+    private Session session = null;
 
     public FileManager() {
+        
+    }
+    
+    public void login(int vitesse, int idEcole, String motDePasse, EcouteurLongin ecouteurLongin){
+        new Thread(){
+            @Override
+            public void run() {
+                try {
+                    
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    if(ecouteurLongin != null){
+                        ecouteurLongin.onEchec("Erreur de connexion.");
+                    }
+                }
+            }
+            
+        }.start();
+    }
+    
+    public void logout(EcouteurStandard ecouteurStandard){
         
     }
 

@@ -16,10 +16,8 @@ public class Session {
     private Utilisateur utilisateur;
     private String token;
     private Date derniereConnexion;
-    
-    
-    
-    
+
+
     
     
 }

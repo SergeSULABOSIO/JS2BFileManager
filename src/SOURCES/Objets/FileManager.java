@@ -429,7 +429,7 @@ public class FileManager {
         return Util.ecrire(chemin, obj);
     }
 
-    public boolean creerDossierSiNExistePas(String nomEtChemin) {
+    private boolean creerDossierSiNExistePas(String nomEtChemin) {
         try {
             File dossier = new File(nomEtChemin);
             if (!dossier.exists()) {

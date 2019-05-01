@@ -14,12 +14,10 @@ import SOURCES.Objets.FileManager;
 import SOURCES.Objets.Registre;
 import SOURCES.Objets.Session;
 import SOURCES.Objets.Utilisateur;
-import java.awt.Color;
-import java.awt.Dialog;
 import java.awt.event.KeyEvent;
 import java.util.Date;
 import java.util.Vector;
-import javax.swing.JColorChooser;
+import javax.swing.JFrame;
 
 /**
  *
@@ -31,17 +29,19 @@ public class Principal extends javax.swing.JFrame {
      * Creates new form Principal
      */
     public FileManager fm = new FileManager();
+    private JFrame moi = null;
     
     public Principal() {
         initComponents();
-        //tabPrincipal.remove(panLogin);
-        //tabPrincipal.remove(panUser);
         tabPrincipal.removeAll();
+        moi = this;
+        moi.setTitle("Authentification...");
         
         fm.loadSession(new EcouteurLongin() {
             @Override
             public void onConnected(String message, Session session) {
                 if (session != null) {
+                    moi.setTitle(session.getUtilisateur().getNom() + " | " + session.getEntreprise().getNom());
                     tabPrincipal.add("Bien venu " + session.getUtilisateur().getPrenom()+" ! - " + session.getEntreprise().getNom(), panUser);
                     tabPrincipal.remove(panLogin);
                     showRegistre();
@@ -100,11 +100,11 @@ public class Principal extends javax.swing.JFrame {
         
     }
     
-    private void enreg_Groupe(Vector listeObjts, String dossier) {
+    private void enreg_Groupe(Vector listeObjts, String table) {
         ecran.setText("");
         progressUser.setIndeterminate(true);
         int pauseMSecondes = Integer.parseInt(chVitesseTraitement.getText());
-        fm.enregistrer(pauseMSecondes, listeObjts, dossier, new EcouteurStandard() {
+        fm.enregistrer(pauseMSecondes, listeObjts, table, new EcouteurStandard() {
             @Override
             public void onDone(String message) {
                 progressUser.setIndeterminate(false);
@@ -113,7 +113,7 @@ public class Principal extends javax.swing.JFrame {
                 for (Object o : listeObjts) {
                     ecran.append(" -- " + o.toString() + "\n");
                 }
-                updateInfosRegistre(dossier);
+                updateInfosRegistre(table);
             }
             
             @Override
@@ -129,10 +129,10 @@ public class Principal extends javax.swing.JFrame {
         });
     }
     
-    private void listerDossier(Class NomClasse, String dossier) {
+    private void listerDossier(Class NomClasse, String table) {
         ecran.setText("");
         progressUser.setIndeterminate(true);
-        fm.ouvrirTout(Integer.parseInt(chVitesseTraitement.getText().trim()), NomClasse, dossier, new EcouteurOuverture() {
+        fm.ouvrirTout(Integer.parseInt(chVitesseTraitement.getText().trim()), NomClasse, table, new EcouteurOuverture() {
             @Override
             public void onDone(String message, Vector data) {
                 etat.setText(message);
@@ -161,8 +161,8 @@ public class Principal extends javax.swing.JFrame {
         });
     }
     
-    private void updateInfosRegistre(String cheminDossier) {
-        Registre registre = fm.getRegistre(cheminDossier);
+    private void updateInfosRegistre(String dossier) {
+        Registre registre = fm.getRegistre(dossier);
         if (registre != null) {
             chLastId.setText("Last ID: " + registre.getDernierID() + " || " + registre.getDateEnregistrement().toLocaleString());
         } else {
@@ -179,12 +179,12 @@ public class Principal extends javax.swing.JFrame {
         updateInfosRegistre(dossier);
     }
     
-    private void supprimer(String dossier, String id) {
+    private void supprimer(String table, String id) {
         ecran.setText("");
         
-        boolean rep = fm.supprimer(dossier, Integer.parseInt(id));
+        boolean rep = fm.supprimer(table, Integer.parseInt(id));
         if (rep == true) {
-            ecran.append("Suppression de " + id + " dans " + dossier + " reussie !");
+            ecran.append("Suppression de " + id + " dans " + table + " reussie !");
             etat.setText("Suppression effectuée  avec succès.");
         } else {
             ecran.append("Echec");
@@ -345,9 +345,9 @@ public class Principal extends javax.swing.JFrame {
 
         ecranObjet.setText("RAS");
 
-        dossierFrais.setText("ANNEE XX/FRAIS");
+        dossierFrais.setText("FRAIS");
 
-        dossierUtilisateur.setText("ANNEE XX/UTILISATEUR");
+        dossierUtilisateur.setText("UTILISATEUR");
 
         jButton3.setText("Deconnexion");
         jButton3.addActionListener(new java.awt.event.ActionListener() {
@@ -921,6 +921,7 @@ public class Principal extends javax.swing.JFrame {
             public void onConnected(String message, Session session) {
                 progressLogin.setIndeterminate(false);
                 if (session != null) {
+                    moi.setTitle(session.getUtilisateur().getNom() + " | " + session.getEntreprise().getNom());
                     tabPrincipal.remove(panLogin);
                     tabPrincipal.add("Bien venu " + session.getUtilisateur().getPrenom() + " | " + session.getEntreprise().getNom(), panUser);
                     showRegistre();

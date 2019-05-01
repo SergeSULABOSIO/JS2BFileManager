@@ -13,8 +13,8 @@
     "numeroCompte" : "RCCM00BT45",
     "codeSwift" : "IP4551220",
     "iban" : "ID00145",
-    "idnat" : "0123654100001248",
-    "rccm" : "CARTESIEN DE KINSHASA"
+    "rccm" : "CARTESIEN DE KINSHASA",
+    "idnat" : "0123654100001248"
   },
   "utilisateur" : {
     "id" : 1,
@@ -22,7 +22,7 @@
     "email" : "sulabosiog@gmail.com",
     "motDePasse" : "abc",
     "type" : 0,
-    "signature" : 1556716727772,
+    "signature" : 1556721449758,
     "nom" : "SULA",
     "postnom" : "BOSIO",
     "prenom" : "Serge",
@@ -35,6 +35,6 @@
     "droitUtilisateur" : 2,
     "beta" : 0
   },
-  "token" : "1556716727772",
-  "derniereConnexion" : 1556716727772
+  "token" : "1556721449758",
+  "derniereConnexion" : 1556721449758
 }

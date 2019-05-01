@@ -195,10 +195,10 @@ public class FileManager {
                         ecouteurLongin.onProcessing("Vérification de la session...");
                     }
                     sleep(1000);
-                    Session sessionLoaded = (Session) Util.lire(racine + "/" + Session.fichierSession, Session.class);
-                    if (sessionLoaded != null) {
+                    session = (Session) Util.lire(racine + "/" + Session.fichierSession, Session.class);
+                    if (session != null) {
                         if (ecouteurLongin != null) {
-                            ecouteurLongin.onConnected("Connexion reussi!", sessionLoaded);
+                            ecouteurLongin.onConnected("Connexion reussi!", session);
                         }
                     } else {
                         if (ecouteurLongin != null) {
@@ -217,41 +217,41 @@ public class FileManager {
         }.start();
     }
 
-    private boolean initDataFolder(String dossier) {
+    private boolean initDataFolder(String table) {
         //Initialisation
-        creerDossierSiNExistePas(dossier);
-        if (!(new File(dossier + "/" + Registre.fichierRegistre)).exists()) {
-            reinitialiserRegistre(dossier);
+        creerDossierSiNExistePas(racine + "/" + session.getEntreprise().getId() + "/" + table);
+        if (!(new File(racine+"/"+session.getEntreprise().getId()+"/"+table + "/" + Registre.fichierRegistre)).exists()) {
+            reinitialiserRegistre(table);
         }
-        chargerRegistreEnMemoire(dossier);
+        chargerRegistreEnMemoire(table);
         return registre != null;
     }
 
-    public boolean reinitialiserRegistre(String dossier) {
-        File ficRegistre = new File(racine+"/"+dossier + "/" + Registre.fichierRegistre);
+    public boolean reinitialiserRegistre(String table) {
+        File ficRegistre = new File(racine+"/"+session.getEntreprise().getId()+"/"+table + "/" + Registre.fichierRegistre);
         return ecrire(ficRegistre.getAbsolutePath(), new Registre(0, new Date()));
     }
 
-    private void chargerRegistreEnMemoire(String nomDossier) {
+    private void chargerRegistreEnMemoire(String table) {
         //System.out.println("Le fichier " + fichierREGISTRE + " existe.");
-        registre = (Registre) ouvrir(Registre.class, racine+"/"+nomDossier + "/" + Registre.fichierRegistre);
+        registre = (Registre) ouvrir(Registre.class, racine+"/"+session.getEntreprise().getId()+"/"+table + "/" + Registre.fichierRegistre);
     }
 
-    public Registre getRegistre(String nomDossier) {
-        chargerRegistreEnMemoire(nomDossier);
+    public Registre getRegistre(String table) {
+        chargerRegistreEnMemoire(table);
         return registre;
     }
 
-    private void enregistrer_NoThread(Object NewObj, String nomDossier, EcouteurStandard ecouteur) {
+    private void enregistrer_NoThread(Object NewObj, String table, EcouteurStandard ecouteur) {
         try {
-            //On doit initialiser le dossier des données avant toute chose
-            boolean canSave = initDataFolder(racine+"/"+nomDossier);
+            //On doit initialiser le dossier des données avant toute chose 
+            boolean canSave = initDataFolder(table);
             if (canSave == true) {
                 //En suite on procède à l'enregistrement
                 int idNewObj = getIdObjet(NewObj);
                 boolean mustIncrement = false;
                 if (idNewObj == -1) {
-                    setIdToNewObject(NewObj, getIdDisponible(nomDossier));
+                    setIdToNewObject(NewObj, getIdDisponible(table));
                     idNewObj = getIdObjet(NewObj);
                     mustIncrement = true;
                 }
@@ -260,11 +260,11 @@ public class FileManager {
                     ecouteur.onProcessing("Enregistrement...");
                 }
 
-                boolean rep = ecrire(nomDossier + "/" + idNewObj, NewObj);
+                boolean rep = ecrire(racine+"/"+session.getEntreprise().getId() + "/" + table + "/" + idNewObj, NewObj);
                 if (rep == true) {
                     registre.incrementer(mustIncrement);
-                    saveRegistre(nomDossier);
-                    chargerRegistreEnMemoire(nomDossier);
+                    saveRegistre(table);
+                    chargerRegistreEnMemoire(table);
 
                     if (ecouteur != null) {
                         ecouteur.onDone("Enregistré avec succès.");
@@ -287,8 +287,8 @@ public class FileManager {
         }
     }
 
-    public String[] getContenusDossier(String dossierDestination) {
-        File dossier = new File(dossierDestination);
+    public String[] getContenusDossier(String table) {
+        File dossier = new File(racine + "/" + session.getEntreprise().getId() + "/" + table);
         if (dossier.exists()) {
             if (dossier.isDirectory()) {
                 return dossier.list(new FiltreDonnees(".man"));
@@ -307,7 +307,7 @@ public class FileManager {
         return 0;
     }
 
-    public void enregistrer(int vitesse, Vector NewObjs, String dossierDestination, EcouteurStandard ecouteur) {
+    public void enregistrer(int vitesse, Vector NewObjs, String table, EcouteurStandard ecouteur) {
         new Thread() {
             @Override
             public void run() {
@@ -316,7 +316,7 @@ public class FileManager {
                     int index = 1;
                     for (Object NewO : NewObjs) {
                         sleep(vitesse);
-                        enregistrer(NewO, dossierDestination, null);
+                        enregistrer(NewO, table, null);
                         if (ecouteur != null) {
                             ecouteur.onProcessing("Enregistrement en cours (" + index + "/" + taille + ")...");
                         }
@@ -335,14 +335,14 @@ public class FileManager {
         }.start();
     }
 
-    public void enregistrer(Object NewObj, String dossierDestination, EcouteurStandard ecouteur) {
+    public void enregistrer(Object NewObj, String table, EcouteurStandard ecouteur) {
         if (ecouteur == null) {//Ici la méthode parent tourne déjà dans un Thread léger
-            enregistrer_NoThread(NewObj, dossierDestination, ecouteur);
+            enregistrer_NoThread(NewObj, table, ecouteur);
         } else {
             new Thread() {
                 @Override
                 public void run() {
-                    enregistrer_NoThread(NewObj, dossierDestination, ecouteur);
+                    enregistrer_NoThread(NewObj, table, ecouteur);
                 }
 
             }.start();
@@ -357,21 +357,21 @@ public class FileManager {
         return Util.lire(dossierSource + "/" + idObj, NomClasse);
     }
 
-    public boolean supprimer(String dossierSource, int idObj) {
-        File fichObjet = new File(dossierSource + "/" + idObj);
+    public boolean supprimer(String table, int idObj) {
+        File fichObjet = new File(racine + "/" + session.getEntreprise().getId() + "/" + table + "/" + idObj);
         if (fichObjet.exists()) {
             return fichObjet.delete();
         }
         return false;
     }
 
-    public void supprimerTout(String dossier, EcouteurSuppression ecouteurSuppression) {
+    public void supprimerTout(String table, EcouteurSuppression ecouteurSuppression) {
         new Thread() {
             @Override
             public void run() {
                 try {
-                    String[] tabIds = getContenusDossier(dossier);
-                    deleteGroup(tabIds, dossier, ecouteurSuppression);
+                    String[] tabIds = getContenusDossier(table);
+                    deleteGroup(tabIds, table, ecouteurSuppression);
                 } catch (Exception e) {
                     e.printStackTrace();
                     if (ecouteurSuppression != null) {
@@ -400,12 +400,12 @@ public class FileManager {
         }.start();
     }
 
-    private void deleteGroup(String[] tabIds, String dossierSource, EcouteurSuppression ecouteurSuppression) {
+    private void deleteGroup(String[] tabIds, String table, EcouteurSuppression ecouteurSuppression) {
         Vector tabIdsNotDeleted = new Vector();
         int index = 1;
         for (String id : tabIds) {
             String status = "[ok]";
-            boolean deleted = supprimer(dossierSource, Integer.parseInt(id.trim()));
+            boolean deleted = supprimer(table, Integer.parseInt(id.trim()));
             if (deleted == false) {
                 tabIdsNotDeleted.add(id);
                 status = "[Erreur]";
@@ -424,12 +424,12 @@ public class FileManager {
         }
     }
 
-    public void ouvrirTout(int vitesseTraiement, Class NomClasse, String dossierSource, EcouteurOuverture ouvrirListener) {
+    public void ouvrirTout(int vitesseTraiement, Class NomClasse, String table, EcouteurOuverture ouvrirListener) {
         new Thread() {
             @Override
             public void run() {
                 try {
-                    String[] tabIDs = getContenusDossier(dossierSource);
+                    String[] tabIDs = getContenusDossier(table);
                     Vector data = new Vector();
                     int index = 1;
                     if (tabIDs.length != 0) {
@@ -438,7 +438,7 @@ public class FileManager {
                             if (ouvrirListener != null) {
                                 ouvrirListener.onProcessing("Chargement encours (" + index + "/" + tabIDs.length + ")...");
                             }
-                            Object temp = Util.lire(dossierSource + "/" + ID, NomClasse);
+                            Object temp = Util.lire(racine + "/" + session.getEntreprise().getId() + "/" + table + "/" + ID, NomClasse);
                             if (!data.contains(temp)) {
                                 data.add(temp);
                             }
@@ -476,8 +476,8 @@ public class FileManager {
         }
     }
 
-    private int getIdDisponible(String dossier) {
-        chargerRegistreEnMemoire(dossier);
+    private int getIdDisponible(String table) {
+        chargerRegistreEnMemoire(table);
         if (registre != null) {
             return registre.getDernierID() + 1;
         } else {
@@ -485,17 +485,17 @@ public class FileManager {
         }
     }
 
-    private void saveRegistre(String dossier) {
-        ecrire(new File(dossier + "/" + Registre.fichierRegistre).getAbsolutePath(), registre);
+    private void saveRegistre(String table) {
+        ecrire(new File(racine + "/"+ session.getEntreprise().getId() + "/" + table + "/" + Registre.fichierRegistre).getAbsolutePath(), registre);
     }
 
     private boolean ecrire(String chemin, Object obj) {
         return Util.ecrire(chemin, obj);
     }
 
-    private boolean creerDossierSiNExistePas(String nomEtChemin) {
+    private boolean creerDossierSiNExistePas(String cheminComplet) {
         try {
-            File dossier = new File(nomEtChemin);
+            File dossier = new File(cheminComplet);
             if (!dossier.exists()) {
                 return dossier.mkdirs();
             } else {

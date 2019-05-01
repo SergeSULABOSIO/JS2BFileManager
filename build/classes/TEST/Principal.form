@@ -200,12 +200,12 @@
                 </Component>
                 <Component class="javax.swing.JTextField" name="dossierFrais">
                   <Properties>
-                    <Property name="text" type="java.lang.String" value="ANNEE XX/FRAIS"/>
+                    <Property name="text" type="java.lang.String" value="FRAIS"/>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JTextField" name="dossierUtilisateur">
                   <Properties>
-                    <Property name="text" type="java.lang.String" value="ANNEE XX/UTILISATEUR"/>
+                    <Property name="text" type="java.lang.String" value="UTILISATEUR"/>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JButton" name="jButton3">

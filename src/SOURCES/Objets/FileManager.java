@@ -28,7 +28,7 @@ public class FileManager {
 
     private Registre registre = new Registre(0, new Date());
     private Session session = null;
-    private String racine = "DataJ2B";
+    private String racine = "DataJ2BFees";
 
     public FileManager() {
 
@@ -198,7 +198,7 @@ public class FileManager {
                     Session sessionLoaded = (Session) Util.lire(racine + "/" + Session.fichierSession, Session.class);
                     if (sessionLoaded != null) {
                         if (ecouteurLongin != null) {
-                            ecouteurLongin.onConnected("Connexion reussi!", null);
+                            ecouteurLongin.onConnected("Connexion reussi!", sessionLoaded);
                         }
                     } else {
                         if (ecouteurLongin != null) {

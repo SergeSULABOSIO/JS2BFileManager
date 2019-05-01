@@ -14,9 +14,12 @@ import SOURCES.Objets.FileManager;
 import SOURCES.Objets.Registre;
 import SOURCES.Objets.Session;
 import SOURCES.Objets.Utilisateur;
+import java.awt.Color;
+import java.awt.Dialog;
 import java.awt.event.KeyEvent;
 import java.util.Date;
 import java.util.Vector;
+import javax.swing.JColorChooser;
 
 /**
  *
@@ -32,13 +35,14 @@ public class Principal extends javax.swing.JFrame {
     public Principal() {
         initComponents();
         //tabPrincipal.remove(panLogin);
-        tabPrincipal.remove(panUser);
+        //tabPrincipal.remove(panUser);
+        tabPrincipal.removeAll();
         
         fm.loadSession(new EcouteurLongin() {
             @Override
             public void onConnected(String message, Session session) {
                 if (session != null) {
-                    tabPrincipal.add("Espace de Travail", panUser);
+                    tabPrincipal.add("Bien venu " + session.getUtilisateur().getPrenom()+" ! - " + session.getEntreprise().getNom(), panUser);
                     tabPrincipal.remove(panLogin);
                     showRegistre();
                 } else {
@@ -52,6 +56,7 @@ public class Principal extends javax.swing.JFrame {
             public void onEchec(String message) {
                 //tabPrincipal.remove(panUser);
                 etat.setText(message);
+                tabPrincipal.add("Login", panLogin);
             }
             
             @Override

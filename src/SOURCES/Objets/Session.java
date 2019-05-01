@@ -16,6 +16,7 @@ public class Session {
     private Utilisateur utilisateur;
     private String token;
     private Date derniereConnexion;
+    public final static String fichierSession = "SESSION.man";
 
     public Session() {
         
@@ -65,3 +66,13 @@ public class Session {
         return "Session{" + "entreprise=" + entreprise + ", utilisateur=" + utilisateur + ", token=" + token + ", derniereConnexion=" + derniereConnexion + '}';
     }
 }
+
+
+
+
+
+
+
+
+
+

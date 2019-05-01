@@ -28,12 +28,12 @@ public class Principal extends javax.swing.JFrame {
      * Creates new form Principal
      */
     public FileManager fm = new FileManager();
-
+    
     public Principal() {
         initComponents();
         //tabPrincipal.remove(panLogin);
         tabPrincipal.remove(panUser);
-
+        
         fm.loadSession(new EcouteurLongin() {
             @Override
             public void onConnected(String message, Session session) {
@@ -41,19 +41,19 @@ public class Principal extends javax.swing.JFrame {
                     tabPrincipal.add("Espace de Travail", panUser);
                     tabPrincipal.remove(panLogin);
                     showRegistre();
-                }else{
+                } else {
                     //On ne fait rien
                     labLogin.setText("Utilisateur non reconnu !, Merci de saisie vos identifiants.");
                 }
                 etat.setText(message);
             }
-
+            
             @Override
             public void onEchec(String message) {
                 //tabPrincipal.remove(panUser);
                 etat.setText(message);
             }
-
+            
             @Override
             public void onProcessing(String message) {
                 //tabPrincipal.remove(panUser);
@@ -61,7 +61,7 @@ public class Principal extends javax.swing.JFrame {
             }
         });
     }
-
+    
     private void showRegistre() {
         if (chUtilisateur.isSelected()) {
             updateInfosRegistre(dossierUtilisateur.getText());
@@ -69,10 +69,10 @@ public class Principal extends javax.swing.JFrame {
             updateInfosRegistre(dossierFrais.getText());
         }
     }
-
+    
     private void enreg_Objet(Object newObj, String dossier) {
         ecran.setText("");
-
+        
         fm.enregistrer(newObj, dossier, new EcouteurStandard() {
             @Override
             public void onDone(String message) {
@@ -81,27 +81,28 @@ public class Principal extends javax.swing.JFrame {
                 ecran.append(" * " + newObj.toString() + "\n");
                 updateInfosRegistre(dossier);
             }
-
+            
             @Override
             public void onError(String message) {
                 etat.setText(message);
             }
-
+            
             @Override
             public void onProcessing(String message) {
                 etat.setText(message);
             }
         });
-
+        
     }
-
+    
     private void enreg_Groupe(Vector listeObjts, String dossier) {
         ecran.setText("");
-
+        progressUser.setIndeterminate(true);
         int pauseMSecondes = Integer.parseInt(chVitesseTraitement.getText());
         fm.enregistrer(pauseMSecondes, listeObjts, dossier, new EcouteurStandard() {
             @Override
             public void onDone(String message) {
+                progressUser.setIndeterminate(false);
                 etat.setText(message + "\n");
                 ecran.append("Anciens Objets avec IDs modifiés automatiquement:\n");
                 for (Object o : listeObjts) {
@@ -109,26 +110,28 @@ public class Principal extends javax.swing.JFrame {
                 }
                 updateInfosRegistre(dossier);
             }
-
+            
             @Override
             public void onError(String message) {
                 etat.setText(message);
+                progressUser.setIndeterminate(false);
             }
-
+            
             @Override
             public void onProcessing(String message) {
                 etat.setText(message);
             }
         });
     }
-
+    
     private void listerDossier(Class NomClasse, String dossier) {
         ecran.setText("");
-
+        progressUser.setIndeterminate(true);
         fm.ouvrirTout(Integer.parseInt(chVitesseTraitement.getText().trim()), NomClasse, dossier, new EcouteurOuverture() {
             @Override
             public void onDone(String message, Vector data) {
                 etat.setText(message);
+                progressUser.setIndeterminate(false);
                 if (data.size() != 0) {
                     ecran.append("Liste d'enregistrements:\n");
                     for (Object oRetrieved : data) {
@@ -137,21 +140,22 @@ public class Principal extends javax.swing.JFrame {
                 } else {
                     ecran.setText("Dossier vide !");
                 }
-
+                
             }
-
+            
             @Override
             public void onError(String message) {
                 etat.setText(message);
+                progressUser.setIndeterminate(false);
             }
-
+            
             @Override
             public void onProcessing(String message) {
                 etat.setText(message);
             }
         });
     }
-
+    
     private void updateInfosRegistre(String cheminDossier) {
         Registre registre = fm.getRegistre(cheminDossier);
         if (registre != null) {
@@ -160,7 +164,7 @@ public class Principal extends javax.swing.JFrame {
             chLastId.setText("Dossier vide !");
         }
     }
-
+    
     private void reinitRegistre(String dossier) {
         if (fm.reinitialiserRegistre(dossier)) {
             etat.setText("Registre réinitialisé !");
@@ -169,10 +173,10 @@ public class Principal extends javax.swing.JFrame {
         }
         updateInfosRegistre(dossier);
     }
-
+    
     private void supprimer(String dossier, String id) {
         ecran.setText("");
-
+        
         boolean rep = fm.supprimer(dossier, Integer.parseInt(id));
         if (rep == true) {
             ecran.append("Suppression de " + id + " dans " + dossier + " reussie !");
@@ -182,16 +186,17 @@ public class Principal extends javax.swing.JFrame {
             etat.setText("Echec de suppression");
         }
     }
-
+    
     private void supprimerGroupe(String dossier, String[] tabIDS) {
         ecran.setText("");
-
+        progressUser.setIndeterminate(true);
         fm.supprimerTout(dossier, tabIDS, new EcouteurSuppression() {
             @Override
             public void onDone(String message, Object[] idsNonSupprimes) {
                 ecran.setText(message);
                 etat.setText(message);
-
+                progressUser.setIndeterminate(false);
+                
                 if (idsNonSupprimes.length != 0) {
                     ecran.append("Ids des objets non supprimés:\n");
                     for (Object oId : idsNonSupprimes) {
@@ -201,13 +206,14 @@ public class Principal extends javax.swing.JFrame {
                     ecran.setText("les " + tabIDS.length + " ids sont tous supprimés !");
                 }
             }
-
+            
             @Override
             public void onError(String message) {
                 ecran.setText(message);
                 etat.setText(message);
+                progressUser.setIndeterminate(false);
             }
-
+            
             @Override
             public void onProcessing(String message) {
                 ecran.setText(message);
@@ -215,14 +221,15 @@ public class Principal extends javax.swing.JFrame {
             }
         });
     }
-
+    
     private void viderTout(Class NomClasse, String dossier) {
         ecran.setText("");
-
+        progressUser.setIndeterminate(true);
         fm.supprimerTout(dossier, new EcouteurSuppression() {
             @Override
             public void onDone(String message, Object[] idsNonSupprimes) {
                 etat.setText(message);
+                progressUser.setIndeterminate(false);
                 if (idsNonSupprimes.length != 0) {
                     ecran.setText("Objets non supprimés:\n");
                     for (Object oID : idsNonSupprimes) {
@@ -231,22 +238,23 @@ public class Principal extends javax.swing.JFrame {
                 } else {
                     ecran.setText("Le dossier vidé!\n");
                 }
-
+                
                 listerDossier(NomClasse, dossier);
             }
-
+            
             @Override
             public void onError(String message) {
                 etat.setText(message);
+                progressUser.setIndeterminate(false);
             }
-
+            
             @Override
             public void onProcessing(String message) {
                 etat.setText(message);
             }
         });
     }
-
+    
     private void ouvrirObjet(Class NomClasse, String dossier, String idObj) {
         ecran.setText("");
         Object obj = fm.ouvrir(NomClasse, dossier, Integer.parseInt(idObj + ""));
@@ -255,7 +263,7 @@ public class Principal extends javax.swing.JFrame {
         } else {
             ecran.setText("Objet introuvable !");
         }
-
+        
     }
 
     /**
@@ -298,6 +306,7 @@ public class Principal extends javax.swing.JFrame {
         ecran = new javax.swing.JTextArea();
         chLastId = new javax.swing.JLabel();
         btReinitRegistre = new javax.swing.JButton();
+        progressUser = new javax.swing.JProgressBar();
         panLogin = new javax.swing.JPanel();
         jButton2 = new javax.swing.JButton();
         jLabel5 = new javax.swing.JLabel();
@@ -306,7 +315,7 @@ public class Principal extends javax.swing.JFrame {
         chPassWord = new javax.swing.JPasswordField();
         jLabel7 = new javax.swing.JLabel();
         labLogin = new javax.swing.JLabel();
-        jProgressBar1 = new javax.swing.JProgressBar();
+        progressLogin = new javax.swing.JProgressBar();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -536,24 +545,31 @@ public class Principal extends javax.swing.JFrame {
         panUser.setLayout(panUserLayout);
         panUserLayout.setHorizontalGroup(
             panUserLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 480, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panUserLayout.createSequentialGroup()
+                .addContainerGap(289, Short.MAX_VALUE)
+                .addComponent(progressUser, javax.swing.GroupLayout.PREFERRED_SIZE, 191, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
             .addGroup(panUserLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(panUserLayout.createSequentialGroup()
                     .addContainerGap()
                     .addGroup(panUserLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(etat, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jScrollPane1)
-                        .addGroup(panUserLayout.createSequentialGroup()
-                            .addComponent(chLastId, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panUserLayout.createSequentialGroup()
+                            .addGroup(panUserLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                .addComponent(etat, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(chLastId, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                            .addComponent(btReinitRegistre, javax.swing.GroupLayout.PREFERRED_SIZE, 191, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                            .addComponent(btReinitRegistre, javax.swing.GroupLayout.PREFERRED_SIZE, 191, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addContainerGap()))
         );
         panUserLayout.setVerticalGroup(
             panUserLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 492, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panUserLayout.createSequentialGroup()
+                .addContainerGap(467, Short.MAX_VALUE)
+                .addComponent(progressUser, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
             .addGroup(panUserLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(panUserLayout.createSequentialGroup()
                     .addContainerGap()
@@ -593,6 +609,11 @@ public class Principal extends javax.swing.JFrame {
         });
 
         chPassWord.setText("jPasswordField1");
+        chPassWord.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                chPassWordKeyReleased(evt);
+            }
+        });
 
         jLabel7.setText("Créer un nouveau compte");
 
@@ -605,7 +626,7 @@ public class Principal extends javax.swing.JFrame {
             .addGroup(panLoginLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(panLoginLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jProgressBar1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(progressLogin, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panLoginLayout.createSequentialGroup()
                         .addGroup(panLoginLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -635,7 +656,7 @@ public class Principal extends javax.swing.JFrame {
                     .addComponent(jButton2)
                     .addComponent(jLabel7))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jProgressBar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(progressLogin, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(labLogin)
                 .addContainerGap(356, Short.MAX_VALUE))
@@ -675,11 +696,11 @@ public class Principal extends javax.swing.JFrame {
                 Vector<LiaisonClasseFrais> lc = new Vector<>();
                 lc.add(new LiaisonClasseFrais(1, "CM1", 100));
                 lc.add(new LiaisonClasseFrais(2, "CM2", 100));
-
+                
                 Vector<LiaisonPeriodeFrais> lp = new Vector<>();
                 lp.add(new LiaisonPeriodeFrais(1, "1ere Trime", 50));
                 lp.add(new LiaisonPeriodeFrais(2, "2ème Trime", 50));
-
+                
                 Uinputs.add(new XX_Frais(-1, 1, 1, 1, 1, new Date().getTime(), "FRAISX", "$", 3, lc, lp, 100, InterfaceFrais.BETA_EXISTANT));
             }
             enreg_Groupe(Uinputs, dossierFrais.getText());
@@ -699,13 +720,13 @@ public class Principal extends javax.swing.JFrame {
             Vector<LiaisonClasseFrais> lc = new Vector<>();
             lc.add(new LiaisonClasseFrais(1, "CM1", 100));
             lc.add(new LiaisonClasseFrais(2, "CM2", 100));
-
+            
             Vector<LiaisonPeriodeFrais> lp = new Vector<>();
             lp.add(new LiaisonPeriodeFrais(1, "1ere Trime", 50));
             lp.add(new LiaisonPeriodeFrais(2, "2ème Trime", 50));
-
+            
             XX_Frais newObj = new XX_Frais(-1, 1, 1, 1, 1, new Date().getTime(), "FRAISX", "$", 3, lc, lp, 100, InterfaceFrais.BETA_EXISTANT);
-
+            
             enreg_Objet(newObj, dossierFrais.getText());
         }
 
@@ -796,10 +817,17 @@ public class Principal extends javax.swing.JFrame {
 
     private void chIdEcoleKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_chIdEcoleKeyReleased
         // TODO add your handling code here:
-        if(evt.getKeyCode() == KeyEvent.VK_ENTER){
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
             login();
         }
     }//GEN-LAST:event_chIdEcoleKeyReleased
+
+    private void chPassWordKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_chPassWordKeyReleased
+        // TODO add your handling code here:
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+            login();
+        }
+    }//GEN-LAST:event_chPassWordKeyReleased
 
     /**
      * @param args the command line arguments
@@ -871,37 +899,43 @@ public class Principal extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel7;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
-    private javax.swing.JProgressBar jProgressBar1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel labLogin;
     private javax.swing.JPanel panLogin;
     private javax.swing.JPanel panUser;
+    private javax.swing.JProgressBar progressLogin;
+    private javax.swing.JProgressBar progressUser;
     private javax.swing.JTabbedPane tabPrincipal;
     // End of variables declaration//GEN-END:variables
 
+    
+    
     private void login() {
-        fm.login(Integer.parseInt(chIdEcole.getText().trim()), chPassWord.getText(), new EcouteurLongin() {
+        fm.login(chIdEcole.getText().trim(), chPassWord.getText().trim(), new EcouteurLongin() {
             @Override
             public void onConnected(String message, Session session) {
-                if(session != null){
+                progressLogin.setIndeterminate(false);
+                if (session != null) {
                     tabPrincipal.remove(panLogin);
-                    tabPrincipal.add("Bien venu " + session.getUtilisateur().getPrenom()+" | " + session.getEntreprise().getNom(), panUser);
+                    tabPrincipal.add("Bien venu " + session.getUtilisateur().getPrenom() + " | " + session.getEntreprise().getNom(), panUser);
                     showRegistre();
                 }
             }
-
+            
             @Override
             public void onEchec(String message) {
                 labLogin.setText(message);
+                progressLogin.setIndeterminate(false);
             }
-
+            
             @Override
             public void onProcessing(String message) {
                 labLogin.setText(message);
+                progressLogin.setIndeterminate(true);
             }
         });
     }
-
+    
     private void logout() {
         fm.logout(new EcouteurStandard() {
             @Override
@@ -910,12 +944,12 @@ public class Principal extends javax.swing.JFrame {
                 tabPrincipal.add("Authentification", panLogin);
                 labLogin.setText(message);
             }
-
+            
             @Override
             public void onError(String message) {
                 etat.setText(message);
             }
-
+            
             @Override
             public void onProcessing(String message) {
                 etat.setText(message);

@@ -5,6 +5,7 @@
  */
 package SOURCES.Objets;
 
+import SOURCES.Callback.EcouteurLoginServeur;
 import SOURCES.Callback.EcouteurLongin;
 import SOURCES.Callback.EcouteurOuverture;
 import SOURCES.Callback.EcouteurStandard;
@@ -27,72 +28,119 @@ public class FileManager {
 
     private Registre registre = new Registre(0, new Date());
     private Session session = null;
+    private String racine = "DataJ2B";
 
     public FileManager() {
 
     }
 
-    private Session getSession(Thread processus, int idEcole, String motDePasse, EcouteurLongin ecouteurLongin) {
+    private void loginToServer(Thread processus, String idEcole, String userPassWord, EcouteurLoginServeur ecouteurLoginServeur) {
+        try {
+            if (ecouteurLoginServeur != null) {
+                ecouteurLoginServeur.onProcessing("Connexion au serveur");
+            }
+            if (processus != null) {
+                processus.sleep(100);
+            }
+            Entreprise entreprise = new Entreprise(10, "ECOLE CARTESIENNE DE KINSHASA", "Limeté - Kinshasa/RDC", "+243844803514", "info@cartesien.org", "www.cartesien.org", "EquityBank RDC", "CARTESIEN DE KINSHASA", "0123654100001248", "IBAN0145400", "WFTCDKIN", "logo.png", "RCCM00BT45", "ID00145", "IP4551220");
+            Utilisateur utilisateur = new Utilisateur(1, entreprise.getId(), "sulabosiog@gmail.com", "abc", InterfaceUtilisateur.TYPE_ADMIN, new Date().getTime(), "SULA", "BOSIO", "Serge", InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.BETA_EXISTANT);
+
+            ecouteurLoginServeur.onDone("Connexion reussie.", entreprise, utilisateur);
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (ecouteurLoginServeur != null) {
+                ecouteurLoginServeur.onError("Serveur introuvable.");
+            }
+        }
+    }
+
+    private void initSession(Thread processus, String idEcole, String motDePasse, EcouteurLongin ecouteurLongin) {
         try {
             if (ecouteurLongin != null) {
-                ecouteurLongin.onProcessing("Vérification des données...");
+                ecouteurLongin.onProcessing("Connexion au serveur...");
             }
             processus.sleep(1000);
-            if (idEcole == 10 && motDePasse.trim().equals("abc")) {
-                if (ecouteurLongin != null) {
-                    ecouteurLongin.onProcessing("Chargement des données...");
+            loginToServer(processus, idEcole, motDePasse, new EcouteurLoginServeur() {
+                @Override
+                public void onDone(String message, Entreprise entreprise, Utilisateur utilisateur) {
+                    if (Integer.parseInt(idEcole.trim()) == entreprise.getId() && motDePasse.trim().equals(utilisateur.getMotDePasse().trim())) {
+                        if (ecouteurLongin != null) {
+                            ecouteurLongin.onProcessing("Chargement des données...");
+                        }
+                        Date dateConnexion = new Date();
+                        session = new Session(entreprise, utilisateur, dateConnexion.getTime() + "", dateConnexion);
+
+                        //Enregistrement de la session dans le disque local
+                        if (ecouteurLongin != null) {
+                            ecouteurLongin.onProcessing("Initialisation de la session...");
+                        }
+
+                        String sessionFolder = racine;
+                        creerDossierSiNExistePas(sessionFolder);
+                        if (new File(sessionFolder).exists() == true) {
+                            boolean isSessionCreated = ecrire(sessionFolder + "/" + Session.fichierSession, session);
+                            if (isSessionCreated == true) {
+                                if (ecouteurLongin != null) {
+                                    ecouteurLongin.onConnected(message, session);
+                                }
+                            } else {
+                                if (ecouteurLongin != null) {
+                                    ecouteurLongin.onEchec("Impossible d'initialiser la session Utilisateur!");
+                                }
+                            }
+                        } else {
+                            if (ecouteurLongin != null) {
+                                ecouteurLongin.onEchec("sessionFolder introuvable!");
+                            }
+                        }
+                    } else {
+                        if (ecouteurLongin != null) {
+                            ecouteurLongin.onEchec("Coordonnées incorrectes!");
+                        }
+                    }
                 }
 
-                Entreprise entreprise = new Entreprise(10, "ECOLE CARTESIENNE DE KINSHASA", "Limeté - Kinshasa/RDC", "+243844803514", "info@cartesien.org", "www.cartesien.org", "EquityBank RDC", "CARTESIEN DE KINSHASA", "0123654100001248", "IBAN0145400", "WFTCDKIN", "logo.png", "RCCM00BT45", "ID00145", "IP4551220");
-                Utilisateur utilisateur = new Utilisateur(1, entreprise.getId(), "sulabosiog@gmail.com", "abc", InterfaceUtilisateur.TYPE_ADMIN, new Date().getTime(), "SULA", "BOSIO", "Serge", InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.BETA_EXISTANT);
-                Date dateConnexion = new Date();
+                @Override
+                public void onError(String message) {
+                    if (ecouteurLongin != null) {
+                        ecouteurLongin.onEchec(message);
+                    }
+                }
 
-                if (ecouteurLongin != null) {
-                    ecouteurLongin.onProcessing("Ouverture des données...");
+                @Override
+                public void onProcessing(String message) {
+                    if (ecouteurLongin != null) {
+                        ecouteurLongin.onProcessing(message);
+                    }
                 }
-                processus.sleep(1000);
-                return new Session(entreprise, utilisateur, dateConnexion.getTime() + "", dateConnexion);
-            } else {
-                if (ecouteurLongin != null) {
-                    ecouteurLongin.onProcessing("Coordonnées incorrectes!");
-                }
-                return null;
-            }
+            });
         } catch (Exception e) {
             e.printStackTrace();
             if (ecouteurLongin != null) {
                 ecouteurLongin.onEchec("Erreur !");
             }
         }
-        return null;
     }
 
-    public void login(int idEcole, String motDePasse, EcouteurLongin ecouteurLongin) {
+    public void login(String idEcole, String motDePasse, EcouteurLongin ecouteurLongin) {
         new Thread() {
             @Override
             public void run() {
                 try {
-                    if (motDePasse.trim().length() != 0) {
-                        if (ecouteurLongin != null) {
-                            ecouteurLongin.onProcessing("Authentification...");
-                        }
-                        sleep(1000);
-                        Session session = getSession(this, idEcole, motDePasse, ecouteurLongin);
-                        if (session != null) {
-                            if (ecouteurLongin != null) {
-                                //C'est ici que la session doit être enregistrée dans un fichier JSON
-                                
-                                ecouteurLongin.onConnected("Connexion reussie !", session);
-                            } else {
-                                ecouteurLongin.onEchec("Accès refusé.");
-                            }
-                        }
-
-                    } else {
+                    if (motDePasse.trim().length() == 0) {
                         if (ecouteurLongin != null) {
                             ecouteurLongin.onEchec("Désolé, aucun mot de passe.");
                         }
                     }
+                    if (idEcole.trim().length() == 0) {
+                        if (ecouteurLongin != null) {
+                            ecouteurLongin.onEchec("Désolé, aucun ID de l'école.");
+                        }
+                    }
+                    if (ecouteurLongin != null) {
+                        ecouteurLongin.onProcessing("Authentification...");
+                    }
+                    initSession(this, idEcole, motDePasse, ecouteurLongin);
                 } catch (Exception e) {
                     e.printStackTrace();
                     if (ecouteurLongin != null) {
@@ -113,9 +161,18 @@ public class FileManager {
                         ecouteurStandard.onProcessing("Deconnexion...");
                     }
                     sleep(1000);
-                    if (ecouteurStandard != null) {
-                        ecouteurStandard.onDone("Déconnecté!");
+                    File sessionFile = new File(racine + "/" + Session.fichierSession);
+                    boolean sessionDeleted = sessionFile.delete();
+                    if (sessionDeleted == true && !sessionFile.exists()) {
+                        if (ecouteurStandard != null) {
+                            ecouteurStandard.onDone("Déconnecté!");
+                        }
+                    } else {
+                        if (ecouteurStandard != null) {
+                            ecouteurStandard.onError("Impossible de supprimer votre session!");
+                        }
                     }
+
                 } catch (Exception e) {
                     e.printStackTrace();
                     if (ecouteurStandard != null) {
@@ -138,10 +195,17 @@ public class FileManager {
                         ecouteurLongin.onProcessing("Vérification de la session...");
                     }
                     sleep(1000);
-
-                    if (ecouteurLongin != null) {
-                        ecouteurLongin.onConnected("Connexion reussi!", null);
+                    Session sessionLoaded = (Session) Util.lire(racine + "/" + Session.fichierSession, Session.class);
+                    if (sessionLoaded != null) {
+                        if (ecouteurLongin != null) {
+                            ecouteurLongin.onConnected("Connexion reussi!", null);
+                        }
+                    } else {
+                        if (ecouteurLongin != null) {
+                            ecouteurLongin.onEchec("Session expirée!");
+                        }
                     }
+
                 } catch (Exception e) {
                     e.printStackTrace();
                     if (ecouteurLongin != null) {
@@ -164,13 +228,13 @@ public class FileManager {
     }
 
     public boolean reinitialiserRegistre(String dossier) {
-        File ficRegistre = new File(dossier + "/" + Registre.fichierRegistre);
+        File ficRegistre = new File(racine+"/"+dossier + "/" + Registre.fichierRegistre);
         return ecrire(ficRegistre.getAbsolutePath(), new Registre(0, new Date()));
     }
 
     private void chargerRegistreEnMemoire(String nomDossier) {
         //System.out.println("Le fichier " + fichierREGISTRE + " existe.");
-        registre = (Registre) ouvrir(Registre.class, nomDossier + "/" + Registre.fichierRegistre);
+        registre = (Registre) ouvrir(Registre.class, racine+"/"+nomDossier + "/" + Registre.fichierRegistre);
     }
 
     public Registre getRegistre(String nomDossier) {
@@ -181,7 +245,7 @@ public class FileManager {
     private void enregistrer_NoThread(Object NewObj, String nomDossier, EcouteurStandard ecouteur) {
         try {
             //On doit initialiser le dossier des données avant toute chose
-            boolean canSave = initDataFolder(nomDossier);
+            boolean canSave = initDataFolder(racine+"/"+nomDossier);
             if (canSave == true) {
                 //En suite on procède à l'enregistrement
                 int idNewObj = getIdObjet(NewObj);
@@ -444,3 +508,13 @@ public class FileManager {
     }
 
 }
+
+
+
+
+
+
+
+
+
+

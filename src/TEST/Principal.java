@@ -28,7 +28,7 @@ public class Principal extends javax.swing.JFrame {
     /**
      * Creates new form Principal
      */
-    public FileManager fm = new FileManager();
+    public FileManager fm = new FileManager("http://www.visiterlardc.com/ProcesseurS2B.php");
     private JFrame moi = null;
     
     public Principal() {

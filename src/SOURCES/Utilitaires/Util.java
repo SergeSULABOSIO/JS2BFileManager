@@ -17,6 +17,7 @@ import java.io.IOException;
  * @author user
  */
 public class Util {
+    public static final int ACTION_CONNEXION = 100;
 
     public static boolean ecrire(String fichierDestination, Object objet) {
         if (objet != null) {

@@ -5,6 +5,11 @@
  */
 package SOURCES.Objets;
 
+import BASE.Constante;
+import BASE.ObjetNetWork;
+import Callback.CallBackObjetNetWork;
+import Callback.CallBackObjetNetWorks;
+import Callback.CallBackReponse;
 import SOURCES.Callback.EcouteurLoginServeur;
 import SOURCES.Callback.EcouteurLongin;
 import SOURCES.Callback.EcouteurOuverture;
@@ -19,22 +24,23 @@ import java.util.Date;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.json.JSONObject;
 
 /**
  *
  * @author user
  */
-public class FileManager {
+public class FileManager extends ObjetNetWork {
 
     private Registre registre = new Registre(0, new Date());
     private Session session = null;
     private String racine = "DataJ2BFees";
 
-    public FileManager() {
-
+    public FileManager(String adresseServeur) {
+        super(adresseServeur);
     }
 
-    private void loginToServer(Thread processus, String idEcole, String userPassWord, EcouteurLoginServeur ecouteurLoginServeur) {
+    private void loginToServer(Thread processus, String idEcole, String motDePasse, EcouteurLoginServeur ecouteurLoginServeur) {
         try {
             if (ecouteurLoginServeur != null) {
                 ecouteurLoginServeur.onProcessing("Connexion au serveur");
@@ -42,10 +48,28 @@ public class FileManager {
             if (processus != null) {
                 processus.sleep(100);
             }
-            Entreprise entreprise = new Entreprise(10, "ECOLE CARTESIENNE DE KINSHASA", "Limeté - Kinshasa/RDC", "+243844803514", "info@cartesien.org", "www.cartesien.org", "EquityBank RDC", "CARTESIEN DE KINSHASA", "0123654100001248", "IBAN0145400", "WFTCDKIN", "logo.png", "RCCM00BT45", "ID00145", "IP4551220");
-            Utilisateur utilisateur = new Utilisateur(1, entreprise.getId(), "sulabosiog@gmail.com", "abc", InterfaceUtilisateur.TYPE_ADMIN, new Date().getTime(), "SULA", "BOSIO", "Serge", InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.BETA_EXISTANT);
-            
-            ecouteurLoginServeur.onDone("Connexion reussie.", entreprise, utilisateur);
+
+            String parametres = "action=" + Util.ACTION_CONNEXION + "&idEcole=" + idEcole + "&motDePasse=" + motDePasse + "";
+            POST_CHARGER(adresseServeur, parametres, new CallBackObjetNetWork() {
+                @Override
+                public void getObjetNetWork(JSONObject jsono) {
+                    
+                    Entreprise entreprise = new Entreprise(10, "ECOLE CARTESIENNE DE KINSHASA", "Limeté - Kinshasa/RDC", "+243844803514", "info@cartesien.org", "www.cartesien.org", "EquityBank RDC", "CARTESIEN DE KINSHASA", "0123654100001248", "IBAN0145400", "WFTCDKIN", "logo.png", "RCCM00BT45", "ID00145", "IP4551220");
+                    Utilisateur utilisateur = new Utilisateur(1, entreprise.getId(), "sulabosiog@gmail.com", "abc", InterfaceUtilisateur.TYPE_ADMIN, new Date().getTime(), "SULA", "BOSIO", "Serge", InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.BETA_EXISTANT);
+                    if (ecouteurLoginServeur != null) {
+                        ecouteurLoginServeur.onDone("Connexion reussie.", entreprise, utilisateur);
+                    }
+
+                }
+
+                @Override
+                public void getErreur(String message) {
+                    if (ecouteurLoginServeur != null) {
+                        ecouteurLoginServeur.onError(message);
+                    }
+                }
+            });
+
         } catch (Exception e) {
             e.printStackTrace();
             if (ecouteurLoginServeur != null) {
@@ -57,7 +81,7 @@ public class FileManager {
     private void initSession(Thread processus, String idEcole, String motDePasse, EcouteurLongin ecouteurLongin) {
         try {
             if (ecouteurLongin != null) {
-                ecouteurLongin.onProcessing("Connexion au serveur...");
+                ecouteurLongin.onProcessing("Connexion au serveur...(" + adresseServeur+")");
             }
             processus.sleep(1000);
             loginToServer(processus, idEcole, motDePasse, new EcouteurLoginServeur() {
@@ -67,6 +91,7 @@ public class FileManager {
                         if (ecouteurLongin != null) {
                             ecouteurLongin.onProcessing("Chargement des données...");
                         }
+
                         Date dateConnexion = new Date();
                         session = new Session(entreprise, utilisateur, dateConnexion.getTime() + "", dateConnexion);
 
@@ -220,7 +245,7 @@ public class FileManager {
     private boolean initDataFolder(String table) {
         //Initialisation
         creerDossierSiNExistePas(racine + "/" + session.getEntreprise().getId() + "/" + table);
-        if (!(new File(racine+"/"+session.getEntreprise().getId()+"/"+table + "/" + Registre.fichierRegistre)).exists()) {
+        if (!(new File(racine + "/" + session.getEntreprise().getId() + "/" + table + "/" + Registre.fichierRegistre)).exists()) {
             reinitialiserRegistre(table);
         }
         chargerRegistreEnMemoire(table);
@@ -228,13 +253,13 @@ public class FileManager {
     }
 
     public boolean reinitialiserRegistre(String table) {
-        File ficRegistre = new File(racine+"/"+session.getEntreprise().getId()+"/"+table + "/" + Registre.fichierRegistre);
+        File ficRegistre = new File(racine + "/" + session.getEntreprise().getId() + "/" + table + "/" + Registre.fichierRegistre);
         return ecrire(ficRegistre.getAbsolutePath(), new Registre(0, new Date()));
     }
 
     private void chargerRegistreEnMemoire(String table) {
         //System.out.println("Le fichier " + fichierREGISTRE + " existe.");
-        registre = (Registre) ouvrir(Registre.class, racine+"/"+session.getEntreprise().getId()+"/"+table + "/" + Registre.fichierRegistre);
+        registre = (Registre) ouvrir(Registre.class, racine + "/" + session.getEntreprise().getId() + "/" + table + "/" + Registre.fichierRegistre);
     }
 
     public Registre getRegistre(String table) {
@@ -260,7 +285,7 @@ public class FileManager {
                     ecouteur.onProcessing("Enregistrement...");
                 }
 
-                boolean rep = ecrire(racine+"/"+session.getEntreprise().getId() + "/" + table + "/" + idNewObj, NewObj);
+                boolean rep = ecrire(racine + "/" + session.getEntreprise().getId() + "/" + table + "/" + idNewObj, NewObj);
                 if (rep == true) {
                     registre.incrementer(mustIncrement);
                     saveRegistre(table);
@@ -486,7 +511,7 @@ public class FileManager {
     }
 
     private void saveRegistre(String table) {
-        ecrire(new File(racine + "/"+ session.getEntreprise().getId() + "/" + table + "/" + Registre.fichierRegistre).getAbsolutePath(), registre);
+        ecrire(new File(racine + "/" + session.getEntreprise().getId() + "/" + table + "/" + Registre.fichierRegistre).getAbsolutePath(), registre);
     }
 
     private boolean ecrire(String chemin, Object obj) {
@@ -507,14 +532,39 @@ public class FileManager {
         }
     }
 
+    @Override
+    public void setConstantes(Vector<Constante> vector) {
+        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void NetWork_supprimer(int i, int i1, CallBackReponse cbr) {
+        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void NetWork_modifier(int i, Object o, CallBackReponse cbr) {
+        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void NetWork_login(String string, String string1, CallBackObjetNetWork cbonw) {
+
+    }
+
+    @Override
+    public void NetWork_charger_via_idObj(int i, int i1, CallBackObjetNetWork cbonw) {
+        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void NetWork_enregistrer(int i, Object o, CallBackReponse cbr) {
+        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void NetWork_lister(String string, String string1, int i, int i1, int i2, Object o, CallBackObjetNetWorks cbonw) {
+        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
 }
-
-
-
-
-
-
-
-
-
-

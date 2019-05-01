@@ -12,10 +12,10 @@ import java.util.Date;
  * @author HP Pavilion
  */
 public class Session {
-    private Entreprise entreprise;
-    private Utilisateur utilisateur;
-    private String token;
-    private Date derniereConnexion;
+    public Entreprise entreprise;
+    public Utilisateur utilisateur;
+    public String token;
+    public Date derniereConnexion;
     public final static String fichierSession = "SESSION.man";
 
     public Session() {

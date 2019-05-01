@@ -14,8 +14,8 @@ import java.util.Date;
 
 
 public class Registre {
-    private int dernierID;
-    private Date dateEnregistrement;
+    public int dernierID;
+    public Date dateEnregistrement;
     public final static String fichierRegistre = "MANIFEST.man";    //Fichier qui contient le dernier ID
     
     public Registre() {

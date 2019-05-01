@@ -12,39 +12,65 @@ import SOURCES.Interfaces.InterfaceEntreprise;
  * @author HP Pavilion
  */
 public class Entreprise implements InterfaceEntreprise{
-    public int id;
-    public String nom;
-    public String adresse;
-    public String telephone;
-    public String email;
-    public String siteWeb;
+    private int id;
+    private String nom;
+    private String adresse;
+    private String telephone;
+    private String email;
+    private String siteWeb;
     private String logo;
-    private String rccm;
-    private String idNat;
+    private String RCCM;
+    private String IDNAT;
     private String numeroImpot;
     //Details bancaires
-    public String banque;
-    public String intituleCompte;
-    public String numeroCompte;
-    public String IBAN;
-    public String codeSwift;
+    private String banque;
+    private String intituleCompte;
+    private String numeroCompte;
+    private String IBAN;
+    private String codeSwift;
 
-    public Entreprise(int id, String nom, String adresse, String telephone, String email, String siteWeb, String banque, String intituleCompte, String numeroCompte, String IBAN, String codeSwift, String logo, String rccm, String idNat, String numeroImpot) {
+    public Entreprise() {
+    }
+    
+    
+
+    public Entreprise(int id, String nom, String adresse, String telephone, String email, String siteWeb, String logo, String RCCM, String IDNAT, String numeroImpot, String banque, String intituleCompte, String numeroCompte, String IBAN, String codeSwift) {
         this.id = id;
         this.nom = nom;
         this.adresse = adresse;
         this.telephone = telephone;
         this.email = email;
         this.siteWeb = siteWeb;
+        this.logo = logo;
+        this.RCCM = RCCM;
+        this.IDNAT = IDNAT;
+        this.numeroImpot = numeroImpot;
         this.banque = banque;
         this.intituleCompte = intituleCompte;
         this.numeroCompte = numeroCompte;
         this.IBAN = IBAN;
         this.codeSwift = codeSwift;
-        this.logo = logo;
-        this.rccm = rccm;
-        this.idNat = idNat;
-        this.numeroImpot = numeroImpot;
+    }
+
+    public String getRCCM() {
+        return RCCM;
+    }
+
+    public void setRCCM(String RCCM) {
+        this.RCCM = RCCM;
+    }
+
+    public String getIDNAT() {
+        return IDNAT;
+    }
+
+    public void setIDNAT(String IDNAT) {
+        this.IDNAT = IDNAT;
+    }
+
+    @Override
+    public String toString() {
+        return "Entreprise{" + "id=" + id + ", nom=" + nom + ", adresse=" + adresse + ", telephone=" + telephone + ", email=" + email + ", siteWeb=" + siteWeb + ", logo=" + logo + ", RCCM=" + RCCM + ", IDNAT=" + IDNAT + ", numeroImpot=" + numeroImpot + ", banque=" + banque + ", intituleCompte=" + intituleCompte + ", numeroCompte=" + numeroCompte + ", IBAN=" + IBAN + ", codeSwift=" + codeSwift + '}';
     }
 
     public int getId() {
@@ -95,6 +121,22 @@ public class Entreprise implements InterfaceEntreprise{
         this.siteWeb = siteWeb;
     }
 
+    public String getLogo() {
+        return logo;
+    }
+
+    public void setLogo(String logo) {
+        this.logo = logo;
+    }
+
+    public String getNumeroImpot() {
+        return numeroImpot;
+    }
+
+    public void setNumeroImpot(String numeroImpot) {
+        this.numeroImpot = numeroImpot;
+    }
+
     public String getBanque() {
         return banque;
     }
@@ -135,63 +177,5 @@ public class Entreprise implements InterfaceEntreprise{
         this.codeSwift = codeSwift;
     }
 
-    public String getLogo() {
-        return logo;
-    }
-
-    public void setLogo(String logo) {
-        this.logo = logo;
-    }
-
-    public String getRccm() {
-        return rccm;
-    }
-
-    public void setRccm(String rccm) {
-        this.rccm = rccm;
-    }
-
-    public String getIdNat() {
-        return idNat;
-    }
-
-    public void setIdNat(String idNat) {
-        this.idNat = idNat;
-    }
-
-    public String getNumeroImpot() {
-        return numeroImpot;
-    }
-
-    public void setNumeroImpot(String numeroImpot) {
-        this.numeroImpot = numeroImpot;
-    }
-    
-    
-
-    @Override
-    public String toString() {
-        return "TESTEntreprise{" + "id=" + id + ", nom=" + nom + ", adresse=" + adresse + ", telephone=" + telephone + ", email=" + email + ", siteWeb=" + siteWeb + ", banque=" + banque + ", intituleCompte=" + intituleCompte + ", numeroCompte=" + numeroCompte + ", IBAN=" + IBAN + ", codeSwift=" + codeSwift + '}';
-    }
-
-    @Override
-    public String getRCCM() {
-        return this.rccm;
-    }
-
-    @Override
-    public String getIDNAT() {
-        return this.idNat;
-    }
-
-    @Override
-    public void setRCCM(String rccm) {
-        this.rccm = rccm;
-    }
-
-    @Override
-    public void setIDNAT(String idnat) {
-        this.idNat = idnat;
-    }
     
 }

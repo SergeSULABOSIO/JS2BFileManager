@@ -353,8 +353,8 @@ public class FileManager {
         return Util.lire(fichierSource, NomClasse);
     }
 
-    public Object ouvrir(Class NomClasse, String dossierSource, int idObj) {
-        return Util.lire(dossierSource + "/" + idObj, NomClasse);
+    public Object ouvrir(Class NomClasse, String table, int idObj) {
+        return Util.lire(racine + "/" + session.getEntreprise().getId() + "/" + table + "/" + idObj, NomClasse);
     }
 
     public boolean supprimer(String table, int idObj) {

@@ -192,10 +192,10 @@ public class Principal extends javax.swing.JFrame {
         }
     }
     
-    private void supprimerGroupe(String dossier, String[] tabIDS) {
+    private void supprimerGroupe(String table, String[] tabIDS) {
         ecran.setText("");
         progressUser.setIndeterminate(true);
-        fm.supprimerTout(dossier, tabIDS, new EcouteurSuppression() {
+        fm.supprimerTout(table, tabIDS, new EcouteurSuppression() {
             @Override
             public void onDone(String message, Object[] idsNonSupprimes) {
                 ecran.setText(message);
@@ -227,10 +227,10 @@ public class Principal extends javax.swing.JFrame {
         });
     }
     
-    private void viderTout(Class NomClasse, String dossier) {
+    private void viderTout(Class NomClasse, String table) {
         ecran.setText("");
         progressUser.setIndeterminate(true);
-        fm.supprimerTout(dossier, new EcouteurSuppression() {
+        fm.supprimerTout(table, new EcouteurSuppression() {
             @Override
             public void onDone(String message, Object[] idsNonSupprimes) {
                 etat.setText(message);
@@ -244,7 +244,7 @@ public class Principal extends javax.swing.JFrame {
                     ecran.setText("Le dossier vidé!\n");
                 }
                 
-                listerDossier(NomClasse, dossier);
+                listerDossier(NomClasse, table);
             }
             
             @Override
@@ -260,9 +260,9 @@ public class Principal extends javax.swing.JFrame {
         });
     }
     
-    private void ouvrirObjet(Class NomClasse, String dossier, String idObj) {
+    private void ouvrirObjet(Class NomClasse, String table, String idObj) {
         ecran.setText("");
-        Object obj = fm.ouvrir(NomClasse, dossier, Integer.parseInt(idObj + ""));
+        Object obj = fm.ouvrir(NomClasse, table, Integer.parseInt(idObj + ""));
         if (obj != null) {
             ecran.setText(obj.toString() + "\n");
         } else {

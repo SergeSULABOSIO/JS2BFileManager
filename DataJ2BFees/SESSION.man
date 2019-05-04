@@ -35,6 +35,6 @@
     "droitUtilisateur" : 2,
     "beta" : 2
   },
-  "token" : "1557011987918",
-  "derniereConnexion" : 1557011987918
+  "token" : "1557012549794",
+  "derniereConnexion" : 1557012549794
 }

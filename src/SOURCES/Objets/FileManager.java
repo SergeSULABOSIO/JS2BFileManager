@@ -24,7 +24,6 @@ import java.util.Date;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.json.JSONObject;
 
 /**
  *
@@ -55,7 +54,7 @@ public class FileManager extends ObjetNetWork {
                 public void getObjetNetWork(JSONObject jsono) {
                     
                     Entreprise entreprise = new Entreprise(10, "ECOLE CARTESIENNE DE KINSHASA", "Limeté - Kinshasa/RDC", "+243844803514", "info@cartesien.org", "www.cartesien.org", "EquityBank RDC", "CARTESIEN DE KINSHASA", "0123654100001248", "IBAN0145400", "WFTCDKIN", "logo.png", "RCCM00BT45", "ID00145", "IP4551220");
-                    Utilisateur utilisateur = new Utilisateur(1, entreprise.getId(), "sulabosiog@gmail.com", "abc", InterfaceUtilisateur.TYPE_ADMIN, new Date().getTime(), "SULA", "BOSIO", "Serge", InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.BETA_EXISTANT);
+                    Utilisateur utilisateur = new Utilisateur(1, entreprise.getId(), "SULA", "BOSIO", "Serge", "sulabosiog@gmail.com", "abc", InterfaceUtilisateur.TYPE_ADMIN, new Date().getTime(), InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.BETA_EXISTANT);
                     
                     if (ecouteurLoginServeur != null) {
                         ecouteurLoginServeur.onDone("Connexion reussie.", entreprise, utilisateur);
@@ -569,3 +568,5 @@ public class FileManager extends ObjetNetWork {
     }
 
 }
+
+

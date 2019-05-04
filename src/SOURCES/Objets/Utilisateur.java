@@ -15,13 +15,13 @@ public class Utilisateur implements InterfaceUtilisateur{
     
     public int id;
     public int idEntreprise;
+    public String nom;
+    public String postnom;
+    public String prenom;
     public String email;
     public String motDePasse;
     public int type;
     public long signature;
-    public String nom;
-    public String postnom;
-    public String prenom;
     //les droit d'access aux rubriques existantes
     public int droitLitige;
     public int droitExercice;
@@ -34,19 +34,17 @@ public class Utilisateur implements InterfaceUtilisateur{
 
     public Utilisateur() {
     }
-    
-    
 
-    public Utilisateur(int id, int idEntreprise, String email, String motDePasse, int type, long signature, String nom, String postnom, String prenom, int droitLitige, int droitExercice, int droitFacture, int droitInscription, int droitPaie, int droitTresorerie, int droitUtilisateur, int beta) {
+    public Utilisateur(int id, int idEntreprise, String nom, String postnom, String prenom, String email, String motDePasse, int type, long signature, int droitLitige, int droitExercice, int droitFacture, int droitInscription, int droitPaie, int droitTresorerie, int droitUtilisateur, int beta) {
         this.id = id;
         this.idEntreprise = idEntreprise;
+        this.nom = nom;
+        this.postnom = postnom;
+        this.prenom = prenom;
         this.email = email;
         this.motDePasse = motDePasse;
         this.type = type;
         this.signature = signature;
-        this.nom = nom;
-        this.postnom = postnom;
-        this.prenom = prenom;
         this.droitLitige = droitLitige;
         this.droitExercice = droitExercice;
         this.droitFacture = droitFacture;
@@ -56,6 +54,8 @@ public class Utilisateur implements InterfaceUtilisateur{
         this.droitUtilisateur = droitUtilisateur;
         this.beta = beta;
     }
+    
+    
 
     public int getId() {
         return id;
@@ -200,3 +200,8 @@ public class Utilisateur implements InterfaceUtilisateur{
 
     
 }
+
+
+
+
+

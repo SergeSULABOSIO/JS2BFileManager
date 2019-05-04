@@ -5,18 +5,15 @@
  */
 package SOURCES.Objets;
 
-import BASE.Constante;
 import BASE.ObjetNetWork;
 import Callback.CallBackObjetNetWork;
-import Callback.CallBackObjetNetWorks;
-import Callback.CallBackReponse;
 import SOURCES.Callback.EcouteurLoginServeur;
 import SOURCES.Callback.EcouteurLongin;
 import SOURCES.Callback.EcouteurOuverture;
 import SOURCES.Callback.EcouteurStandard;
 import SOURCES.Callback.EcouteurSuppression;
-import SOURCES.Interfaces.InterfaceUtilisateur;
 import SOURCES.Utilitaires.Util;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import static java.lang.Thread.sleep;
 import java.lang.reflect.Field;
@@ -39,7 +36,7 @@ public class FileManager extends ObjetNetWork {
         super(adresseServeur);
     }
 
-    private void loginToServer(Thread processus, String idEcole, String motDePasse, EcouteurLoginServeur ecouteurLoginServeur) {
+    private void loginToServer(Thread processus, String idEcole, String email, String motDePasse, EcouteurLoginServeur ecouteurLoginServeur) {
         try {
             if (ecouteurLoginServeur != null) {
                 ecouteurLoginServeur.onProcessing("Connexion au serveur");
@@ -47,25 +44,43 @@ public class FileManager extends ObjetNetWork {
             if (processus != null) {
                 processus.sleep(100);
             }
-
-            String parametres = "action=" + Util.ACTION_CONNEXION + "&idEcole=" + idEcole + "&motDePasse=" + motDePasse + "";
-            POST_CHARGER(adresseServeur, parametres, new CallBackObjetNetWork() {
+            
+            String parametres = "action=" + Util.ACTION_CONNEXION + "&id=" + idEcole + "&motDePasse=" + motDePasse + "&email=" + email;
+            POST_CHARGER(parametres, new CallBackObjetNetWork() {
                 @Override
-                public void getObjetNetWork(JSONObject jsono) {
-                    
-                    Entreprise entreprise = new Entreprise(10, "ECOLE CARTESIENNE DE KINSHASA", "Limeté - Kinshasa/RDC", "+243844803514", "info@cartesien.org", "www.cartesien.org", "EquityBank RDC", "CARTESIEN DE KINSHASA", "0123654100001248", "IBAN0145400", "WFTCDKIN", "logo.png", "RCCM00BT45", "ID00145", "IP4551220");
-                    Utilisateur utilisateur = new Utilisateur(1, entreprise.getId(), "SULA", "BOSIO", "Serge", "sulabosiog@gmail.com", "abc", InterfaceUtilisateur.TYPE_ADMIN, new Date().getTime(), InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.BETA_EXISTANT);
-                    
-                    if (ecouteurLoginServeur != null) {
-                        ecouteurLoginServeur.onDone("Connexion reussie.", entreprise, utilisateur);
+                public void onDone(String jsonString) {
+                    try {
+                        ObjectMapper mapper = new ObjectMapper();
+                        SessionWeb sessionWeb = mapper.readValue(jsonString.trim(), SessionWeb.class);
+                        if (sessionWeb != null  && sessionWeb.getEntreprise() != null && sessionWeb.getUtilisateur() != null) {
+                            if (ecouteurLoginServeur != null) {
+                                ecouteurLoginServeur.onDone("Connexion reussie.", sessionWeb.getEntreprise(), sessionWeb.getUtilisateur());
+                            }
+                        } else {
+                            if (ecouteurLoginServeur != null) {
+                                ecouteurLoginServeur.onError("Identifiants non reconnus.");
+                            }
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        if (ecouteurLoginServeur != null) {
+                            ecouteurLoginServeur.onError(e.getMessage());
+                        }
                     }
 
                 }
 
                 @Override
-                public void getErreur(String message) {
+                public void onError(String message) {
                     if (ecouteurLoginServeur != null) {
                         ecouteurLoginServeur.onError(message);
+                    }
+                }
+
+                @Override
+                public void onProcessing(String message) {
+                    if (ecouteurLoginServeur != null) {
+                        ecouteurLoginServeur.onProcessing(message);
                     }
                 }
             });
@@ -78,13 +93,13 @@ public class FileManager extends ObjetNetWork {
         }
     }
 
-    private void initSession(Thread processus, String idEcole, String motDePasse, EcouteurLongin ecouteurLongin) {
+    private void initSession(Thread processus, String idEcole, String email, String motDePasse, EcouteurLongin ecouteurLongin) {
         try {
             if (ecouteurLongin != null) {
-                ecouteurLongin.onProcessing("Connexion au serveur...(" + adresseServeur+")");
+                ecouteurLongin.onProcessing("Connexion au serveur...(" + getAdresseServeur() + ")");
             }
             processus.sleep(1000);
-            loginToServer(processus, idEcole, motDePasse, new EcouteurLoginServeur() {
+            loginToServer(processus, idEcole, email, motDePasse, new EcouteurLoginServeur() {
                 @Override
                 public void onDone(String message, Entreprise entreprise, Utilisateur utilisateur) {
                     if (Integer.parseInt(idEcole.trim()) == entreprise.getId() && motDePasse.trim().equals(utilisateur.getMotDePasse().trim())) {
@@ -147,7 +162,7 @@ public class FileManager extends ObjetNetWork {
         }
     }
 
-    public void login(String idEcole, String motDePasse, EcouteurLongin ecouteurLongin) {
+    public void login(String idEcole, String email, String motDePasse, EcouteurLongin ecouteurLongin) {
         new Thread() {
             @Override
             public void run() {
@@ -162,10 +177,15 @@ public class FileManager extends ObjetNetWork {
                             ecouteurLongin.onEchec("Désolé, aucun ID de l'école.");
                         }
                     }
+                    if (email.trim().length() == 0) {
+                        if (ecouteurLongin != null) {
+                            ecouteurLongin.onEchec("Désolé, aucun email.");
+                        }
+                    }
                     if (ecouteurLongin != null) {
                         ecouteurLongin.onProcessing("Authentification...");
                     }
-                    initSession(this, idEcole, motDePasse, ecouteurLongin);
+                    initSession(this, idEcole, email, motDePasse, ecouteurLongin);
                 } catch (Exception e) {
                     e.printStackTrace();
                     if (ecouteurLongin != null) {
@@ -532,41 +552,4 @@ public class FileManager extends ObjetNetWork {
         }
     }
 
-    @Override
-    public void setConstantes(Vector<Constante> vector) {
-        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void NetWork_supprimer(int i, int i1, CallBackReponse cbr) {
-        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void NetWork_modifier(int i, Object o, CallBackReponse cbr) {
-        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void NetWork_login(String string, String string1, CallBackObjetNetWork cbonw) {
-
-    }
-
-    @Override
-    public void NetWork_charger_via_idObj(int i, int i1, CallBackObjetNetWork cbonw) {
-        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void NetWork_enregistrer(int i, Object o, CallBackReponse cbr) {
-        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void NetWork_lister(String string, String string1, int i, int i1, int i2, Object o, CallBackObjetNetWorks cbonw) {
-        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
 }
-
-

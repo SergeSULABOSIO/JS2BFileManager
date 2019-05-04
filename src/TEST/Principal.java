@@ -28,7 +28,7 @@ public class Principal extends javax.swing.JFrame {
     /**
      * Creates new form Principal
      */
-    public FileManager fm = new FileManager("http://www.visiterlardc.com/ProcesseurS2B.php");
+    public FileManager fm = new FileManager("http://www.visiterlardc.com/s2b/processeurS2B.php");
     private JFrame moi = null;
     
     public Principal() {
@@ -317,10 +317,12 @@ public class Principal extends javax.swing.JFrame {
         jLabel5 = new javax.swing.JLabel();
         jLabel6 = new javax.swing.JLabel();
         chIdEcole = new javax.swing.JTextField();
-        chPassWord = new javax.swing.JPasswordField();
         jLabel7 = new javax.swing.JLabel();
         labLogin = new javax.swing.JLabel();
         progressLogin = new javax.swing.JProgressBar();
+        jLabel8 = new javax.swing.JLabel();
+        chPassWord = new javax.swing.JPasswordField();
+        chEmail = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -602,27 +604,33 @@ public class Principal extends javax.swing.JFrame {
         });
 
         jLabel5.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        jLabel5.setText("Mot de passe utilisateur");
+        jLabel5.setText("Email");
 
         jLabel6.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel6.setText("ID école");
 
+        chIdEcole.setText("1");
         chIdEcole.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyReleased(java.awt.event.KeyEvent evt) {
                 chIdEcoleKeyReleased(evt);
             }
         });
 
-        chPassWord.setText("jPasswordField1");
+        jLabel7.setText("Créer un nouveau compte");
+
+        labLogin.setText("Prêt.");
+
+        jLabel8.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        jLabel8.setText("Mot de passe utilisateur");
+
+        chPassWord.setText("abc");
         chPassWord.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyReleased(java.awt.event.KeyEvent evt) {
                 chPassWordKeyReleased(evt);
             }
         });
 
-        jLabel7.setText("Créer un nouveau compte");
-
-        labLogin.setText("Prêt.");
+        chEmail.setText("sulabosiog@gmail.com");
 
         javax.swing.GroupLayout panLoginLayout = new javax.swing.GroupLayout(panLogin);
         panLogin.setLayout(panLoginLayout);
@@ -636,12 +644,14 @@ public class Principal extends javax.swing.JFrame {
                         .addGroup(panLoginLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(jLabel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jLabel7, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 178, Short.MAX_VALUE))
+                            .addComponent(jLabel7, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 195, Short.MAX_VALUE)
+                            .addComponent(jLabel8, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(panLoginLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(chIdEcole)
-                            .addComponent(chPassWord, javax.swing.GroupLayout.DEFAULT_SIZE, 273, Short.MAX_VALUE)))
+                            .addComponent(chPassWord, javax.swing.GroupLayout.DEFAULT_SIZE, 273, Short.MAX_VALUE)
+                            .addComponent(chEmail)))
                     .addComponent(labLogin, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
@@ -651,6 +661,10 @@ public class Principal extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(panLoginLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel5)
+                    .addComponent(chEmail, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(panLoginLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel8)
                     .addComponent(chPassWord, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(panLoginLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -664,7 +678,7 @@ public class Principal extends javax.swing.JFrame {
                 .addComponent(progressLogin, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(labLogin)
-                .addContainerGap(356, Short.MAX_VALUE))
+                .addContainerGap(326, Short.MAX_VALUE))
         );
 
         tabPrincipal.addTab("Espace Login", panLogin);
@@ -829,9 +843,6 @@ public class Principal extends javax.swing.JFrame {
 
     private void chPassWordKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_chPassWordKeyReleased
         // TODO add your handling code here:
-        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
-            login();
-        }
     }//GEN-LAST:event_chPassWordKeyReleased
 
     /**
@@ -878,6 +889,7 @@ public class Principal extends javax.swing.JFrame {
     private javax.swing.JButton btSaveGroup;
     private javax.swing.JButton btVider;
     private javax.swing.ButtonGroup buttonGroup1;
+    private javax.swing.JTextField chEmail;
     private javax.swing.JRadioButton chFrais;
     private javax.swing.JTextField chIDS;
     private javax.swing.JTextField chId;
@@ -902,6 +914,7 @@ public class Principal extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
@@ -916,7 +929,7 @@ public class Principal extends javax.swing.JFrame {
     
     
     private void login() {
-        fm.login(chIdEcole.getText().trim(), chPassWord.getText().trim(), new EcouteurLongin() {
+        fm.login(chIdEcole.getText().trim(), chEmail.getText().trim(), chPassWord.getText().trim(), new EcouteurLongin() {
             @Override
             public void onConnected(String message, Session session) {
                 progressLogin.setIndeterminate(false);

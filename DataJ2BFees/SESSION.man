@@ -1,0 +1,40 @@
+{
+  "entreprise" : {
+    "id" : 1,
+    "nom" : "ECOLE CARTESIENNE DE KINSHASA",
+    "adresse" : "Limete 7e Rue, KINSHASA / RDC",
+    "telephone" : "+243844803514",
+    "email" : "info@cartesien-rdc.org",
+    "siteWeb" : "www.cartesien-rdc.com",
+    "logo" : "logo.png",
+    "rccm" : "RCCM01145",
+    "idnat" : "IDNAT00145",
+    "numeroImpot" : "IMP400078",
+    "banque" : "Equity Bank Congo Sarl",
+    "intituleCompte" : "CARTESIEN DE KINSHASA",
+    "numeroCompte" : "0000001145477880096",
+    "iban" : "IBN001450000",
+    "codeSwift" : "CDKKIN0012"
+  },
+  "utilisateur" : {
+    "id" : 1,
+    "idEntreprise" : 1,
+    "nom" : "SULA",
+    "postnom" : "BOSIO",
+    "prenom" : "SERGE",
+    "email" : "sulabosiog@gmail.com",
+    "motDePasse" : "abc",
+    "type" : 0,
+    "signature" : 0,
+    "droitLitige" : 2,
+    "droitExercice" : 2,
+    "droitFacture" : 2,
+    "droitInscription" : 2,
+    "droitPaie" : 2,
+    "droitTresorerie" : 2,
+    "droitUtilisateur" : 2,
+    "beta" : 2
+  },
+  "token" : "1557009870398",
+  "derniereConnexion" : 1557009870398
+}

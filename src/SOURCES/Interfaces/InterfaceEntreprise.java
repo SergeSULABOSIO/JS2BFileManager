@@ -18,14 +18,14 @@ public interface InterfaceEntreprise {
     public abstract String getEmail();
     public abstract String getSiteWeb();
     public abstract String getLogo();
-    public abstract String getRCCM();
-    public abstract String getIDNAT();
+    public abstract String getRccm();
+    public abstract String getIdnat();
     public abstract String getNumeroImpot();
     //Details bancaires
     public abstract String getBanque();
     public abstract String getIntituleCompte();
     public abstract String getNumeroCompte();
-    public abstract String getIBAN();
+    public abstract String getIban();
     public abstract String getCodeSwift();
     
     public abstract void setId(int id);
@@ -35,13 +35,13 @@ public interface InterfaceEntreprise {
     public abstract void setEmail(String email);
     public abstract void setSiteWeb(String siteweb);
     public abstract void setLogo(String logo);
-    public abstract void setRCCM(String rccm);
-    public abstract void setIDNAT(String idnat);
+    public abstract void setRccm(String rccm);
+    public abstract void setIdnat(String idnat);
     public abstract void setNumeroImpot(String numeroimpot);
     //Details
     public abstract void setBanque(String banque);
     public abstract void setIntituleCompte(String inititule);
     public abstract void setNumeroCompte(String numero);
-    public abstract void setIBAN(String IBAN);
+    public abstract void setIban(String IBAN);
     public abstract void setCodeSwift(String codeswift);
 }

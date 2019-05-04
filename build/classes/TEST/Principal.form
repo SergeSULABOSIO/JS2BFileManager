@@ -467,13 +467,15 @@
                               <Group type="103" groupAlignment="0" attributes="0">
                                   <Component id="jLabel5" max="32767" attributes="0"/>
                                   <Component id="jLabel6" max="32767" attributes="0"/>
-                                  <Component id="jLabel7" alignment="1" pref="178" max="32767" attributes="0"/>
+                                  <Component id="jLabel7" alignment="1" pref="195" max="32767" attributes="0"/>
+                                  <Component id="jLabel8" max="32767" attributes="0"/>
                               </Group>
                               <EmptySpace max="-2" attributes="0"/>
                               <Group type="103" groupAlignment="0" max="-2" attributes="0">
                                   <Component id="jButton2" max="32767" attributes="0"/>
                                   <Component id="chIdEcole" max="32767" attributes="0"/>
                                   <Component id="chPassWord" pref="273" max="32767" attributes="0"/>
+                                  <Component id="chEmail" alignment="0" max="32767" attributes="0"/>
                               </Group>
                           </Group>
                           <Component id="labLogin" alignment="0" max="32767" attributes="0"/>
@@ -488,6 +490,11 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="3" attributes="0">
                           <Component id="jLabel5" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="chEmail" alignment="3" min="-2" max="-2" attributes="0"/>
+                      </Group>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="3" attributes="0">
+                          <Component id="jLabel8" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="chPassWord" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
@@ -504,7 +511,7 @@
                       <Component id="progressLogin" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="labLogin" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace pref="356" max="32767" attributes="0"/>
+                      <EmptySpace pref="326" max="32767" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -521,7 +528,7 @@
             <Component class="javax.swing.JLabel" name="jLabel5">
               <Properties>
                 <Property name="horizontalAlignment" type="int" value="4"/>
-                <Property name="text" type="java.lang.String" value="Mot de passe utilisateur"/>
+                <Property name="text" type="java.lang.String" value="Email"/>
               </Properties>
             </Component>
             <Component class="javax.swing.JLabel" name="jLabel6">
@@ -531,16 +538,11 @@
               </Properties>
             </Component>
             <Component class="javax.swing.JTextField" name="chIdEcole">
-              <Events>
-                <EventHandler event="keyReleased" listener="java.awt.event.KeyListener" parameters="java.awt.event.KeyEvent" handler="chIdEcoleKeyReleased"/>
-              </Events>
-            </Component>
-            <Component class="javax.swing.JPasswordField" name="chPassWord">
               <Properties>
-                <Property name="text" type="java.lang.String" value="jPasswordField1"/>
+                <Property name="text" type="java.lang.String" value="1"/>
               </Properties>
               <Events>
-                <EventHandler event="keyReleased" listener="java.awt.event.KeyListener" parameters="java.awt.event.KeyEvent" handler="chPassWordKeyReleased"/>
+                <EventHandler event="keyReleased" listener="java.awt.event.KeyListener" parameters="java.awt.event.KeyEvent" handler="chIdEcoleKeyReleased"/>
               </Events>
             </Component>
             <Component class="javax.swing.JLabel" name="jLabel7">
@@ -554,6 +556,25 @@
               </Properties>
             </Component>
             <Component class="javax.swing.JProgressBar" name="progressLogin">
+            </Component>
+            <Component class="javax.swing.JLabel" name="jLabel8">
+              <Properties>
+                <Property name="horizontalAlignment" type="int" value="4"/>
+                <Property name="text" type="java.lang.String" value="Mot de passe utilisateur"/>
+              </Properties>
+            </Component>
+            <Component class="javax.swing.JPasswordField" name="chPassWord">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="abc"/>
+              </Properties>
+              <Events>
+                <EventHandler event="keyReleased" listener="java.awt.event.KeyListener" parameters="java.awt.event.KeyEvent" handler="chPassWordKeyReleased"/>
+              </Events>
+            </Component>
+            <Component class="javax.swing.JTextField" name="chEmail">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="sulabosiog@gmail.com"/>
+              </Properties>
             </Component>
           </SubComponents>
         </Container>

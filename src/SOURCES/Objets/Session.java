@@ -14,6 +14,7 @@ import java.util.Date;
 public class Session {
     public Entreprise entreprise;
     public Utilisateur utilisateur;
+    public Paiement paiement;
     public String token;
     public Date derniereConnexion;
     public final static String fichierSession = "SESSION.man";
@@ -22,9 +23,10 @@ public class Session {
         
     }
 
-    public Session(Entreprise entreprise, Utilisateur utilisateur, String token, Date derniereConnexion) {
+    public Session(Entreprise entreprise, Utilisateur utilisateur, Paiement paiement, String token, Date derniereConnexion) {
         this.entreprise = entreprise;
         this.utilisateur = utilisateur;
+        this.paiement = paiement;
         this.token = token;
         this.derniereConnexion = derniereConnexion;
     }
@@ -36,6 +38,16 @@ public class Session {
     public void setEntreprise(Entreprise entreprise) {
         this.entreprise = entreprise;
     }
+
+    public Paiement getPaiement() {
+        return paiement;
+    }
+
+    public void setPaiement(Paiement paiement) {
+        this.paiement = paiement;
+    }
+    
+    
 
     public Utilisateur getUtilisateur() {
         return utilisateur;
@@ -63,9 +75,16 @@ public class Session {
 
     @Override
     public String toString() {
-        return "Session{" + "entreprise=" + entreprise + ", utilisateur=" + utilisateur + ", token=" + token + ", derniereConnexion=" + derniereConnexion + '}';
+        return "Session{" + "entreprise=" + entreprise + ", utilisateur=" + utilisateur + ", paiement=" + paiement + ", token=" + token + ", derniereConnexion=" + derniereConnexion + '}';
     }
 }
+
+
+
+
+
+
+
 
 
 

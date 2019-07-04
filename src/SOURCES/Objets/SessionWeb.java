@@ -14,14 +14,16 @@ import java.util.Date;
 public class SessionWeb {
     public Entreprise entreprise;
     public Utilisateur utilisateur;
+    public Paiement paiement;
 
     public SessionWeb() {
         
     }
 
-    public SessionWeb(Entreprise entreprise, Utilisateur utilisateur) {
+    public SessionWeb(Entreprise entreprise, Utilisateur utilisateur, Paiement paiement) {
         this.entreprise = entreprise;
         this.utilisateur = utilisateur;
+        this.paiement = paiement;
     }
 
     public Entreprise getEntreprise() {
@@ -40,11 +42,27 @@ public class SessionWeb {
         this.utilisateur = utilisateur;
     }
 
+    public Paiement getPaiement() {
+        return paiement;
+    }
+
+    public void setPaiement(Paiement paiement) {
+        this.paiement = paiement;
+    }
+
     @Override
     public String toString() {
-        return "SessionWeb{" + "entreprise=" + entreprise + ", utilisateur=" + utilisateur + '}';
+        return "SessionWeb{" + "entreprise=" + entreprise + ", utilisateur=" + utilisateur + ", paiement=" + paiement + '}';
     }
 }
+
+
+
+
+
+
+
+
 
 
 

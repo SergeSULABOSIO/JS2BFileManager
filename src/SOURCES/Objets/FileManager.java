@@ -7,6 +7,7 @@ package SOURCES.Objets;
 
 import BASE.ObjetNetWork;
 import Callback.CallBackObjetNetWork;
+import SOURCES.Callback.CallBackEcouteur;
 import SOURCES.Callback.EcouteurLoginServeur;
 import SOURCES.Callback.EcouteurLongin;
 import SOURCES.Callback.EcouteurOuverture;
@@ -18,13 +19,12 @@ import java.awt.Desktop;
 import java.io.File;
 import static java.lang.Thread.sleep;
 import java.lang.reflect.Field;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Date;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JFrame;
 
 /**
  *
@@ -35,6 +35,8 @@ public class FileManager extends ObjetNetWork {
     private Registre registre = new Registre(0, new Date());
     private Session session = null;
     private String racine = "DataJ2BFees";
+    private String pref = racine + "/PREF.man";
+    private EcouteurFenetre ecouteurFenetre = null;
 
     public FileManager(String adresseServeur) {
         super(adresseServeur);
@@ -42,6 +44,21 @@ public class FileManager extends ObjetNetWork {
 
     public Session fm_getSession() {
         return session;
+    }
+    
+    public void fm_setEcouteurFenetre(JFrame fenetre){
+        ecouteurFenetre = new EcouteurFenetre(fenetre, new CallBackEcouteur() {
+            @Override
+            public void onChange(Preference preference) {
+                //System.out.println("Windows: " + preference.toString());
+                ecrire(pref, preference);
+            }
+        });
+        
+        Preference savedPref = (Preference)Util.lire(pref, Preference.class);
+        if(savedPref != null){
+            fenetre.setBounds((int)savedPref.getFenetre_x(), (int)savedPref.getFenetre_y(), (int)savedPref.getFenetre_w(), (int)savedPref.getFenetre_h());
+        }
     }
     
 
@@ -326,6 +343,13 @@ public class FileManager extends ObjetNetWork {
         //System.out.println("Le fichier " + fichierREGISTRE + " existe.");
         registre = (Registre) ouvrir(Registre.class, racine + "/" + session.getEntreprise().getId() + "/" + table + "/" + Registre.fichierRegistre);
     }
+    
+    private int getDernierID(String table) {
+        //System.out.println("Le fichier " + fichierREGISTRE + " existe.");
+        Registre reg = (Registre) ouvrir(Registre.class, racine + "/" + session.getEntreprise().getId() + "/" + table + "/" + Registre.fichierRegistre);
+        registre = reg;
+        return reg.getDernierID() + 1;
+    }
 
     public Registre fm_getRegistre(String table) {
         chargerRegistreEnMemoire(table);
@@ -567,12 +591,7 @@ public class FileManager extends ObjetNetWork {
     }
 
     private int getIdDisponible(String table) {
-        chargerRegistreEnMemoire(table);
-        if (registre != null) {
-            return registre.getDernierID() + 1;
-        } else {
-            return -1;
-        }
+        return getDernierID(table);
     }
 
     private void saveRegistre(String table) {
@@ -598,6 +617,17 @@ public class FileManager extends ObjetNetWork {
     }
 
 }
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -7,6 +7,7 @@ package SOURCES.Objets;
 
 import BASE.ObjetNetWork;
 import Callback.CallBackObjetNetWork;
+import SOURCES.Callback.CallBackEcouteur;
 import SOURCES.Callback.EcouteurLoginServeur;
 import SOURCES.Callback.EcouteurLongin;
 import SOURCES.Callback.EcouteurOuverture;
@@ -14,13 +15,16 @@ import SOURCES.Callback.EcouteurStandard;
 import SOURCES.Callback.EcouteurSuppression;
 import SOURCES.Utilitaires.Util;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.awt.Desktop;
 import java.io.File;
 import static java.lang.Thread.sleep;
 import java.lang.reflect.Field;
+import java.net.URL;
 import java.util.Date;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JFrame;
 
 /**
  *
@@ -31,10 +35,32 @@ public class FileManager extends ObjetNetWork {
     private Registre registre = new Registre(0, new Date());
     private Session session = null;
     private String racine = "DataJ2BFees";
+    private String pref = racine + "/PREF.man";
+    private EcouteurFenetre ecouteurFenetre = null;
 
     public FileManager(String adresseServeur) {
         super(adresseServeur);
     }
+
+    public Session fm_getSession() {
+        return session;
+    }
+    
+    public void fm_setEcouteurFenetre(JFrame fenetre){
+        ecouteurFenetre = new EcouteurFenetre(fenetre, new CallBackEcouteur() {
+            @Override
+            public void onChange(Preference preference) {
+                //System.out.println("Windows: " + preference.toString());
+                ecrire(pref, preference);
+            }
+        });
+        
+        Preference savedPref = (Preference)Util.lire(pref, Preference.class);
+        if(savedPref != null){
+            fenetre.setBounds((int)savedPref.getFenetre_x(), (int)savedPref.getFenetre_y(), (int)savedPref.getFenetre_w(), (int)savedPref.getFenetre_h());
+        }
+    }
+    
 
     private void loginToServer(Thread processus, String idEcole, String email, String motDePasse, EcouteurLoginServeur ecouteurLoginServeur) {
         try {
@@ -44,7 +70,7 @@ public class FileManager extends ObjetNetWork {
             if (processus != null) {
                 processus.sleep(100);
             }
-            
+
             String parametres = "action=" + Util.ACTION_CONNEXION + "&id=" + idEcole + "&motDePasse=" + motDePasse + "&email=" + email;
             POST_CHARGER(parametres, new CallBackObjetNetWork() {
                 @Override
@@ -52,9 +78,22 @@ public class FileManager extends ObjetNetWork {
                     try {
                         ObjectMapper mapper = new ObjectMapper();
                         SessionWeb sessionWeb = mapper.readValue(jsonString.trim(), SessionWeb.class);
-                        if (sessionWeb != null  && sessionWeb.getEntreprise() != null && sessionWeb.getUtilisateur() != null) {
+                        //System.out.println("Paiement: " + sessionWeb.getPaiement().toString());
+                        if (sessionWeb != null && sessionWeb.getEntreprise() != null && sessionWeb.getUtilisateur() != null) {
                             if (ecouteurLoginServeur != null) {
-                                ecouteurLoginServeur.onDone("Connexion reussie.", sessionWeb.getEntreprise(), sessionWeb.getUtilisateur());
+                                Date today = new Date();
+                                Date dateExpiry = Util.convertDatePaiement(sessionWeb.getPaiement().getDateExpiration());
+                                if (dateExpiry != null) {
+                                    if (today.after(dateExpiry)) {
+                                        ecouteurLoginServeur.onError("Votre abonnement vient d'expirer ! Connectez vous à www.visiterlardc.com/s2b");
+                                        fm_lancerPageWebAdmin("http://www.visiterlardc.com/s2b");
+                                    } else {
+                                        ecouteurLoginServeur.onDone("Connexion reussie.", sessionWeb.getEntreprise(), sessionWeb.getUtilisateur(), sessionWeb.getPaiement());
+                                    }
+                                } else {
+                                    ecouteurLoginServeur.onError("Veuillez d'abord payer votre licence depuis www.visiterlardc.com/s2b");
+                                    fm_lancerPageWebAdmin("http://www.visiterlardc.com/s2b");
+                                }
                             }
                         } else {
                             if (ecouteurLoginServeur != null) {
@@ -93,6 +132,19 @@ public class FileManager extends ObjetNetWork {
         }
     }
 
+    public static boolean fm_lancerPageWebAdmin(String chemin) {
+        Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
+        if (desktop != null && desktop.isSupported(Desktop.Action.BROWSE)) {
+            try {
+                desktop.browse(new URL(chemin).toURI());
+                return true;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return false;
+    }
+
     private void initSession(Thread processus, String idEcole, String email, String motDePasse, EcouteurLongin ecouteurLongin) {
         try {
             if (ecouteurLongin != null) {
@@ -101,14 +153,14 @@ public class FileManager extends ObjetNetWork {
             processus.sleep(1000);
             loginToServer(processus, idEcole, email, motDePasse, new EcouteurLoginServeur() {
                 @Override
-                public void onDone(String message, Entreprise entreprise, Utilisateur utilisateur) {
+                public void onDone(String message, Entreprise entreprise, Utilisateur utilisateur, Paiement paiement) {
                     if (Integer.parseInt(idEcole.trim()) == entreprise.getId() && motDePasse.trim().equals(utilisateur.getMotDePasse().trim())) {
                         if (ecouteurLongin != null) {
                             ecouteurLongin.onProcessing("Chargement des données...");
                         }
 
                         Date dateConnexion = new Date();
-                        session = new Session(entreprise, utilisateur, dateConnexion.getTime() + "", dateConnexion);
+                        session = new Session(entreprise, utilisateur, paiement, dateConnexion.getTime() + "", dateConnexion);
 
                         //Enregistrement de la session dans le disque local
                         if (ecouteurLongin != null) {
@@ -162,7 +214,7 @@ public class FileManager extends ObjetNetWork {
         }
     }
 
-    public void login(String idEcole, String email, String motDePasse, EcouteurLongin ecouteurLongin) {
+    public void fm_login(String idEcole, String email, String motDePasse, EcouteurLongin ecouteurLongin) {
         new Thread() {
             @Override
             public void run() {
@@ -197,7 +249,7 @@ public class FileManager extends ObjetNetWork {
         }.start();
     }
 
-    public void logout(EcouteurStandard ecouteurStandard) {
+    public void fm_logout(EcouteurStandard ecouteurStandard) {
         new Thread() {
             @Override
             public void run() {
@@ -229,7 +281,7 @@ public class FileManager extends ObjetNetWork {
         }.start();
     }
 
-    public void loadSession(EcouteurLongin ecouteurLongin) {
+    public void fm_loadSession(EcouteurLongin ecouteurLongin) {
         new Thread() {
             @Override
             public void run() {
@@ -243,7 +295,17 @@ public class FileManager extends ObjetNetWork {
                     session = (Session) Util.lire(racine + "/" + Session.fichierSession, Session.class);
                     if (session != null) {
                         if (ecouteurLongin != null) {
-                            ecouteurLongin.onConnected("Connexion reussi!", session);
+                            Date today = new Date();
+                            Date dateExpi = Util.convertDatePaiement(session.getPaiement().getDateExpiration());
+                            if (dateExpi != null) {
+                                if (today.after(dateExpi)) {
+                                    ecouteurLongin.onEchec("Votre abonnement a expiré ! Merci de vous connecter sur votre page d'administration pour acheter une licence.");
+                                } else {
+                                    ecouteurLongin.onConnected("Connexion reussi!", session);
+                                }
+                            } else {
+                                ecouteurLongin.onEchec("Licence introuvable. Veuillez vous connecter à votre page web d'administration.");
+                            }
                         }
                     } else {
                         if (ecouteurLongin != null) {
@@ -266,13 +328,13 @@ public class FileManager extends ObjetNetWork {
         //Initialisation
         creerDossierSiNExistePas(racine + "/" + session.getEntreprise().getId() + "/" + table);
         if (!(new File(racine + "/" + session.getEntreprise().getId() + "/" + table + "/" + Registre.fichierRegistre)).exists()) {
-            reinitialiserRegistre(table);
+            fm_reinitialiserRegistre(table);
         }
         chargerRegistreEnMemoire(table);
         return registre != null;
     }
 
-    public boolean reinitialiserRegistre(String table) {
+    public boolean fm_reinitialiserRegistre(String table) {
         File ficRegistre = new File(racine + "/" + session.getEntreprise().getId() + "/" + table + "/" + Registre.fichierRegistre);
         return ecrire(ficRegistre.getAbsolutePath(), new Registre(0, new Date()));
     }
@@ -281,8 +343,15 @@ public class FileManager extends ObjetNetWork {
         //System.out.println("Le fichier " + fichierREGISTRE + " existe.");
         registre = (Registre) ouvrir(Registre.class, racine + "/" + session.getEntreprise().getId() + "/" + table + "/" + Registre.fichierRegistre);
     }
+    
+    private int getDernierID(String table) {
+        //System.out.println("Le fichier " + fichierREGISTRE + " existe.");
+        Registre reg = (Registre) ouvrir(Registre.class, racine + "/" + session.getEntreprise().getId() + "/" + table + "/" + Registre.fichierRegistre);
+        registre = reg;
+        return reg.getDernierID() + 1;
+    }
 
-    public Registre getRegistre(String table) {
+    public Registre fm_getRegistre(String table) {
         chargerRegistreEnMemoire(table);
         return registre;
     }
@@ -332,7 +401,7 @@ public class FileManager extends ObjetNetWork {
         }
     }
 
-    public String[] getContenusDossier(String table) {
+    public String[] fm_getContenusDossier(String table) {
         File dossier = new File(racine + "/" + session.getEntreprise().getId() + "/" + table);
         if (dossier.exists()) {
             if (dossier.isDirectory()) {
@@ -342,7 +411,7 @@ public class FileManager extends ObjetNetWork {
         return new String[0];
     }
 
-    public int getTaille(String dossierDestination) {
+    public int fm_getTaille(String dossierDestination) {
         File dossier = new File(dossierDestination);
         if (dossier.exists()) {
             if (dossier.isDirectory()) {
@@ -352,7 +421,7 @@ public class FileManager extends ObjetNetWork {
         return 0;
     }
 
-    public void enregistrer(int vitesse, Vector NewObjs, String table, EcouteurStandard ecouteur) {
+    public void fm_enregistrer(int vitesse, Vector NewObjs, String table, EcouteurStandard ecouteur) {
         new Thread() {
             @Override
             public void run() {
@@ -361,7 +430,7 @@ public class FileManager extends ObjetNetWork {
                     int index = 1;
                     for (Object NewO : NewObjs) {
                         sleep(vitesse);
-                        enregistrer(NewO, table, null);
+                        fm_enregistrer(NewO, table, null);
                         if (ecouteur != null) {
                             ecouteur.onProcessing("Enregistrement en cours (" + index + "/" + taille + ")...");
                         }
@@ -380,7 +449,7 @@ public class FileManager extends ObjetNetWork {
         }.start();
     }
 
-    public void enregistrer(Object NewObj, String table, EcouteurStandard ecouteur) {
+    public void fm_enregistrer(Object NewObj, String table, EcouteurStandard ecouteur) {
         if (ecouteur == null) {//Ici la méthode parent tourne déjà dans un Thread léger
             enregistrer_NoThread(NewObj, table, ecouteur);
         } else {
@@ -398,11 +467,11 @@ public class FileManager extends ObjetNetWork {
         return Util.lire(fichierSource, NomClasse);
     }
 
-    public Object ouvrir(Class NomClasse, String table, int idObj) {
+    public Object fm_ouvrir(Class NomClasse, String table, int idObj) {
         return Util.lire(racine + "/" + session.getEntreprise().getId() + "/" + table + "/" + idObj, NomClasse);
     }
 
-    public boolean supprimer(String table, int idObj) {
+    public boolean fm_supprimer(String table, int idObj) {
         File fichObjet = new File(racine + "/" + session.getEntreprise().getId() + "/" + table + "/" + idObj);
         if (fichObjet.exists()) {
             return fichObjet.delete();
@@ -410,12 +479,12 @@ public class FileManager extends ObjetNetWork {
         return false;
     }
 
-    public void supprimerTout(String table, EcouteurSuppression ecouteurSuppression) {
+    public void fm_supprimerTout(String table, EcouteurSuppression ecouteurSuppression) {
         new Thread() {
             @Override
             public void run() {
                 try {
-                    String[] tabIds = getContenusDossier(table);
+                    String[] tabIds = fm_getContenusDossier(table);
                     deleteGroup(tabIds, table, ecouteurSuppression);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -427,7 +496,7 @@ public class FileManager extends ObjetNetWork {
         }.start();
     }
 
-    public void supprimerTout(String dossier, String[] tabIds, EcouteurSuppression ecouteurSuppression) {
+    public void fm_supprimerTout(String dossier, String[] tabIds, EcouteurSuppression ecouteurSuppression) {
         new Thread() {
             @Override
             public void run() {
@@ -450,7 +519,7 @@ public class FileManager extends ObjetNetWork {
         int index = 1;
         for (String id : tabIds) {
             String status = "[ok]";
-            boolean deleted = supprimer(table, Integer.parseInt(id.trim()));
+            boolean deleted = fm_supprimer(table, Integer.parseInt(id.trim()));
             if (deleted == false) {
                 tabIdsNotDeleted.add(id);
                 status = "[Erreur]";
@@ -469,12 +538,12 @@ public class FileManager extends ObjetNetWork {
         }
     }
 
-    public void ouvrirTout(int vitesseTraiement, Class NomClasse, String table, EcouteurOuverture ouvrirListener) {
+    public void fm_ouvrirTout(int vitesseTraiement, Class NomClasse, String table, EcouteurOuverture ouvrirListener) {
         new Thread() {
             @Override
             public void run() {
                 try {
-                    String[] tabIDs = getContenusDossier(table);
+                    String[] tabIDs = fm_getContenusDossier(table);
                     Vector data = new Vector();
                     int index = 1;
                     if (tabIDs.length != 0) {
@@ -522,12 +591,7 @@ public class FileManager extends ObjetNetWork {
     }
 
     private int getIdDisponible(String table) {
-        chargerRegistreEnMemoire(table);
-        if (registre != null) {
-            return registre.getDernierID() + 1;
-        } else {
-            return -1;
-        }
+        return getDernierID(table);
     }
 
     private void saveRegistre(String table) {
@@ -553,3 +617,69 @@ public class FileManager extends ObjetNetWork {
     }
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

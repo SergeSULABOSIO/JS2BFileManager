@@ -3,22 +3,37 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package SOURCES.Utilitaires;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import static com.sun.org.apache.xalan.internal.lib.ExsltDatetime.date;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  *
  * @author user
  */
 public class Util {
+
     public static final int ACTION_CONNEXION = 100;
+
+    public static Date convertDatePaiement(String Sdate) {
+        try {
+            Date date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(Sdate);
+            System.out.println(Sdate + "\t" + date.toLocaleString());
+            return date;
+        } catch (Exception e) {
+            //e.printStackTrace();
+            return null;
+        }
+
+    }
 
     public static boolean ecrire(String fichierDestination, Object objet) {
         if (objet != null) {
@@ -86,10 +101,6 @@ public class Util {
         return obj;
     }
 }
-
-
-
-
 
 
 

@@ -9,14 +9,26 @@ import BASE.ObjetNetWork;
 import Callback.CallBackObjetNetWork;
 import SOURCES.Callback.CallBackEcouteur;
 import SOURCES.Callback.EcouteurLoginServeur;
+import SOURCES.Callback.EcouteurLogo;
 import SOURCES.Callback.EcouteurLongin;
 import SOURCES.Callback.EcouteurOuverture;
 import SOURCES.Callback.EcouteurStandard;
 import SOURCES.Callback.EcouteurSuppression;
 import SOURCES.Utilitaires.Util;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.awt.AlphaComposite;
+import java.awt.Color;
 import java.awt.Desktop;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.RenderingHints;
+import java.awt.geom.RoundRectangle2D;
+import java.awt.image.BufferedImage;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import static java.lang.Thread.sleep;
 import java.lang.reflect.Field;
 import java.net.URL;
@@ -24,6 +36,9 @@ import java.util.Date;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 
 /**
@@ -37,16 +52,65 @@ public class FileManager extends ObjetNetWork {
     private String racine = "DataJ2BFees";
     private String pref = racine + "/PREF.man";
     private EcouteurFenetre ecouteurFenetre = null;
+    private String adresseServeur;
+    private EcouteurLogo ecouteurLogo;
+    private JButton btLogo;
 
-    public FileManager(String adresseServeur) {
-        super(adresseServeur);
+    public FileManager(String adresseServeur, String pageProcesseur, JButton btLogo) {
+        super(adresseServeur + "/" + pageProcesseur);
+        this.adresseServeur = adresseServeur;
+        this.btLogo = btLogo;
+        this.ecouteurLogo = new EcouteurLogo() {
+            @Override
+            public void onLogoReady(File fichierLocaleLogo) {
+                try {
+                    processRoundedImage(fichierLocaleLogo, 55);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onLogoDeleted() {
+                System.out.println("Logo deleted avec succès.");
+            }
+
+            @Override
+            public void onLogoError(String message) {
+                System.err.println(message);
+            }
+
+            @Override
+            public void onLogoProcessing(String message) {
+                System.out.println(message);
+            }
+        };
+
+    }
+
+    private void processRoundedImage(File fichierLocaleLogo, int cornerRadius) throws Exception {
+        if (btLogo != null) {
+            BufferedImage image = ImageIO.read(fichierLocaleLogo);
+            BufferedImage output = new BufferedImage(btLogo.getWidth(), btLogo.getHeight(), BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g2 = output.createGraphics();
+            g2.setComposite(AlphaComposite.Src);
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(Color.WHITE);
+            g2.fill(new RoundRectangle2D.Float(0, 0, btLogo.getWidth(), btLogo.getHeight(), cornerRadius, cornerRadius));
+            g2.setComposite(AlphaComposite.SrcAtop);
+            g2.drawImage(image.getScaledInstance(btLogo.getWidth(), btLogo.getHeight(), Image.SCALE_SMOOTH), 0, 0, null);
+            g2.dispose();
+            Image dimg = output.getScaledInstance(btLogo.getWidth(), btLogo.getHeight(), Image.SCALE_SMOOTH);
+            ImageIcon imageIcon = new ImageIcon(dimg);
+            btLogo.setIcon(imageIcon);
+        }
     }
 
     public Session fm_getSession() {
         return session;
     }
-    
-    public void fm_setEcouteurFenetre(JFrame fenetre){
+
+    public void fm_setEcouteurFenetre(JFrame fenetre) {
         ecouteurFenetre = new EcouteurFenetre(fenetre, new CallBackEcouteur() {
             @Override
             public void onChange(Preference preference) {
@@ -54,13 +118,12 @@ public class FileManager extends ObjetNetWork {
                 ecrire(pref, preference);
             }
         });
-        
-        Preference savedPref = (Preference)Util.lire(pref, Preference.class);
-        if(savedPref != null){
-            fenetre.setBounds((int)savedPref.getFenetre_x(), (int)savedPref.getFenetre_y(), (int)savedPref.getFenetre_w(), (int)savedPref.getFenetre_h());
+
+        Preference savedPref = (Preference) Util.lire(pref, Preference.class);
+        if (savedPref != null) {
+            fenetre.setBounds((int) savedPref.getFenetre_x(), (int) savedPref.getFenetre_y(), (int) savedPref.getFenetre_w(), (int) savedPref.getFenetre_h());
         }
     }
-    
 
     private void loginToServer(Thread processus, String idEcole, String email, String motDePasse, EcouteurLoginServeur ecouteurLoginServeur) {
         try {
@@ -85,14 +148,14 @@ public class FileManager extends ObjetNetWork {
                                 Date dateExpiry = Util.convertDatePaiement(sessionWeb.getPaiement().getDateExpiration());
                                 if (dateExpiry != null) {
                                     if (today.after(dateExpiry)) {
-                                        ecouteurLoginServeur.onError("Votre abonnement vient d'expirer ! Connectez vous à www.visiterlardc.com/s2b");
-                                        fm_lancerPageWebAdmin("http://www.visiterlardc.com/s2b");
+                                        ecouteurLoginServeur.onError("Votre abonnement vient d'expirer ! Connectez vous à " + adresseServeur);
+                                        fm_lancerPageWebAdmin(adresseServeur);
                                     } else {
                                         ecouteurLoginServeur.onDone("Connexion reussie.", sessionWeb.getEntreprise(), sessionWeb.getUtilisateur(), sessionWeb.getPaiement());
                                     }
                                 } else {
-                                    ecouteurLoginServeur.onError("Veuillez d'abord payer votre licence depuis www.visiterlardc.com/s2b");
-                                    fm_lancerPageWebAdmin("http://www.visiterlardc.com/s2b");
+                                    ecouteurLoginServeur.onError("Veuillez d'abord payer votre licence depuis " + adresseServeur);
+                                    fm_lancerPageWebAdmin(adresseServeur);
                                 }
                             }
                         } else {
@@ -174,6 +237,7 @@ public class FileManager extends ObjetNetWork {
                             if (isSessionCreated == true) {
                                 if (ecouteurLongin != null) {
                                     ecouteurLongin.onConnected(message, session);
+                                    downloadLogoEtablissement(session);
                                 }
                             } else {
                                 if (ecouteurLongin != null) {
@@ -214,6 +278,49 @@ public class FileManager extends ObjetNetWork {
         }
     }
 
+    private void downloadLogoEtablissement(Session session) {
+        //Ici on démarre le téléchargement du logo de l'établissement auquel le USER est connecté
+        //Exemple: http://www.visiterlardc.com/s2b/logo/2_279279.png
+
+        String urlDuLogo = adresseServeur + "/" + session.getEntreprise().getLogo();
+        File ficServer = new File(urlDuLogo);
+        if (ecouteurLogo != null) {
+            ecouteurLogo.onLogoProcessing(" *** Téléchargement du logo *** " + urlDuLogo);
+        }
+        try {
+            URL url = new URL(urlDuLogo);
+            InputStream in = new BufferedInputStream(url.openStream());
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            byte[] buf = new byte[1024];
+            int n = 0;
+            while (-1 != (n = in.read(buf))) {
+                if (ecouteurLogo != null) {
+                    ecouteurLogo.onLogoProcessing(" *** Téléchargement..." + out.size());
+                }
+                out.write(buf, 0, n);
+            }
+            if (ecouteurLogo != null) {
+                ecouteurLogo.onLogoProcessing(" *** Téléchargement terminé. Enregistrement dans le disque local");
+            }
+            out.close();
+            in.close();
+            byte[] response = out.toByteArray();
+            FileOutputStream fos = new FileOutputStream(ficServer.getName());
+            fos.write(response);
+            fos.close();
+            if (ecouteurLogo != null) {
+                ecouteurLogo.onLogoProcessing(" *** Logo enregistré avec succès.");//onProcessing("Fichier téléchargé puis enregistré avec succès.");
+                ecouteurLogo.onLogoReady(new File(ficServer.getName()));
+            }
+
+        } catch (Exception ex) {
+            if (ecouteurLogo != null) {
+                ecouteurLogo.onLogoError("Erreur: " + ex.getMessage());
+            }//.onError("Impossibile de télécharger le logo.");
+            ex.printStackTrace();
+        }
+    }
+
     public void fm_login(String idEcole, String email, String motDePasse, EcouteurLongin ecouteurLongin) {
         new Thread() {
             @Override
@@ -249,6 +356,30 @@ public class FileManager extends ObjetNetWork {
         }.start();
     }
 
+    private void deleteLogo() {
+        if (session != null) {
+            File fileToDelete = new File(new File(session.getEntreprise().getLogo()).getName());
+            if (fileToDelete.exists()) {
+                if (ecouteurLogo != null) {
+                    ecouteurLogo.onLogoProcessing("Suppression du Logo: " + fileToDelete.getAbsolutePath() + "...");
+                }
+                boolean sup = fileToDelete.delete();
+                if (sup == true) {
+                    if (ecouteurLogo != null) {
+                        ecouteurLogo.onLogoProcessing("Suppression réussie!");
+                        ecouteurLogo.onLogoDeleted();
+                    }
+                } else {
+                    ecouteurLogo.onLogoError("Désolé, nous n'avons pas pu supprimer le logo!");
+                }
+            } else {
+                if (ecouteurLogo != null) {
+                    ecouteurLogo.onLogoError("Impossible de supprimer le logo car il est introuvable.");
+                }
+            }
+        }
+    }
+
     public void fm_logout(EcouteurStandard ecouteurStandard) {
         new Thread() {
             @Override
@@ -262,6 +393,7 @@ public class FileManager extends ObjetNetWork {
                     boolean sessionDeleted = sessionFile.delete();
                     if (sessionDeleted == true && !sessionFile.exists()) {
                         if (ecouteurStandard != null) {
+                            deleteLogo();
                             ecouteurStandard.onDone("Déconnecté!");
                         }
                     } else {
@@ -302,6 +434,12 @@ public class FileManager extends ObjetNetWork {
                                     ecouteurLongin.onEchec("Votre abonnement a expiré ! Merci de vous connecter sur votre page d'administration pour acheter une licence.");
                                 } else {
                                     ecouteurLongin.onConnected("Connexion reussi!", session);
+                                    if (ecouteurLogo != null) {
+                                        File fichierLogo = new File(new File(session.getEntreprise().getLogo()).getName());
+                                        if (fichierLogo.exists()) {
+                                            ecouteurLogo.onLogoReady(fichierLogo);
+                                        }
+                                    }
                                 }
                             } else {
                                 ecouteurLongin.onEchec("Licence introuvable. Veuillez vous connecter à votre page web d'administration.");
@@ -343,7 +481,7 @@ public class FileManager extends ObjetNetWork {
         //System.out.println("Le fichier " + fichierREGISTRE + " existe.");
         registre = (Registre) ouvrir(Registre.class, racine + "/" + session.getEntreprise().getId() + "/" + table + "/" + Registre.fichierRegistre);
     }
-    
+
     private int getDernierID(String table) {
         //System.out.println("Le fichier " + fichierREGISTRE + " existe.");
         Registre reg = (Registre) ouvrir(Registre.class, racine + "/" + session.getEntreprise().getId() + "/" + table + "/" + Registre.fichierRegistre);
@@ -617,69 +755,3 @@ public class FileManager extends ObjetNetWork {
     }
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

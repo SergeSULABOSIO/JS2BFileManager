@@ -90,18 +90,21 @@ public class FileManager extends ObjetNetWork {
 
     private void processRoundedImage(File fichierLocaleLogo, int cornerRadius) throws Exception {
         if (btLogo != null) {
-            BufferedImage image = ImageIO.read(fichierLocaleLogo);
-            BufferedImage output = new BufferedImage(btLogo.getWidth(), btLogo.getHeight(), BufferedImage.TYPE_INT_ARGB);
             System.out.println("Taille du logo : w=" + btLogo.getWidth()+", h=" + btLogo.getHeight());
+            int w = 56;
+            int h = 56;
+            
+            BufferedImage image = ImageIO.read(fichierLocaleLogo);
+            BufferedImage output = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
             Graphics2D g2 = output.createGraphics();
             g2.setComposite(AlphaComposite.Src);
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g2.setColor(Color.WHITE);
-            g2.fill(new RoundRectangle2D.Float(0, 0, btLogo.getWidth(), btLogo.getHeight(), cornerRadius, cornerRadius));
+            g2.fill(new RoundRectangle2D.Float(0, 0, w, h, cornerRadius, cornerRadius));
             g2.setComposite(AlphaComposite.SrcAtop);
-            g2.drawImage(image.getScaledInstance(btLogo.getWidth(), btLogo.getHeight(), Image.SCALE_SMOOTH), 0, 0, null);
+            g2.drawImage(image.getScaledInstance(w, h, Image.SCALE_SMOOTH), 0, 0, null);
             g2.dispose();
-            Image dimg = output.getScaledInstance(btLogo.getWidth(), btLogo.getHeight(), Image.SCALE_SMOOTH);
+            Image dimg = output.getScaledInstance(w, h, Image.SCALE_SMOOTH);
             ImageIcon imageIcon = new ImageIcon(dimg);
             btLogo.setIcon(imageIcon);
         }

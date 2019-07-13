@@ -92,6 +92,7 @@ public class FileManager extends ObjetNetWork {
         if (btLogo != null) {
             BufferedImage image = ImageIO.read(fichierLocaleLogo);
             BufferedImage output = new BufferedImage(btLogo.getWidth(), btLogo.getHeight(), BufferedImage.TYPE_INT_ARGB);
+            System.out.println("Taille du logo : w=" + btLogo.getWidth()+", h=" + btLogo.getHeight());
             Graphics2D g2 = output.createGraphics();
             g2.setComposite(AlphaComposite.Src);
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);

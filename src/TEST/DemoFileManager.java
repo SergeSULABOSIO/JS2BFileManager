@@ -5,26 +5,24 @@
  */
 package TEST;
 
-import SOURCES.Callback.EcouteurLogo;
+
 import SOURCES.Callback.EcouteurLongin;
 import SOURCES.Callback.EcouteurOuverture;
 import SOURCES.Callback.EcouteurStandard;
 import SOURCES.Callback.EcouteurSuppression;
-import SOURCES.Interfaces.InterfaceUtilisateur;
 import SOURCES.Objets.FileManager;
 import SOURCES.Objets.Paiement;
 import SOURCES.Objets.Registre;
 import SOURCES.Objets.Session;
-import SOURCES.Objets.Utilisateur;
-import SOURCES.Utilitaires.Util;
-import java.awt.Image;
+import SOURCES.Utilitaires.UtilFileManager;
+import Source.Interface.InterfaceUtilisateur;
+import Source.Objet.Frais;
+import Source.Objet.LiaisonFraisClasse;
+import Source.Objet.LiaisonFraisPeriode;
+import Source.Objet.Utilisateur;
 import java.awt.event.KeyEvent;
-import java.awt.image.BufferedImage;
-import java.io.File;
 import java.util.Date;
 import java.util.Vector;
-import javax.imageio.ImageIO;
-import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 
 /**
@@ -187,8 +185,8 @@ public class DemoFileManager extends javax.swing.JFrame {
         if (fm.fm_getSession() != null) {
             Paiement paie = fm.fm_getSession().getPaiement();
             if (paie != null) {
-                chInfosLicence.setText("Votre licence expire le " + Util.convertDatePaiement(paie.getDateExpiration()).toLocaleString());
-                System.out.println("Echéance Licence: " + Util.convertDatePaiement(paie.getDateExpiration()).toLocaleString());
+                chInfosLicence.setText("Votre licence expire le " + UtilFileManager.convertDatePaiement(paie.getDateExpiration()).toLocaleString());
+                System.out.println("Echéance Licence: " + UtilFileManager.convertDatePaiement(paie.getDateExpiration()).toLocaleString());
             }
         }
     }
@@ -767,18 +765,18 @@ public class DemoFileManager extends javax.swing.JFrame {
             }
             enreg_Groupe(Uinputs, dossierUtilisateur.getText());
         } else {
-            Vector<XX_Frais> Uinputs = new Vector();
+            Vector<Frais> Uinputs = new Vector();
             int nbTour = Integer.parseInt(chNB.getText().trim());
             for (int i = 0; i < nbTour; i++) {
-                Vector<LiaisonClasseFrais> lc = new Vector<>();
-                lc.add(new LiaisonClasseFrais(1, "CM1", 100));
-                lc.add(new LiaisonClasseFrais(2, "CM2", 100));
+                Vector<LiaisonFraisClasse> lc = new Vector<>();
+                lc.add(new LiaisonFraisClasse(1, "CM1", 001224, 50));
+                lc.add(new LiaisonFraisClasse(2, "CM2", 001212, 100));
 
-                Vector<LiaisonPeriodeFrais> lp = new Vector<>();
-                lp.add(new LiaisonPeriodeFrais(1, "1ere Trime", 50));
-                lp.add(new LiaisonPeriodeFrais(2, "2ème Trime", 50));
+                Vector<LiaisonFraisPeriode> lp = new Vector<>();
+                lp.add(new LiaisonFraisPeriode(1, "1ère Periode", 0114545, 50));
+                lp.add(new LiaisonFraisPeriode(2, "2ème Trime", 0014545, 50));
 
-                Uinputs.add(new XX_Frais(-1, 1, 1, 1, 1, new Date().getTime(), "FRAISX", "$", 3, lc, lp, 100, InterfaceFrais.BETA_EXISTANT));
+                Uinputs.add(new Frais(-1, 1, 1, 1, 1, new Date().getTime(), "FRAISX", "$", 3, lc, lp, 100, InterfaceFrais.BETA_EXISTANT));
             }
             enreg_Groupe(Uinputs, dossierFrais.getText());
         }
@@ -794,15 +792,15 @@ public class DemoFileManager extends javax.swing.JFrame {
             Utilisateur Uinput = new Utilisateur(-1, 1, "SULA", "BOSIO", "Serge", "sulabosiog@gmail.com", "sulabosio", InterfaceUtilisateur.TYPE_ADMIN, (new Date().getTime()), InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.BETA_EXISTANT);
             enreg_Objet(Uinput, dossierUtilisateur.getText());
         } else {
-            Vector<LiaisonClasseFrais> lc = new Vector<>();
-            lc.add(new LiaisonClasseFrais(1, "CM1", 100));
-            lc.add(new LiaisonClasseFrais(2, "CM2", 100));
+            Vector<LiaisonFraisClasse> lc = new Vector<>();
+            lc.add(new LiaisonFraisClasse(1, "CM1", 001212, 100));
+            lc.add(new LiaisonFraisClasse(2, "CM2", 0044545, 100));
 
-            Vector<LiaisonPeriodeFrais> lp = new Vector<>();
-            lp.add(new LiaisonPeriodeFrais(1, "1ere Trime", 50));
-            lp.add(new LiaisonPeriodeFrais(2, "2ème Trime", 50));
+            Vector<LiaisonFraisPeriode> lp = new Vector<>();
+            lp.add(new LiaisonFraisPeriode(1, "1ere Trime", 004545, 50));
+            lp.add(new LiaisonFraisPeriode(2, "2ème Trime", 2457870, 50));
 
-            XX_Frais newObj = new XX_Frais(-1, 1, 1, 1, 1, new Date().getTime(), "FRAISX", "$", 3, lc, lp, 100, InterfaceFrais.BETA_EXISTANT);
+            Frais newObj = new Frais(-1, 1, 1, 1, 1, new Date().getTime(), "FRAISX", "$", 3, lc, lp, 100, InterfaceFrais.BETA_EXISTANT);
 
             enreg_Objet(newObj, dossierFrais.getText());
         }
@@ -814,7 +812,7 @@ public class DemoFileManager extends javax.swing.JFrame {
         if (chUtilisateur.isSelected()) {
             listerDossier(Utilisateur.class, dossierUtilisateur.getText());
         } else {
-            listerDossier(XX_Frais.class, dossierFrais.getText());
+            listerDossier(Frais.class, dossierFrais.getText());
         }
     }//GEN-LAST:event_btListerActionPerformed
 
@@ -841,7 +839,7 @@ public class DemoFileManager extends javax.swing.JFrame {
         if (chUtilisateur.isSelected()) {
             viderTout(Utilisateur.class, dossierUtilisateur.getText().trim());
         } else {
-            viderTout(XX_Frais.class, dossierFrais.getText().trim());
+            viderTout(Frais.class, dossierFrais.getText().trim());
         }
     }//GEN-LAST:event_btViderActionPerformed
 
@@ -878,7 +876,7 @@ public class DemoFileManager extends javax.swing.JFrame {
         if (chUtilisateur.isSelected()) {
             ouvrirObjet(Utilisateur.class, dossierUtilisateur.getText(), chId.getText());
         } else {
-            ouvrirObjet(XX_Frais.class, dossierFrais.getText(), chId.getText());
+            ouvrirObjet(Frais.class, dossierFrais.getText(), chId.getText());
         }
     }//GEN-LAST:event_jButton1ActionPerformed
 

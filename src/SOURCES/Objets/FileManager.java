@@ -14,7 +14,9 @@ import SOURCES.Callback.EcouteurLongin;
 import SOURCES.Callback.EcouteurOuverture;
 import SOURCES.Callback.EcouteurStandard;
 import SOURCES.Callback.EcouteurSuppression;
-import SOURCES.Utilitaires.Util;
+import SOURCES.Utilitaires.UtilFileManager;
+import Source.Objet.Entreprise;
+import Source.Objet.Utilisateur;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.awt.AlphaComposite;
 import java.awt.Color;
@@ -123,7 +125,7 @@ public class FileManager extends ObjetNetWork {
             }
         });
 
-        Preference savedPref = (Preference) Util.lire(pref, Preference.class);
+        Preference savedPref = (Preference) UtilFileManager.lire(pref, Preference.class);
         if (savedPref != null) {
             fenetre.setBounds((int) savedPref.getFenetre_x(), (int) savedPref.getFenetre_y(), (int) savedPref.getFenetre_w(), (int) savedPref.getFenetre_h());
         }
@@ -138,7 +140,7 @@ public class FileManager extends ObjetNetWork {
                 processus.sleep(100);
             }
 
-            String parametres = "action=" + Util.ACTION_CONNEXION + "&id=" + idEcole + "&motDePasse=" + motDePasse + "&email=" + email;
+            String parametres = "action=" + UtilFileManager.ACTION_CONNEXION + "&id=" + idEcole + "&motDePasse=" + motDePasse + "&email=" + email;
             POST_CHARGER(parametres, new CallBackObjetNetWork() {
                 @Override
                 public void onDone(String jsonString) {
@@ -149,7 +151,7 @@ public class FileManager extends ObjetNetWork {
                         if (sessionWeb != null && sessionWeb.getEntreprise() != null && sessionWeb.getUtilisateur() != null) {
                             if (ecouteurLoginServeur != null) {
                                 Date today = new Date();
-                                Date dateExpiry = Util.convertDatePaiement(sessionWeb.getPaiement().getDateExpiration());
+                                Date dateExpiry = UtilFileManager.convertDatePaiement(sessionWeb.getPaiement().getDateExpiration());
                                 if (dateExpiry != null) {
                                     if (today.after(dateExpiry)) {
                                         ecouteurLoginServeur.onError("Votre abonnement vient d'expirer ! Connectez vous à " + adresseServeur);
@@ -428,11 +430,11 @@ public class FileManager extends ObjetNetWork {
                         ecouteurLongin.onProcessing("Vérification de la session...");
                     }
                     sleep(1000);
-                    session = (Session) Util.lire(racine + "/" + Session.fichierSession, Session.class);
+                    session = (Session) UtilFileManager.lire(racine + "/" + Session.fichierSession, Session.class);
                     if (session != null) {
                         if (ecouteurLongin != null) {
                             Date today = new Date();
-                            Date dateExpi = Util.convertDatePaiement(session.getPaiement().getDateExpiration());
+                            Date dateExpi = UtilFileManager.convertDatePaiement(session.getPaiement().getDateExpiration());
                             if (dateExpi != null) {
                                 if (today.after(dateExpi)) {
                                     ecouteurLongin.onEchec("Votre abonnement a expiré ! Merci de vous connecter sur votre page d'administration pour acheter une licence.");
@@ -606,11 +608,11 @@ public class FileManager extends ObjetNetWork {
     }
 
     private Object ouvrir(Class NomClasse, String fichierSource) {
-        return Util.lire(fichierSource, NomClasse);
+        return UtilFileManager.lire(fichierSource, NomClasse);
     }
 
     public Object fm_ouvrir(Class NomClasse, String table, int idObj) {
-        return Util.lire(racine + "/" + session.getEntreprise().getId() + "/" + table + "/" + idObj, NomClasse);
+        return UtilFileManager.lire(racine + "/" + session.getEntreprise().getId() + "/" + table + "/" + idObj, NomClasse);
     }
 
     public boolean fm_supprimer(String table, int idObj) {
@@ -694,7 +696,7 @@ public class FileManager extends ObjetNetWork {
                             if (ouvrirListener != null) {
                                 ouvrirListener.onProcessing("Chargement encours (" + index + "/" + tabIDs.length + ")...");
                             }
-                            Object temp = Util.lire(racine + "/" + session.getEntreprise().getId() + "/" + table + "/" + ID, NomClasse);
+                            Object temp = UtilFileManager.lire(racine + "/" + session.getEntreprise().getId() + "/" + table + "/" + ID, NomClasse);
                             if (!data.contains(temp)) {
                                 data.add(temp);
                             }
@@ -741,7 +743,7 @@ public class FileManager extends ObjetNetWork {
     }
 
     private boolean ecrire(String chemin, Object obj) {
-        return Util.ecrire(chemin, obj);
+        return UtilFileManager.ecrire(chemin, obj);
     }
 
     private boolean creerDossierSiNExistePas(String cheminComplet) {

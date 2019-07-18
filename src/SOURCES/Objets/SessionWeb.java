@@ -5,7 +5,9 @@
  */
 package SOURCES.Objets;
 
-import java.util.Date;
+import Source.Objet.Entreprise;
+import Source.Objet.Utilisateur;
+
 
 /**
  *

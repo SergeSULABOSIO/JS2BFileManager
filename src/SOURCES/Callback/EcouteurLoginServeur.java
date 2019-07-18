@@ -6,9 +6,11 @@
 
 package SOURCES.Callback;
 
-import SOURCES.Objets.Entreprise;
 import SOURCES.Objets.Paiement;
-import SOURCES.Objets.Utilisateur;
+import Source.Objet.Entreprise;
+import Source.Objet.Utilisateur;
+
+
 
 /**
  *

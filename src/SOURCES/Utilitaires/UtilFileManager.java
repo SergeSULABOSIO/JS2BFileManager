@@ -19,7 +19,7 @@ import java.util.Date;
  *
  * @author user
  */
-public class Util {
+public class UtilFileManager {
 
     public static final int ACTION_CONNEXION = 100;
 

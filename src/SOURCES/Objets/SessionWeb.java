@@ -16,13 +16,13 @@ import Source.Objet.Utilisateur;
 public class SessionWeb {
     public Entreprise entreprise;
     public Utilisateur utilisateur;
-    public Paiement paiement;
+    public PaiementLicence paiement;
 
     public SessionWeb() {
         
     }
 
-    public SessionWeb(Entreprise entreprise, Utilisateur utilisateur, Paiement paiement) {
+    public SessionWeb(Entreprise entreprise, Utilisateur utilisateur, PaiementLicence paiement) {
         this.entreprise = entreprise;
         this.utilisateur = utilisateur;
         this.paiement = paiement;
@@ -44,11 +44,11 @@ public class SessionWeb {
         this.utilisateur = utilisateur;
     }
 
-    public Paiement getPaiement() {
+    public PaiementLicence getPaiement() {
         return paiement;
     }
 
-    public void setPaiement(Paiement paiement) {
+    public void setPaiement(PaiementLicence paiement) {
         this.paiement = paiement;
     }
 

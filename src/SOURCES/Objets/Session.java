@@ -16,7 +16,7 @@ import java.util.Date;
 public class Session {
     public Entreprise entreprise;
     public Utilisateur utilisateur;
-    public Paiement paiement;
+    public PaiementLicence paiement;
     public String token;
     public Date derniereConnexion;
     public final static String fichierSession = "SESSION.man";
@@ -25,7 +25,7 @@ public class Session {
         
     }
 
-    public Session(Entreprise entreprise, Utilisateur utilisateur, Paiement paiement, String token, Date derniereConnexion) {
+    public Session(Entreprise entreprise, Utilisateur utilisateur, PaiementLicence paiement, String token, Date derniereConnexion) {
         this.entreprise = entreprise;
         this.utilisateur = utilisateur;
         this.paiement = paiement;
@@ -41,11 +41,11 @@ public class Session {
         this.entreprise = entreprise;
     }
 
-    public Paiement getPaiement() {
+    public PaiementLicence getPaiement() {
         return paiement;
     }
 
-    public void setPaiement(Paiement paiement) {
+    public void setPaiement(PaiementLicence paiement) {
         this.paiement = paiement;
     }
     

@@ -6,7 +6,7 @@
 
 package SOURCES.Callback;
 
-import SOURCES.Objets.Paiement;
+import SOURCES.Objets.PaiementLicence;
 import Source.Objet.Entreprise;
 import Source.Objet.Utilisateur;
 
@@ -19,7 +19,7 @@ import Source.Objet.Utilisateur;
 
 
 public abstract class EcouteurLoginServeur {
-    public abstract void onDone(String message, Entreprise entreprise, Utilisateur utilisateur, Paiement paiement);
+    public abstract void onDone(String message, Entreprise entreprise, Utilisateur utilisateur, PaiementLicence paiement);
     public abstract void onError(String message);
     public abstract void onProcessing(String message);
 }

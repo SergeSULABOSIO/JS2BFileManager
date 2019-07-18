@@ -5,14 +5,13 @@
  */
 package SOURCES.Objets;
 
-import SOURCES.Utilitaires.UtilFileManager;
-import java.util.Date;
+
 
 /**
  *
  * @author user
  */
-public class Paiement {
+public class PaiementLicence {
 
     public int id;
     public int idEntreprise;
@@ -25,11 +24,11 @@ public class Paiement {
     public String dateActivation;
     public String dateExpiration;
 
-    public Paiement() {
+    public PaiementLicence() {
         
     }
 
-    public Paiement(int id, int idEntreprise, int idUtilisateur, int plan, int canal, String reference, String dateReception, double montant, String dateActivation, String dateExpiration) {
+    public PaiementLicence(int id, int idEntreprise, int idUtilisateur, int plan, int canal, String reference, String dateReception, double montant, String dateActivation, String dateExpiration) {
         this.id = id;
         this.idEntreprise = idEntreprise;
         this.idUtilisateur = idUtilisateur;

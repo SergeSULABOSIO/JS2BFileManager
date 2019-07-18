@@ -222,7 +222,7 @@ public class FileManager extends ObjetNetWork {
             processus.sleep(1000);
             loginToServer(processus, idEcole, email, motDePasse, new EcouteurLoginServeur() {
                 @Override
-                public void onDone(String message, Entreprise entreprise, Utilisateur utilisateur, Paiement paiement) {
+                public void onDone(String message, Entreprise entreprise, Utilisateur utilisateur, PaiementLicence paiement) {
                     if (Integer.parseInt(idEcole.trim()) == entreprise.getId() && motDePasse.trim().equals(utilisateur.getMotDePasse().trim())) {
                         if (ecouteurLongin != null) {
                             ecouteurLongin.onProcessing("Chargement des données...");

@@ -11,7 +11,7 @@ import SOURCES.Callback.EcouteurOuverture;
 import SOURCES.Callback.EcouteurStandard;
 import SOURCES.Callback.EcouteurSuppression;
 import SOURCES.Objets.FileManager;
-import SOURCES.Objets.Paiement;
+import SOURCES.Objets.PaiementLicence;
 import SOURCES.Objets.Registre;
 import SOURCES.Objets.Session;
 import SOURCES.Utilitaires.UtilFileManager;
@@ -183,7 +183,7 @@ public class DemoFileManager extends javax.swing.JFrame {
         }
 
         if (fm.fm_getSession() != null) {
-            Paiement paie = fm.fm_getSession().getPaiement();
+            PaiementLicence paie = fm.fm_getSession().getPaiement();
             if (paie != null) {
                 chInfosLicence.setText("Votre licence expire le " + UtilFileManager.convertDatePaiement(paie.getDateExpiration()).toLocaleString());
                 System.out.println("Echéance Licence: " + UtilFileManager.convertDatePaiement(paie.getDateExpiration()).toLocaleString());

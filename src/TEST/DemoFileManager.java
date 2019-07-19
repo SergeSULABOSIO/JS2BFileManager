@@ -776,7 +776,7 @@ public class DemoFileManager extends javax.swing.JFrame {
                 lp.add(new LiaisonFraisPeriode(1, "1ère Periode", 0114545, 50));
                 lp.add(new LiaisonFraisPeriode(2, "2ème Trime", 0014545, 50));
 
-                Uinputs.add(new Frais(-1, 1, 1, 1, 1, new Date().getTime(), "FRAISX", "$", 3, lc, lp, 100, InterfaceFrais.BETA_EXISTANT));
+                Uinputs.add(new Frais(-1, 1, 1, 1, 1, new Date().getTime(), 00000, "FRAISX", "$", 3, lc, lp, 100, InterfaceFrais.BETA_EXISTANT));
             }
             enreg_Groupe(Uinputs, dossierFrais.getText());
         }
@@ -800,7 +800,7 @@ public class DemoFileManager extends javax.swing.JFrame {
             lp.add(new LiaisonFraisPeriode(1, "1ere Trime", 004545, 50));
             lp.add(new LiaisonFraisPeriode(2, "2ème Trime", 2457870, 50));
 
-            Frais newObj = new Frais(-1, 1, 1, 1, 1, new Date().getTime(), "FRAISX", "$", 3, lc, lp, 100, InterfaceFrais.BETA_EXISTANT);
+            Frais newObj = new Frais(-1, 1, 1, 1, 1, new Date().getTime(), 00000, "FRAISX", "$", 3, lc, lp, 100, InterfaceFrais.BETA_EXISTANT);
 
             enreg_Objet(newObj, dossierFrais.getText());
         }

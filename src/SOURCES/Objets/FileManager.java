@@ -994,7 +994,7 @@ public class FileManager extends ObjetNetWork {
             strRevenu = revenu.getNom();
             idRevenu = revenu.getId();
         }
-        return new Encaissement(-100, destination, paiementFrais.getReference(), paiementFrais.getDate(), paiementFrais.getMontant(), idMonnaie, codeMonnaie, paiementFrais.getNomDepositaire(), motif, idRevenu, strRevenu, paiementFrais.getIdExercice(), idUtilisateur, InterfaceEncaissement.BETA_EXISTANT);
+        return new Encaissement(-100, destination, paiementFrais.getReference(), paiementFrais.getDate(), paiementFrais.getMontant(), idMonnaie, codeMonnaie, paiementFrais.getNomDepositaire(), motif, idRevenu, strRevenu, paiementFrais.getIdExercice(), idUtilisateur, UtilObjet.getSignature(), InterfaceEncaissement.BETA_EXISTANT);
     }
 
     private Decaissement getDecaissement(Fiche fichePaie, EcouteurParametreDecaissement epd) {
@@ -1037,7 +1037,7 @@ public class FileManager extends ObjetNetWork {
             nomCharge = rr.getNom();
             idCharge = rr.getId();
         }
-        return new Decaissement(-100, source, fichePaie.getId() + "", fichePaie.getDateEnregistrement(), montant, idMonnaie, codeMonnaie, beneficiaire, motif, idCharge, nomCharge, fichePaie.getIdExercice(), fichePaie.getIdUtilisateur(), InterfaceDecaissement.BETA_EXISTANT);
+        return new Decaissement(-100, source, fichePaie.getId() + "", fichePaie.getDateEnregistrement(), montant, idMonnaie, codeMonnaie, beneficiaire, motif, idCharge, nomCharge, fichePaie.getIdExercice(), fichePaie.getIdUtilisateur(), UtilObjet.getSignature(), InterfaceDecaissement.BETA_EXISTANT);
     }
 
     public PhotoDisqueLocal fm_getPhotoDisqueLocal(Vector<Dossier> dossiers) {

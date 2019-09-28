@@ -14,10 +14,23 @@ import java.util.Vector;
 
 
 public abstract class EcouteurOuverture {
-    public abstract void onDone(String message, Vector data);
+    //public abstract void onDone(String message, Vector data, int resultatTotal);
+    public abstract boolean isCriteresRespectes(Object object);
+    public abstract void onElementLoaded(String message, Object data);
+    public abstract void onDone(String message, int resultatTotal, Vector resultatTotalObjets);
     public abstract void onError(String message);
     public abstract void onProcessing(String message);
 }
+
+
+
+
+
+
+
+
+
+
 
 
 

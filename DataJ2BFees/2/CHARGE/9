@@ -1,0 +1,13 @@
+{
+  "id" : 9,
+  "idEntreprise" : 2,
+  "idUtilisateur" : 12,
+  "idExercice" : 2,
+  "nom" : "Charge_3",
+  "limiteAnnuelle" : 100000.0,
+  "idMonnaie" : 1,
+  "signatureMonnaie" : 12450,
+  "monnaie" : "$",
+  "signature" : -2171578262458876635,
+  "beta" : 0
+}

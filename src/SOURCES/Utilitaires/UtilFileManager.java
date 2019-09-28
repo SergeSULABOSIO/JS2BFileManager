@@ -6,14 +6,16 @@
 package SOURCES.Utilitaires;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import static com.sun.org.apache.xalan.internal.lib.ExsltDatetime.date;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Vector;
 
 /**
  *
@@ -26,13 +28,24 @@ public class UtilFileManager {
     public static Date convertDatePaiement(String Sdate) {
         try {
             Date date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(Sdate);
-            System.out.println(Sdate + "\t" + date.toLocaleString());
+            //System.out.println(Sdate + "\t" + date.toLocaleString());
             return date;
         } catch (Exception e) {
             //e.printStackTrace();
             return null;
         }
 
+    }
+    
+    public static boolean isNewWorkAvailable(String pageWeb){
+        try {
+            URL url = new URL(pageWeb);//new URL("https://www.geeksforgeeks.org/"); 
+            URLConnection connection = url.openConnection(); 
+            connection.connect(); 
+            return true;
+        }catch (Exception e) { 
+            return false;
+        } 
     }
 
     public static boolean ecrire(String fichierDestination, Object objet) {
@@ -41,6 +54,21 @@ public class UtilFileManager {
                 FileWriter writer = new FileWriter(fichierDestination, false);
                 String js = getJSONStringFromObject(objet);
                 writer.write(js);
+                writer.close();
+                return true;
+            } catch (IOException e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+        return false;
+    }
+    
+    public static boolean ecrire_txt(String fichierDestination, String text, boolean append) {
+        if (text.trim().length() != 0) {
+            try {
+                FileWriter writer = new FileWriter(fichierDestination, append);
+                writer.write(text);
                 writer.close();
                 return true;
             } catch (IOException e) {
@@ -76,6 +104,56 @@ public class UtilFileManager {
         }
         return obj;
     }
+    
+    public static boolean containsSignature(String fichierSource, long signature) {
+        String jsonString = "";
+        if (new File(fichierSource).exists() == true) {
+            try {
+                FileReader reader = new FileReader(fichierSource);
+                BufferedReader bufferedReader = new BufferedReader(reader);
+                String line = "";
+                while ((line = bufferedReader.readLine()) != null) {
+                    jsonString = jsonString + line;
+                }
+                reader.close();
+                //On transforme le texte lu en Objet JSON, puis en Objet Utilisateur
+                if (jsonString.length() != 0) {
+                    System.out.println(jsonString);
+                    return jsonString.contains(signature+"");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return false;
+    }
+    
+    public static Object[] lire_signaturesDeleted(String fichierSource) {
+        Vector vectSign = new Vector();
+        String stringData = "";
+        if (new File(fichierSource).exists() == true) {
+            try {
+                FileReader reader = new FileReader(fichierSource);
+                BufferedReader bufferedReader = new BufferedReader(reader);
+                String line = "";
+                while ((line = bufferedReader.readLine()) != null) {
+                    stringData = stringData + line;
+                }
+                reader.close();
+                if (stringData.length() != 0) {
+                    String[]  tabSignatures = stringData.split(",");
+                    for(String sign: tabSignatures){
+                        if(sign.trim().length() != 0 && !vectSign.contains(sign.trim())){
+                            vectSign.add(sign.trim());
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return vectSign.toArray();
+    }
 
     private static String getJSONStringFromObject(Object object) {
         String jsonString = "";
@@ -101,6 +179,76 @@ public class UtilFileManager {
         return obj;
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

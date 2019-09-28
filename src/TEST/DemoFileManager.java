@@ -5,59 +5,71 @@
  */
 package TEST;
 
-
+import ICONES.Icones;
 import SOURCES.Callback.EcouteurLongin;
 import SOURCES.Callback.EcouteurOuverture;
-import SOURCES.Callback.EcouteurStandard;
 import SOURCES.Callback.EcouteurSuppression;
+import SOURCES.Callback.EcouteurSynchronisation;
 import SOURCES.Objets.FileManager;
 import SOURCES.Objets.PaiementLicence;
 import SOURCES.Objets.Registre;
 import SOURCES.Objets.Session;
 import SOURCES.Utilitaires.UtilFileManager;
-import Source.Interface.InterfaceUtilisateur;
-import Source.Objet.Frais;
-import Source.Objet.LiaisonFraisClasse;
-import Source.Objet.LiaisonFraisPeriode;
+import Source.Callbacks.ConstructeurCriteres;
+import Source.Callbacks.EcouteurNavigateurPages;
+import Source.Callbacks.EcouteurStandard;
+import Source.Interface.InterfaceCharge;
+import Source.Interface.InterfaceRevenu;
+import Source.Objet.Charge;
+import Source.Objet.Revenu;
+import Source.Objet.UtilObjet;
 import Source.Objet.Utilisateur;
+import Sources.CHAMP_LOCAL;
+import Sources.PROPRIETE;
+import Sources.UI.JS2BPanelPropriete;
 import java.awt.event.KeyEvent;
 import java.util.Date;
 import java.util.Vector;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 
 /**
  *
  * @author user
  */
 public class DemoFileManager extends javax.swing.JFrame {
-
+    
     /**
      * Creates new form Principal
      */
     public FileManager fm = null;
     private JFrame moi = null;
+    private Icones icones = null;
+    public Utilisateur userConnected = null;
+    public Session sessionConnected = null;
 
     public DemoFileManager() {
         initComponents();
         tabPrincipal.removeAll();
         moi = this;
-        
+        initIcones();
         fm = new FileManager("http://www.visiterlardc.com/s2b", "processeurS2B.php", btLogo);
-        
+        progressUser.setVisible(false);
         moi.setTitle("Authentification...");
         
         fm.fm_setEcouteurFenetre(moi);  // On écoute désormais les mouvements de la fenetre
-        
         
         fm.fm_loadSession(new EcouteurLongin() {
             @Override
             public void onConnected(String message, Session session) {
                 if (session != null) {
+                    sessionConnected = session;
                     moi.setTitle(session.getUtilisateur().getNom() + " | " + session.getEntreprise().getNom());
                     tabPrincipal.add("Bien venu " + session.getUtilisateur().getPrenom() + " ! - " + session.getEntreprise().getNom(), panUser);
                     tabPrincipal.remove(panLogin);
                     //chInfosLicence.setText(session.get);
                     showRegistre();
+                    ecouterOutilsDeNavigation();
                 } else {
                     //On ne fait rien
                     labLogin.setText("Utilisateur non reconnu !, Merci de saisie vos identifiants.");
@@ -78,19 +90,72 @@ public class DemoFileManager extends javax.swing.JFrame {
                 etat.setText(message);
             }
         });
+
+    }
+
+    private void ecouterOutilsDeNavigation() {
+        navigateurPages.initialiser(this, new EcouteurNavigateurPages() {
+            @Override
+            public void onRecharge(String motCle, int pageActuelle, int taillePage, JS2BPanelPropriete criteresAvances) {
+                //System.out.println("reload...");
+                progressUser.setIndeterminate(true);
+                Class nomClasse = null;
+                String table = "";
+                if (chRevenu.isSelected()) {
+                    nomClasse = Revenu.class;
+                    table = UtilObjet.DOSSIER_REVENU;
+                } else {
+                    nomClasse = Charge.class;
+                    table = UtilObjet.DOSSIER_CHARGE;
+                }
+                ouvrirTout(motCle, nomClasse, table, pageActuelle, taillePage, criteresAvances);
+            }
+
+        }, new ConstructeurCriteres() {
+            @Override
+            public JS2BPanelPropriete onInitialise() {
+
+                Vector listeClasses = new Vector();
+                listeClasses.add("TOUTES LES CLASSES");
+                listeClasses.add("G1");
+                listeClasses.add("G2");
+
+                Vector listeEnseignant = new Vector();
+                listeEnseignant.add("TOUS LES ENSEIGNANTS");
+                listeEnseignant.add("Prof Serge SULA BOSIO");
+                listeEnseignant.add("Prof Pavel SULA BOTOWAMUNGU");
+
+                Vector listeSolvabilite = new Vector();
+                listeSolvabilite.add("SOLVABLES & INSOLVABLES");
+                listeSolvabilite.add("SOLVABLES");
+                listeSolvabilite.add("INSOLVABLES");
+
+                JS2BPanelPropriete panProp = new JS2BPanelPropriete(icones.getFiltrer_01(), "Critères avancés", true);
+                panProp.viderListe();
+                panProp.AjouterPropriete(new CHAMP_LOCAL(icones.getClasse_01(), "Classe", "cls", listeClasses, "", PROPRIETE.TYPE_CHOIX_LISTE), 0);
+                panProp.AjouterPropriete(new CHAMP_LOCAL(icones.getClasse_01(), "Enseignant", "cls", listeEnseignant, "", PROPRIETE.TYPE_CHOIX_LISTE), 0);
+                panProp.AjouterPropriete(new CHAMP_LOCAL(icones.getClasse_01(), "Solvabilité", "cls", listeSolvabilite, "", PROPRIETE.TYPE_CHOIX_LISTE), 0);
+                panProp.AjouterPropriete(new CHAMP_LOCAL(icones.getClasse_01(), "Date début", "cls", null, new Date(), PROPRIETE.TYPE_CHOIX_DATE), 0);
+                panProp.AjouterPropriete(new CHAMP_LOCAL(icones.getClasse_01(), "Date fin", "cls", null, new Date(), PROPRIETE.TYPE_CHOIX_DATE), 0);
+
+                return panProp;
+                //return null;
+            }
+        });
+        navigateurPages.reload();
     }
 
     private void showRegistre() {
-        if (chUtilisateur.isSelected()) {
-            updateInfosRegistre(dossierUtilisateur.getText());
+        if (chRevenu.isSelected()) {
+            updateInfosRegistre(UtilObjet.DOSSIER_REVENU);
         } else {
-            updateInfosRegistre(dossierFrais.getText());
+            updateInfosRegistre(UtilObjet.DOSSIER_CHARGE);
         }
     }
 
     private void enreg_Objet(Object newObj, String dossier) {
         ecran.setText("");
-
+        
         fm.fm_enregistrer(newObj, dossier, new EcouteurStandard() {
             @Override
             public void onDone(String message) {
@@ -116,7 +181,7 @@ public class DemoFileManager extends javax.swing.JFrame {
     private void enreg_Groupe(Vector listeObjts, String table) {
         ecran.setText("");
         progressUser.setIndeterminate(true);
-        int pauseMSecondes = Integer.parseInt(chVitesseTraitement.getText());
+        int pauseMSecondes = Integer.parseInt(chVitesseTraitement.getValue()+"");
         fm.fm_enregistrer(pauseMSecondes, listeObjts, table, new EcouteurStandard() {
             @Override
             public void onDone(String message) {
@@ -142,36 +207,55 @@ public class DemoFileManager extends javax.swing.JFrame {
         });
     }
 
-    private void listerDossier(Class NomClasse, String table) {
-        ecran.setText("");
-        progressUser.setIndeterminate(true);
-        fm.fm_ouvrirTout(Integer.parseInt(chVitesseTraitement.getText().trim()), NomClasse, table, new EcouteurOuverture() {
-            @Override
-            public void onDone(String message, Vector data) {
-                etat.setText(message);
-                progressUser.setIndeterminate(false);
-                if (data.size() != 0) {
-                    ecran.append("Liste d'enregistrements:\n");
-                    for (Object oRetrieved : data) {
-                        ecran.append(" * " + oRetrieved.toString() + "\n");
+    private void ouvrirTout(String motCle, Class NomClasse, String table, int pageActuelle, int taillePage, JS2BPanelPropriete criteresAvances) {
+        new Thread() {
+            public void run() {
+                ecran.setText("");
+                Vector donnees = new Vector();
+                //System.out.println("Mot clé: " + motCle);
+                navigateurPages.patienter(true, "Chargement...");
+                if (criteresAvances != null) {
+                    System.out.println("Critères de filtrage approfondis:");
+                    for (PROPRIETE prop : criteresAvances.getListePro()) {
+                        System.out.println(" * " + prop.getNom() + ": " + prop.getValeurSelectionne());
                     }
-                } else {
-                    ecran.setText("Dossier vide !");
                 }
+                fm.fm_ouvrirTout(Integer.parseInt(chVitesseTraitement.getValue()+""), NomClasse, table, pageActuelle, taillePage, new EcouteurOuverture() {
 
-            }
+                    @Override
+                    public boolean isCriteresRespectes(Object object) {
+                        return true;
+                    }
 
-            @Override
-            public void onError(String message) {
-                etat.setText(message);
-                progressUser.setIndeterminate(false);
-            }
+                    @Override
+                    public void onElementLoaded(String message, Object data) {
+                        ecran.append(" * " + data.toString() + "\n");
+                        navigateurPages.patienter(true, data.toString());
+                        donnees.add(data);
+                    }
 
-            @Override
-            public void onProcessing(String message) {
-                etat.setText(message);
+                    @Override
+                    public void onDone(String message, int resultatTotal, Vector resultatTotalObjets) {
+                        etat.setText(message);
+                        progressUser.setIndeterminate(false);
+                        navigateurPages.setInfos(resultatTotal, donnees.size());
+                        navigateurPages.patienter(false, "Prêt");
+                    }
+
+                    @Override
+                    public void onError(String message) {
+                        etat.setText(message);
+                        progressUser.setIndeterminate(false);
+                        navigateurPages.patienter(false, "Prêt");
+                    }
+
+                    @Override
+                    public void onProcessing(String message) {
+                        etat.setText(message);
+                    }
+                });
             }
-        });
+        }.start();
     }
 
     private void updateInfosRegistre(String dossier) {
@@ -200,10 +284,10 @@ public class DemoFileManager extends javax.swing.JFrame {
         updateInfosRegistre(dossier);
     }
 
-    private void supprimer(String table, String id) {
+    private void supprimer(String table, String id, long signature) {
         ecran.setText("");
-
-        boolean rep = fm.fm_supprimer(table, Integer.parseInt(id));
+        
+        boolean rep = fm.fm_supprimer(table, Integer.parseInt(id), signature);
         if (rep == true) {
             ecran.append("Suppression de " + id + " dans " + table + " reussie !");
             etat.setText("Suppression effectuée  avec succès.");
@@ -213,10 +297,10 @@ public class DemoFileManager extends javax.swing.JFrame {
         }
     }
 
-    private void supprimerGroupe(String table, String[] tabIDS) {
+    private void supprimerGroupe(String table, String[] tabIDS, Object[] tabSignatures) {
         ecran.setText("");
         progressUser.setIndeterminate(true);
-        fm.fm_supprimerTout(table, tabIDS, new EcouteurSuppression() {
+        fm.fm_supprimerTout(table, tabIDS, tabSignatures, new EcouteurSuppression() {
             @Override
             public void onDone(String message, Object[] idsNonSupprimes) {
                 ecran.setText(message);
@@ -248,10 +332,10 @@ public class DemoFileManager extends javax.swing.JFrame {
         });
     }
 
-    private void viderTout(Class NomClasse, String table) {
+    private void viderTout(Class classe, String table) {
         ecran.setText("");
         progressUser.setIndeterminate(true);
-        fm.fm_supprimerTout(table, new EcouteurSuppression() {
+        fm.fm_supprimerTout(classe, table, new EcouteurSuppression() {
             @Override
             public void onDone(String message, Object[] idsNonSupprimes) {
                 etat.setText(message);
@@ -265,7 +349,7 @@ public class DemoFileManager extends javax.swing.JFrame {
                     ecran.setText("Le dossier vidé!\n");
                 }
 
-                listerDossier(NomClasse, table);
+                navigateurPages.reload();
             }
 
             @Override
@@ -304,39 +388,41 @@ public class DemoFileManager extends javax.swing.JFrame {
         buttonGroup1 = new javax.swing.ButtonGroup();
         tabPrincipal = new javax.swing.JTabbedPane();
         panUser = new javax.swing.JPanel();
-        jPanel1 = new javax.swing.JPanel();
-        chUtilisateur = new javax.swing.JRadioButton();
-        chFrais = new javax.swing.JRadioButton();
-        ecranObjet = new javax.swing.JLabel();
-        dossierFrais = new javax.swing.JTextField();
-        dossierUtilisateur = new javax.swing.JTextField();
-        jButton3 = new javax.swing.JButton();
-        jPanel2 = new javax.swing.JPanel();
-        btSave = new javax.swing.JButton();
-        btSaveGroup = new javax.swing.JButton();
-        chNB = new javax.swing.JTextField();
-        btDelete = new javax.swing.JButton();
-        btDeleteGroup = new javax.swing.JButton();
-        chIDS = new javax.swing.JTextField();
-        btVider = new javax.swing.JButton();
-        jLabel1 = new javax.swing.JLabel();
-        btLister = new javax.swing.JButton();
-        jButton1 = new javax.swing.JButton();
-        chId = new javax.swing.JTextField();
-        jLabel2 = new javax.swing.JLabel();
-        jLabel3 = new javax.swing.JLabel();
-        jLabel4 = new javax.swing.JLabel();
-        chVitesseTraitement = new javax.swing.JTextField();
         jScrollPane1 = new javax.swing.JScrollPane();
         ecran = new javax.swing.JTextArea();
-        jPanel3 = new javax.swing.JPanel();
-        chLastId = new javax.swing.JLabel();
-        etat = new javax.swing.JLabel();
-        btReinitRegistre = new javax.swing.JButton();
-        progressUser = new javax.swing.JProgressBar();
-        chInfosLicence = new javax.swing.JLabel();
         jToolBar1 = new javax.swing.JToolBar();
         btLogo = new javax.swing.JButton();
+        jSeparator6 = new javax.swing.JToolBar.Separator();
+        btSynchroniser = new javax.swing.JButton();
+        jSeparator2 = new javax.swing.JToolBar.Separator();
+        btOuvrir = new javax.swing.JButton();
+        btLister = new javax.swing.JButton();
+        btAjouterUn = new javax.swing.JButton();
+        jSeparator3 = new javax.swing.JToolBar.Separator();
+        btVider = new javax.swing.JButton();
+        btSupprimer = new javax.swing.JButton();
+        btReinitRegistre = new javax.swing.JButton();
+        jSeparator7 = new javax.swing.JToolBar.Separator();
+        btDeconnexion = new javax.swing.JButton();
+        navigateurPages = new Source.UI.NavigateurPages();
+        jToolBar2 = new javax.swing.JToolBar();
+        chRevenu = new javax.swing.JRadioButton();
+        chCharge = new javax.swing.JRadioButton();
+        jSeparator1 = new javax.swing.JToolBar.Separator();
+        jLabel1 = new javax.swing.JLabel();
+        chIdExercice = new javax.swing.JSpinner();
+        jSeparator4 = new javax.swing.JToolBar.Separator();
+        jLabel2 = new javax.swing.JLabel();
+        chVitesseTraitement = new javax.swing.JSpinner();
+        jSeparator5 = new javax.swing.JToolBar.Separator();
+        ecranObjet = new javax.swing.JLabel();
+        jToolBar3 = new javax.swing.JToolBar();
+        chLastId = new javax.swing.JLabel();
+        jSeparator8 = new javax.swing.JToolBar.Separator();
+        chInfosLicence = new javax.swing.JLabel();
+        jSeparator9 = new javax.swing.JToolBar.Separator();
+        etat = new javax.swing.JLabel();
+        progressUser = new javax.swing.JProgressBar();
         panLogin = new javax.swing.JPanel();
         jButton2 = new javax.swing.JButton();
         jLabel5 = new javax.swing.JLabel();
@@ -351,302 +437,209 @@ public class DemoFileManager extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Objets"));
+        ecran.setColumns(20);
+        ecran.setRows(5);
+        jScrollPane1.setViewportView(ecran);
 
-        buttonGroup1.add(chUtilisateur);
-        chUtilisateur.setSelected(true);
-        chUtilisateur.setText("Utilisateur");
-        chUtilisateur.addItemListener(new java.awt.event.ItemListener() {
-            public void itemStateChanged(java.awt.event.ItemEvent evt) {
-                chUtilisateurItemStateChanged(evt);
-            }
-        });
+        jToolBar1.setFloatable(false);
+        jToolBar1.setRollover(true);
 
-        buttonGroup1.add(chFrais);
-        chFrais.setText("Frais");
-        chFrais.addItemListener(new java.awt.event.ItemListener() {
-            public void itemStateChanged(java.awt.event.ItemEvent evt) {
-                chFraisItemStateChanged(evt);
-            }
-        });
+        btLogo.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        btLogo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/IMG/Facture03.png"))); // NOI18N
+        btLogo.setText("Logo");
+        btLogo.setFocusable(false);
+        btLogo.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btLogo.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jToolBar1.add(btLogo);
+        jToolBar1.add(jSeparator6);
 
-        ecranObjet.setText("RAS");
-
-        dossierFrais.setText("FRAIS");
-
-        dossierUtilisateur.setText("UTILISATEUR");
-
-        jButton3.setText("Deconnexion");
-        jButton3.addActionListener(new java.awt.event.ActionListener() {
+        btSynchroniser.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        btSynchroniser.setIcon(new javax.swing.ImageIcon(getClass().getResource("/IMG/Facture03.png"))); // NOI18N
+        btSynchroniser.setText("Synchroniser");
+        btSynchroniser.setFocusable(false);
+        btSynchroniser.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btSynchroniser.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btSynchroniser.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton3ActionPerformed(evt);
+                btSynchroniserActionPerformed(evt);
             }
         });
+        jToolBar1.add(btSynchroniser);
+        jToolBar1.add(jSeparator2);
 
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(chUtilisateur, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(chFrais, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(dossierFrais)
-                            .addComponent(dossierUtilisateur, javax.swing.GroupLayout.DEFAULT_SIZE, 331, Short.MAX_VALUE)))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(ecranObjet, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap())
-        );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(chUtilisateur)
-                    .addComponent(dossierUtilisateur, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(chFrais)
-                    .addComponent(dossierFrais, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, 13, Short.MAX_VALUE)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(ecranObjet)
-                    .addComponent(jButton3))
-                .addContainerGap())
-        );
-
-        jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder("Actions"));
-
-        btSave.setText("Enregistrer");
-        btSave.addActionListener(new java.awt.event.ActionListener() {
+        btOuvrir.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        btOuvrir.setIcon(new javax.swing.ImageIcon(getClass().getResource("/IMG/Facture03.png"))); // NOI18N
+        btOuvrir.setText("Ouvrir");
+        btOuvrir.setFocusable(false);
+        btOuvrir.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btOuvrir.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btOuvrir.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btSaveActionPerformed(evt);
+                btOuvrirActionPerformed(evt);
             }
         });
+        jToolBar1.add(btOuvrir);
 
-        btSaveGroup.setText("Enrgistrer en groupe");
-        btSaveGroup.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btSaveGroupActionPerformed(evt);
-            }
-        });
-
-        chNB.setText("10");
-        chNB.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                chNBActionPerformed(evt);
-            }
-        });
-
-        btDelete.setText("Supprimer");
-        btDelete.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btDeleteActionPerformed(evt);
-            }
-        });
-
-        btDeleteGroup.setText("Supprimer en groupe");
-        btDeleteGroup.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btDeleteGroupActionPerformed(evt);
-            }
-        });
-
-        chIDS.setText("12,13,14,15,16");
-
-        btVider.setText("Vider");
-        btVider.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btViderActionPerformed(evt);
-            }
-        });
-
-        jLabel1.setText("(objets).");
-
-        btLister.setText("Lister dossier");
+        btLister.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        btLister.setIcon(new javax.swing.ImageIcon(getClass().getResource("/IMG/Facture03.png"))); // NOI18N
+        btLister.setText("Lister");
+        btLister.setFocusable(false);
+        btLister.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btLister.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         btLister.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btListerActionPerformed(evt);
             }
         });
+        jToolBar1.add(btLister);
 
-        jButton1.setText("Ouvrir");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        btAjouterUn.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        btAjouterUn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/IMG/Facture03.png"))); // NOI18N
+        btAjouterUn.setText("Ajouter");
+        btAjouterUn.setFocusable(false);
+        btAjouterUn.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btAjouterUn.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btAjouterUn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                btAjouterUnActionPerformed(evt);
             }
         });
+        jToolBar1.add(btAjouterUn);
+        jToolBar1.add(jSeparator3);
 
-        chId.setText("1");
+        btVider.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        btVider.setIcon(new javax.swing.ImageIcon(getClass().getResource("/IMG/Facture03.png"))); // NOI18N
+        btVider.setText("Vider");
+        btVider.setFocusable(false);
+        btVider.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btVider.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btVider.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btViderActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(btVider);
 
-        jLabel2.setText("(Id)");
+        btSupprimer.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        btSupprimer.setIcon(new javax.swing.ImageIcon(getClass().getResource("/IMG/Facture03.png"))); // NOI18N
+        btSupprimer.setText("Supprimer");
+        btSupprimer.setFocusable(false);
+        btSupprimer.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btSupprimer.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btSupprimer.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btSupprimerActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(btSupprimer);
 
-        jLabel3.setText("(Ids)");
-
-        jLabel4.setText("Vitesse de chargement de données (en Millisecondes)");
-
-        chVitesseTraitement.setText("100");
-
-        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
-        jPanel2.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                    .addComponent(btVider, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(btSave, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(btDelete, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(btSaveGroup, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(btDeleteGroup, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(btLister, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addComponent(chNB, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanel2Layout.createSequentialGroup()
-                                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(chId, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(chIDS, javax.swing.GroupLayout.PREFERRED_SIZE, 129, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))))
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(chVitesseTraitement, javax.swing.GroupLayout.PREFERRED_SIZE, 119, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
-        );
-        jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btSave)
-                    .addComponent(btSaveGroup)
-                    .addComponent(chNB, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel1))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btDelete)
-                    .addComponent(btDeleteGroup)
-                    .addComponent(chIDS, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel3))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btVider)
-                    .addComponent(btLister)
-                    .addComponent(jButton1)
-                    .addComponent(chId, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel2))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel4)
-                    .addComponent(chVitesseTraitement, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-
-        ecran.setColumns(20);
-        ecran.setRows(5);
-        jScrollPane1.setViewportView(ecran);
-
-        chLastId.setText("Dernier ID: Null");
-
-        etat.setText("Prêt.");
-
-        btReinitRegistre.setText("Reinitialiser le compteur des IDs");
+        btReinitRegistre.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        btReinitRegistre.setIcon(new javax.swing.ImageIcon(getClass().getResource("/IMG/Facture03.png"))); // NOI18N
+        btReinitRegistre.setText("Reinitialiser");
+        btReinitRegistre.setFocusable(false);
+        btReinitRegistre.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btReinitRegistre.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         btReinitRegistre.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btReinitRegistreActionPerformed(evt);
             }
         });
+        jToolBar1.add(btReinitRegistre);
+        jToolBar1.add(jSeparator7);
+
+        btDeconnexion.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        btDeconnexion.setIcon(new javax.swing.ImageIcon(getClass().getResource("/IMG/Facture03.png"))); // NOI18N
+        btDeconnexion.setText("Deconnexion");
+        btDeconnexion.setFocusable(false);
+        btDeconnexion.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btDeconnexion.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btDeconnexion.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btDeconnexionActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(btDeconnexion);
+
+        jToolBar2.setFloatable(false);
+        jToolBar2.setRollover(true);
+
+        buttonGroup1.add(chRevenu);
+        chRevenu.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        chRevenu.setText("Revenu");
+        chRevenu.setFocusable(false);
+        chRevenu.setHorizontalTextPosition(javax.swing.SwingConstants.RIGHT);
+        chRevenu.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jToolBar2.add(chRevenu);
+
+        buttonGroup1.add(chCharge);
+        chCharge.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        chCharge.setSelected(true);
+        chCharge.setText("Charge");
+        chCharge.setFocusable(false);
+        chCharge.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
+        chCharge.setHorizontalTextPosition(javax.swing.SwingConstants.RIGHT);
+        chCharge.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jToolBar2.add(chCharge);
+        jToolBar2.add(jSeparator1);
+
+        jLabel1.setText("ID Exercice:");
+        jToolBar2.add(jLabel1);
+
+        chIdExercice.setModel(new javax.swing.SpinnerNumberModel(2, null, null, 1));
+        jToolBar2.add(chIdExercice);
+        jToolBar2.add(jSeparator4);
+
+        jLabel2.setText("Vitesse de chargement (en Millisecondes)");
+        jToolBar2.add(jLabel2);
+
+        chVitesseTraitement.setModel(new javax.swing.SpinnerNumberModel(100, null, null, 1));
+        jToolBar2.add(chVitesseTraitement);
+        jToolBar2.add(jSeparator5);
+
+        ecranObjet.setText("RAS");
+        jToolBar2.add(ecranObjet);
+
+        jToolBar3.setFloatable(false);
+        jToolBar3.setRollover(true);
+
+        chLastId.setText("Dernier ID: Null");
+        jToolBar3.add(chLastId);
+        jToolBar3.add(jSeparator8);
 
         chInfosLicence.setText("Infos Licence");
+        jToolBar3.add(chInfosLicence);
+        jToolBar3.add(jSeparator9);
 
-        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
-        jPanel3.setLayout(jPanel3Layout);
-        jPanel3Layout.setHorizontalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel3Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addComponent(chInfosLicence, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addContainerGap())
-                    .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(chLastId, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(etat, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(btReinitRegistre, javax.swing.GroupLayout.PREFERRED_SIZE, 191, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
-                                .addComponent(progressUser, javax.swing.GroupLayout.PREFERRED_SIZE, 191, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addContainerGap())))))
-        );
-        jPanel3Layout.setVerticalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(chInfosLicence)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(chLastId)
-                    .addComponent(btReinitRegistre))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(etat)
-                    .addComponent(progressUser, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap())
-        );
-
-        jToolBar1.setFloatable(false);
-        jToolBar1.setRollover(true);
-
-        btLogo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/IMG/Facture03.png"))); // NOI18N
-        btLogo.setFocusable(false);
-        btLogo.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        btLogo.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        jToolBar1.add(btLogo);
+        etat.setText("Prêt.");
+        jToolBar3.add(etat);
+        jToolBar3.add(progressUser);
 
         javax.swing.GroupLayout panUserLayout = new javax.swing.GroupLayout(panUser);
         panUser.setLayout(panUserLayout);
         panUserLayout.setHorizontalGroup(
             panUserLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jToolBar1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(panUserLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(panUserLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(navigateurPages, javax.swing.GroupLayout.DEFAULT_SIZE, 626, Short.MAX_VALUE)
+                    .addComponent(jToolBar2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jToolBar3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
-            .addComponent(jToolBar1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         panUserLayout.setVerticalGroup(
             panUserLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panUserLayout.createSequentialGroup()
                 .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, 0)
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(navigateurPages, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 108, Short.MAX_VALUE)
+                .addComponent(jToolBar2, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(5, 5, 5)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 237, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jToolBar3, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
 
@@ -700,7 +693,7 @@ public class DemoFileManager extends javax.swing.JFrame {
                         .addGroup(panLoginLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(jLabel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jLabel7, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 220, Short.MAX_VALUE)
+                            .addComponent(jLabel7, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 349, Short.MAX_VALUE)
                             .addComponent(jLabel8, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(panLoginLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
@@ -734,7 +727,7 @@ public class DemoFileManager extends javax.swing.JFrame {
                 .addComponent(progressLogin, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(labLogin)
-                .addContainerGap(413, Short.MAX_VALUE))
+                .addContainerGap(300, Short.MAX_VALUE))
         );
 
         tabPrincipal.addTab("Espace Login", panLogin);
@@ -755,140 +748,10 @@ public class DemoFileManager extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void btSaveGroupActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btSaveGroupActionPerformed
-        // TODO add your handling code here:
-        if (chUtilisateur.isSelected()) {
-            Vector<Utilisateur> Uinputs = new Vector();
-            int nbTour = Integer.parseInt(chNB.getText().trim());
-            for (int i = 0; i < nbTour; i++) {
-                Uinputs.add(new Utilisateur(-1, 1, "SULA", "BOSIO", "Serge", "sulabosiog@gmail.com", "sulabosio", InterfaceUtilisateur.TYPE_ADMIN, (new Date().getTime()), InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.BETA_EXISTANT));
-            }
-            enreg_Groupe(Uinputs, dossierUtilisateur.getText());
-        } else {
-            Vector<Frais> Uinputs = new Vector();
-            int nbTour = Integer.parseInt(chNB.getText().trim());
-            for (int i = 0; i < nbTour; i++) {
-                Vector<LiaisonFraisClasse> lc = new Vector<>();
-                lc.add(new LiaisonFraisClasse(1, "CM1", 001224, 50));
-                lc.add(new LiaisonFraisClasse(2, "CM2", 001212, 100));
-
-                Vector<LiaisonFraisPeriode> lp = new Vector<>();
-                lp.add(new LiaisonFraisPeriode(1, "1ère Periode", 0114545, 50));
-                lp.add(new LiaisonFraisPeriode(2, "2ème Trime", 0014545, 50));
-
-                Uinputs.add(new Frais(-1, 1, 1, 1, 1, new Date().getTime(), 00000, "FRAISX", "$", 3, lc, lp, 100, InterfaceFrais.BETA_EXISTANT));
-            }
-            enreg_Groupe(Uinputs, dossierFrais.getText());
-        }
-    }//GEN-LAST:event_btSaveGroupActionPerformed
-
-    private void chNBActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_chNBActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_chNBActionPerformed
-
-    private void btSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btSaveActionPerformed
-        // TODO add your handling code here:
-        if (chUtilisateur.isSelected()) {
-            Utilisateur Uinput = new Utilisateur(-1, 1, "SULA", "BOSIO", "Serge", "sulabosiog@gmail.com", "sulabosio", InterfaceUtilisateur.TYPE_ADMIN, (new Date().getTime()), InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.DROIT_CONTROLER, InterfaceUtilisateur.BETA_EXISTANT);
-            enreg_Objet(Uinput, dossierUtilisateur.getText());
-        } else {
-            Vector<LiaisonFraisClasse> lc = new Vector<>();
-            lc.add(new LiaisonFraisClasse(1, "CM1", 001212, 100));
-            lc.add(new LiaisonFraisClasse(2, "CM2", 0044545, 100));
-
-            Vector<LiaisonFraisPeriode> lp = new Vector<>();
-            lp.add(new LiaisonFraisPeriode(1, "1ere Trime", 004545, 50));
-            lp.add(new LiaisonFraisPeriode(2, "2ème Trime", 2457870, 50));
-
-            Frais newObj = new Frais(-1, 1, 1, 1, 1, new Date().getTime(), 00000, "FRAISX", "$", 3, lc, lp, 100, InterfaceFrais.BETA_EXISTANT);
-
-            enreg_Objet(newObj, dossierFrais.getText());
-        }
-
-    }//GEN-LAST:event_btSaveActionPerformed
-
-    private void btListerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btListerActionPerformed
-        // TODO add your handling code here:
-        if (chUtilisateur.isSelected()) {
-            listerDossier(Utilisateur.class, dossierUtilisateur.getText());
-        } else {
-            listerDossier(Frais.class, dossierFrais.getText());
-        }
-    }//GEN-LAST:event_btListerActionPerformed
-
-    private void btDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btDeleteActionPerformed
-        // TODO add your handling code here:
-        if (chUtilisateur.isSelected()) {
-            supprimer(dossierUtilisateur.getText(), chIDS.getText().trim().split(",")[0]);
-        } else {
-            supprimer(dossierFrais.getText(), chIDS.getText().trim().split(",")[0]);
-        }
-    }//GEN-LAST:event_btDeleteActionPerformed
-
-    private void btDeleteGroupActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btDeleteGroupActionPerformed
-        // TODO add your handling code here:
-        if (chUtilisateur.isSelected()) {
-            supprimerGroupe(dossierUtilisateur.getText(), chIDS.getText().trim().split(","));
-        } else {
-            supprimerGroupe(dossierFrais.getText(), chIDS.getText().trim().split(","));
-        }
-    }//GEN-LAST:event_btDeleteGroupActionPerformed
-
-    private void btViderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btViderActionPerformed
-        // TODO add your handling code here:
-        if (chUtilisateur.isSelected()) {
-            viderTout(Utilisateur.class, dossierUtilisateur.getText().trim());
-        } else {
-            viderTout(Frais.class, dossierFrais.getText().trim());
-        }
-    }//GEN-LAST:event_btViderActionPerformed
-
-    private void btReinitRegistreActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btReinitRegistreActionPerformed
-        // TODO add your handling code here:
-        if (chUtilisateur.isSelected()) {
-            updateInfosRegistre(dossierUtilisateur.getText());
-            reinitRegistre(dossierUtilisateur.getText());
-        } else {
-            updateInfosRegistre(dossierFrais.getText());
-            reinitRegistre(dossierFrais.getText());
-        }
-
-    }//GEN-LAST:event_btReinitRegistreActionPerformed
-
-    private void chUtilisateurItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_chUtilisateurItemStateChanged
-        // TODO add your handling code here:
-        ecran.setText("");
-        if (chUtilisateur.isSelected()) {
-            showRegistre();
-        }
-    }//GEN-LAST:event_chUtilisateurItemStateChanged
-
-    private void chFraisItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_chFraisItemStateChanged
-        // TODO add your handling code here:
-        ecran.setText("");
-        if (chFrais.isSelected()) {
-            showRegistre();
-        }
-    }//GEN-LAST:event_chFraisItemStateChanged
-
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        // TODO add your handling code here:
-        if (chUtilisateur.isSelected()) {
-            ouvrirObjet(Utilisateur.class, dossierUtilisateur.getText(), chId.getText());
-        } else {
-            ouvrirObjet(Frais.class, dossierFrais.getText(), chId.getText());
-        }
-    }//GEN-LAST:event_jButton1ActionPerformed
-
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         // TODO add your handling code here:
         login();
     }//GEN-LAST:event_jButton2ActionPerformed
-
-    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        // TODO add your handling code here:
-        logout();
-    }//GEN-LAST:event_jButton3ActionPerformed
 
     private void chIdEcoleKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_chIdEcoleKeyReleased
         // TODO add your handling code here:
@@ -900,6 +763,65 @@ public class DemoFileManager extends javax.swing.JFrame {
     private void chPassWordKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_chPassWordKeyReleased
         // TODO add your handling code here:
     }//GEN-LAST:event_chPassWordKeyReleased
+
+    private void btDeconnexionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btDeconnexionActionPerformed
+        // TODO add your handling code here:
+        logout();
+    }//GEN-LAST:event_btDeconnexionActionPerformed
+
+    private void btSynchroniserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btSynchroniserActionPerformed
+        // TODO add your handling code here:
+        synchroniser();
+    }//GEN-LAST:event_btSynchroniserActionPerformed
+
+    private void btAjouterUnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btAjouterUnActionPerformed
+        // TODO add your handling code here:
+        String rep = JOptionPane.showInputDialog(this, "Veuillez saisir le nombre d'element à créer", "ID", JOptionPane.YES_NO_OPTION);
+        if (rep != null) {
+            int nb = Integer.parseInt(rep.trim());
+            if(nb == 1){
+                ajouterUn();
+            }else if(nb > 1){
+                ajouterPlus(nb);
+            }else{
+                JOptionPane.showMessageDialog(this, "Valeur INVALIDE ! (" + rep + ").");
+            }
+        }
+        
+    }//GEN-LAST:event_btAjouterUnActionPerformed
+
+    private void btViderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btViderActionPerformed
+        // TODO add your handling code here:
+        viderTout();
+    }//GEN-LAST:event_btViderActionPerformed
+
+    private void btListerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btListerActionPerformed
+        // TODO add your handling code here:
+        lister();
+    }//GEN-LAST:event_btListerActionPerformed
+
+    private void btOuvrirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btOuvrirActionPerformed
+        // TODO add your handling code here:
+        ouvrir();
+    }//GEN-LAST:event_btOuvrirActionPerformed
+
+    private void btSupprimerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btSupprimerActionPerformed
+        // TODO add your handling code here:
+        String rep = JOptionPane.showInputDialog(this, "Veuillez saisir l'ID (séparés par des virgules si plusieurs)", "ID", JOptionPane.YES_NO_OPTION);
+        if (rep != null) {
+            if (rep.contains(",")) {
+                supprimerPlus(rep);
+            } else {
+                supprimerUn(rep);
+            }
+        }
+
+    }//GEN-LAST:event_btSupprimerActionPerformed
+
+    private void btReinitRegistreActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btReinitRegistreActionPerformed
+        // TODO add your handling code here:
+        reinitRegistre();
+    }//GEN-LAST:event_btReinitRegistreActionPerformed
 
     /**
      * @param args the command line arguments
@@ -940,65 +862,70 @@ public class DemoFileManager extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton btDelete;
-    private javax.swing.JButton btDeleteGroup;
+    private javax.swing.JButton btAjouterUn;
+    private javax.swing.JButton btDeconnexion;
     private javax.swing.JButton btLister;
     private javax.swing.JButton btLogo;
+    private javax.swing.JButton btOuvrir;
     private javax.swing.JButton btReinitRegistre;
-    private javax.swing.JButton btSave;
-    private javax.swing.JButton btSaveGroup;
+    private javax.swing.JButton btSupprimer;
+    private javax.swing.JButton btSynchroniser;
     private javax.swing.JButton btVider;
     private javax.swing.ButtonGroup buttonGroup1;
+    private javax.swing.JRadioButton chCharge;
     private javax.swing.JTextField chEmail;
-    private javax.swing.JRadioButton chFrais;
-    private javax.swing.JTextField chIDS;
-    private javax.swing.JTextField chId;
     private javax.swing.JTextField chIdEcole;
+    private javax.swing.JSpinner chIdExercice;
     private javax.swing.JLabel chInfosLicence;
     private javax.swing.JLabel chLastId;
-    private javax.swing.JTextField chNB;
     private javax.swing.JPasswordField chPassWord;
-    private javax.swing.JRadioButton chUtilisateur;
-    private javax.swing.JTextField chVitesseTraitement;
-    private javax.swing.JTextField dossierFrais;
-    private javax.swing.JTextField dossierUtilisateur;
+    private javax.swing.JRadioButton chRevenu;
+    private javax.swing.JSpinner chVitesseTraitement;
     private javax.swing.JTextArea ecran;
     private javax.swing.JLabel ecranObjet;
     private javax.swing.JLabel etat;
-    private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
-    private javax.swing.JPanel jPanel3;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JToolBar.Separator jSeparator1;
+    private javax.swing.JToolBar.Separator jSeparator2;
+    private javax.swing.JToolBar.Separator jSeparator3;
+    private javax.swing.JToolBar.Separator jSeparator4;
+    private javax.swing.JToolBar.Separator jSeparator5;
+    private javax.swing.JToolBar.Separator jSeparator6;
+    private javax.swing.JToolBar.Separator jSeparator7;
+    private javax.swing.JToolBar.Separator jSeparator8;
+    private javax.swing.JToolBar.Separator jSeparator9;
     private javax.swing.JToolBar jToolBar1;
+    private javax.swing.JToolBar jToolBar2;
+    private javax.swing.JToolBar jToolBar3;
     private javax.swing.JLabel labLogin;
+    private Source.UI.NavigateurPages navigateurPages;
     private javax.swing.JPanel panLogin;
     private javax.swing.JPanel panUser;
     private javax.swing.JProgressBar progressLogin;
     private javax.swing.JProgressBar progressUser;
     private javax.swing.JTabbedPane tabPrincipal;
     // End of variables declaration//GEN-END:variables
-    
+
     private void login() {
         fm.fm_login(chIdEcole.getText().trim(), chEmail.getText().trim(), chPassWord.getText().trim(), new EcouteurLongin() {
             @Override
             public void onConnected(String message, Session session) {
                 progressLogin.setIndeterminate(false);
                 if (session != null) {
+                    userConnected = session.getUtilisateur();
+                    sessionConnected = session;
                     moi.setTitle(session.getUtilisateur().getNom() + " | " + session.getEntreprise().getNom());
                     tabPrincipal.remove(panLogin);
                     tabPrincipal.add("Bien venu " + session.getUtilisateur().getPrenom() + " | " + session.getEntreprise().getNom(), panUser);
                     showRegistre();
+                    ecouterOutilsDeNavigation();
                 }
             }
 
@@ -1035,5 +962,149 @@ public class DemoFileManager extends javax.swing.JFrame {
                 etat.setText(message);
             }
         });
+    }
+    
+    private void synchroniser() {
+        int idExercice = Integer.parseInt(chIdExercice.getValue()+"");
+        //ATTENTION!! Normalement, on ne devra synchroniser que les Dossier dont le User courant a le droit de CONTROLE
+        etat.setText("");
+        progressUser.setIndeterminate(true);
+        
+        fm.fm_synchroniser(sessionConnected.getUtilisateur(), idExercice, new EcouteurSynchronisation() {
+            @Override
+            public void onSuccess(String message) {
+                etat.setText(message);
+                progressUser.setIndeterminate(false);
+                progressUser.setVisible(false);
+            }
+
+            @Override
+            public void onEchec(String message) {
+                etat.setText(message);
+                progressUser.setIndeterminate(false);
+                progressUser.setVisible(false);
+            }
+
+            @Override
+            public void onProcessing(String message, int pourcentage) {
+                etat.setText(message);
+                //progressUser.setIndeterminate(true);
+                progressUser.setValue(pourcentage);
+                progressUser.setVisible(true);
+            }
+        });
+    }
+
+    private void ajouterUn() {
+        int idExercice = Integer.parseInt(chIdExercice.getValue()+"");
+        int idMonnaie = 1;
+        long signatureMonnaie = 12450;
+        if (chRevenu.isSelected()) {
+            Revenu Urevenu = new Revenu(-1, sessionConnected.getEntreprise().getId(), sessionConnected.getUtilisateur().getId(), idExercice, idMonnaie, signatureMonnaie, "Frais Scolaire", "$", 100000, UtilObjet.getSignature(), InterfaceRevenu.BETA_EXISTANT);
+            enreg_Objet(Urevenu, UtilObjet.DOSSIER_REVENU);
+        } else {
+            Charge Ucharge = new Charge(-1, sessionConnected.getEntreprise().getId(), sessionConnected.getUtilisateur().getId(), idExercice, "SALAIRE DU PERSONNEL", 100000, idMonnaie, signatureMonnaie, "$", UtilObjet.getSignature(), InterfaceCharge.BETA_EXISTANT);
+            enreg_Objet(Ucharge, UtilObjet.DOSSIER_CHARGE);
+        }
+    }
+    
+    private void ajouterPlus(int nb){
+        int idExercice = Integer.parseInt(chIdExercice.getValue()+"");
+        int idMonnaie = 1;
+        long signatureMonnaie = 12450;
+        if (chRevenu.isSelected()) {
+            Vector<Revenu> Uinputs = new Vector();
+            for (int i = 0; i < nb; i++) {
+                Revenu Urevenu = new Revenu(-1, sessionConnected.getEntreprise().getId(), sessionConnected.getUtilisateur().getId(), idExercice, idMonnaie, signatureMonnaie, "Revenu_" + i, "$", 100000, UtilObjet.getSignature(), InterfaceRevenu.BETA_EXISTANT);
+                Uinputs.add(Urevenu);
+            }
+            enreg_Groupe(Uinputs, UtilObjet.DOSSIER_REVENU);
+        } else {
+            Vector<Charge> Uinputs = new Vector();
+            for (int i = 0; i < nb; i++) {
+                Charge Ucharge = new Charge(-1, sessionConnected.getEntreprise().getId(), sessionConnected.getUtilisateur().getId(), idExercice, "Charge_" + i, 100000, idMonnaie, signatureMonnaie, "$", UtilObjet.getSignature(), InterfaceCharge.BETA_EXISTANT);
+                Uinputs.add(Ucharge);
+            }
+            enreg_Groupe(Uinputs, UtilObjet.DOSSIER_CHARGE);
+        }
+    }
+
+    private void viderTout() {
+        if (chRevenu.isSelected()) {
+            viderTout(Revenu.class, UtilObjet.DOSSIER_REVENU);
+        } else {
+            viderTout(Charge.class, UtilObjet.DOSSIER_CHARGE);
+        }
+    }
+
+    private void lister() {
+        navigateurPages.reload();
+    }
+
+    private void initIcones() {
+        icones = new Icones();
+        btDeconnexion.setIcon(icones.getDéconnecté_03());
+        btSynchroniser.setIcon(icones.getSynchroniser_03());
+        btAjouterUn.setIcon(icones.getAjouter_03());
+        btVider.setIcon(icones.getSupprimer_03());
+        btSupprimer.setIcon(icones.getAnnuler_03());
+        btLister.setIcon(icones.getListe_03());
+        btOuvrir.setIcon(icones.getPortrait_03());
+        btReinitRegistre.setIcon(icones.getFiltrer_03());
+    }
+
+    private void ouvrir() {
+        String rep = JOptionPane.showInputDialog(this, "Veuillez saisir l'ID", "ID", JOptionPane.YES_NO_OPTION);
+        if (rep != null) {
+            if (chRevenu.isSelected()) {
+                ouvrirObjet(Revenu.class, UtilObjet.DOSSIER_REVENU, rep);
+            } else {
+                ouvrirObjet(Charge.class, UtilObjet.DOSSIER_CHARGE, rep);
+            }
+        }
+    }
+
+    private void supprimerUn(String ID) {
+        try {
+            int idSupp = Integer.parseInt(ID.trim().split(",")[0]);
+            if (chRevenu.isSelected()) {
+                String dossier = UtilObjet.DOSSIER_REVENU;
+                Revenu revSup = (Revenu) fm.fm_ouvrir(Revenu.class, dossier, idSupp);
+                supprimer(dossier, idSupp + "", revSup.getSignature());
+            } else {
+                String dossier = UtilObjet.DOSSIER_CHARGE;
+                Charge charSup = (Charge) fm.fm_ouvrir(Charge.class, dossier, idSupp);
+                supprimer(dossier, idSupp + "", charSup.getSignature());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void supprimerPlus(String IDs) {
+        String[] tabIDS = IDs.trim().split(",");
+        Object[] tabSignatures;
+        if (chRevenu.isSelected()) {
+            String dossier = UtilObjet.DOSSIER_REVENU;
+            tabSignatures = fm.fm_getSignatures(Revenu.class, dossier, tabIDS);
+            supprimerGroupe(dossier, tabIDS, tabSignatures);
+        } else {
+            String dossier = UtilObjet.DOSSIER_CHARGE;
+            tabSignatures = fm.fm_getSignatures(Charge.class, dossier, tabIDS);
+            supprimerGroupe(dossier, tabIDS, tabSignatures);
+        }
+
+    }
+
+    private void reinitRegistre() {
+        if (chRevenu.isSelected()) {
+            String dossier = UtilObjet.DOSSIER_REVENU;
+            updateInfosRegistre(dossier);
+            reinitRegistre(dossier);
+        } else {
+            String dossier = UtilObjet.DOSSIER_CHARGE;
+            updateInfosRegistre(dossier);
+            reinitRegistre(dossier);
+        }
     }
 }

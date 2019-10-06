@@ -41,7 +41,9 @@ public class InterpreteurSql {
             for (Field champ : obj.getClass().getDeclaredFields()) {
                 if (!champ.getName().toLowerCase().equals("beta")) {
                     sqlString += "`" + champ.getName() + "`, ";
-                    if (champ.getType() == String.class || champ.getType() == Date.class) {
+                    if(champ.getType() == Date.class){
+                        valeurs += "'" + UtilObjet.getDateAnglais((Date)champ.get(obj)) + "',";
+                    }else if (champ.getType() == String.class) {
                         valeurs += "'" + champ.get(obj) + "',";
                     } else {
                         valeurs += "" + champ.get(obj) + ",";

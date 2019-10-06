@@ -46,6 +46,9 @@ import Source.Objet.Entreprise;
 import Source.Objet.Exercice;
 import Source.Objet.Fiche;
 import Source.Objet.Frais;
+import Source.Objet.LiaisonFraisClasse;
+import Source.Objet.LiaisonFraisEleve;
+import Source.Objet.LiaisonFraisPeriode;
 import Source.Objet.Monnaie;
 import Source.Objet.Paiement;
 import Source.Objet.Periode;
@@ -1205,7 +1208,7 @@ public class FileManager extends ObjetNetWork {
 
         if (currentUser != null) {
             Vector<Dossier> dossiersControledByCurrentUser = new Vector<>();
-            
+
             if (currentUser.getDroitExercice() == InterfaceUtilisateur.DROIT_CONTROLER) {
                 dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_ANNEE, Exercice.class));
                 dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_AGENT, Agent.class));
@@ -1285,7 +1288,7 @@ public class FileManager extends ObjetNetWork {
             FMDataUploader fMDataUploader = null;
             try {
                 fMDataUploader = new FMDataUploader(server, port, dbName, dbUser, dbUserPwd);
-                
+
                 if (ecouteurSynchronisation != null) {
                     ecouteurSynchronisation.onProcessing("Phase #1...", 10);
                 }
@@ -1552,23 +1555,45 @@ public class FileManager extends ObjetNetWork {
             String nomRub = rubriqueLocale.getNom();
             StatusElement ste = photoDisqueDistant.comparer(nomRub, el);
             System.out.println("\t" + el.getName() + ", lastMidified: " + el.lastModified() + " - " + ste.toString());
-            
+
             if (ste.isIsNew() == true) {
                 //CHARGEMENT SUR LE SERVEUR
                 Object oObjet = fm_ouvrir(rubriqueLocale.getClasse(), nomRub, Integer.parseInt(el.getName()));
-                String sql = InterpreteurSql.getInsert(oObjet, el.lastModified());
-                int rep = fMDataUploader.executerUpdate(sql);
-                System.out.println("\t\tChargement - Nouvelle données... = " + rep);
                 //FAUT PAS OUBLIER D'ENVOYER LES LIAISONS DANS LEURS TABLES
-                
+                if (rubriqueLocale.getClasse() == Frais.class) {
+                    Frais Ofrais = (Frais) oObjet;
+                    Vector<LiaisonFraisClasse> lfc = Ofrais.getLiaisonsClasses();
+                    Vector<LiaisonFraisPeriode> lfp = Ofrais.getLiaisonsPeriodes();
+
+                } else if (rubriqueLocale.getClasse() == Ayantdroit.class) {
+                    Ayantdroit Ofrais = (Ayantdroit) oObjet;
+                    Vector<LiaisonFraisEleve> lfp = Ofrais.getListeLiaisons();
+
+                } else {
+                    String sql = InterpreteurSql.getInsert(oObjet, el.lastModified());
+                    int rep = fMDataUploader.executerUpdate(sql);
+                    System.out.println("\t\tChargement - Nouvelle données... = " + rep);
+                }
             } else if (ste.isIsNew() == false && ste.isIsRecent() == true) {
                 //CHARGEMENT SUR LE SERVEUR
                 Object oObjet = fm_ouvrir(rubriqueLocale.getClasse(), nomRub, Integer.parseInt(el.getName()));
-                String sql = InterpreteurSql.getUpdate(oObjet, el.lastModified());
-                int rep = fMDataUploader.executerUpdate(sql);
-                System.out.println("\t\tChargement - Données modifiées... = " + rep);
+
                 //FAUT PAS OUBLIER D'ENVOYER LES LIAISONS DANS LEURS TABLES
-                
+                if (rubriqueLocale.getClasse() == Frais.class) {
+                    Frais Ofrais = (Frais) oObjet;
+                    Vector<LiaisonFraisClasse> lfc = Ofrais.getLiaisonsClasses();
+                    Vector<LiaisonFraisPeriode> lfp = Ofrais.getLiaisonsPeriodes();
+
+                } else if (rubriqueLocale.getClasse() == Ayantdroit.class) {
+                    Ayantdroit Ofrais = (Ayantdroit) oObjet;
+                    Vector<LiaisonFraisEleve> lfp = Ofrais.getListeLiaisons();
+
+                } else {
+                    String sql = InterpreteurSql.getUpdate(oObjet, el.lastModified());
+                    int rep = fMDataUploader.executerUpdate(sql);
+                    System.out.println("\t\tChargement - Données modifiées... = " + rep);
+                }
+
             }
         }
     }
@@ -1579,7 +1604,7 @@ public class FileManager extends ObjetNetWork {
             String nomRub = rubriqueDistante.getNom().replaceFirst("BACKUP_", "");
             StatusElement ste = photoDisqueLocal.comparer(nomRub, ed);
             System.out.println("\t" + ed.getId() + ", lastModified: " + ed.lastModified() + " - " + ste.toString());
-            
+
             //TELECHARGEMENT SUR LE POSTE LOCAL
             if (ste.isIsNew() == true) {
                 saveNewDate(true, rubriqueDistante.getNom(), nomRub, photoDisqueLocal, fMDataUploader, ed);
@@ -1592,16 +1617,16 @@ public class FileManager extends ObjetNetWork {
     private void saveNewDate(boolean ecraseAncien, String nomTable, String dossier, PhotoDisqueLocal photoDisqueLocal, FMDataUploader fMDataUploader, ElementDistant ed) throws Exception {
         String sql = "SELECT * FROM " + nomTable + " WHERE idEntreprise = " + ed.getIdEntreprise() + " AND id = " + ed.getId() + " AND idExercice = " + ed.getIdExercice() + ";";
         ResultSet rsObjet = fMDataUploader.executerQuery(sql);
-        
+
         //Note: il faut prendre en compte les liaisons et savoir les reconstituer en local car sur la base, les liaisons sont séparées de leurs responsables
         String strLiaisonFraisClasse = "";
         String strLiaisonFraisPeriode = "";
         String strLiaisonFraisEleve = "";
         if (dossier.equals(UtilObjet.DOSSIER_FRAIS)) {
             //Liaison Frais - Classe
-            String slqLiaisonClasse = "SELECT * FROM BACKUP_LiaisonFraisClasse WHERE idFrais = " + ed.getId() + " AND idEntreprise = " + ed.getIdEntreprise() + " AND idExercice = " + ed.getIdExercice()+";";
+            String slqLiaisonClasse = "SELECT * FROM BACKUP_LiaisonFraisClasse WHERE idFrais = " + ed.getId() + " AND idEntreprise = " + ed.getIdEntreprise() + " AND idExercice = " + ed.getIdExercice() + ";";
             ResultSet rsLiaisonsClasse = fMDataUploader.executerQuery(slqLiaisonClasse);
-            
+
             while (rsLiaisonsClasse.next()) {
                 strLiaisonFraisClasse = "{";
                 strLiaisonFraisClasse += "\"idClasse\" : " + rsLiaisonsClasse.getInt("idClasse") + ",";
@@ -1610,11 +1635,11 @@ public class FileManager extends ObjetNetWork {
                 strLiaisonFraisClasse += "\"montant\" : " + rsLiaisonsClasse.getDouble("montant") + "";
                 strLiaisonFraisClasse += "},";
             }
-            
+
             //Liaison Frais - Période
-            String slqLiaisonPeriode = "SELECT * FROM BACKUP_LiaisonFraisPeriode WHERE idFrais = " + ed.getId() + " AND idEntreprise = " + ed.getIdEntreprise() + " AND idExercice = " + ed.getIdExercice()+";";
+            String slqLiaisonPeriode = "SELECT * FROM BACKUP_LiaisonFraisPeriode WHERE idFrais = " + ed.getId() + " AND idEntreprise = " + ed.getIdEntreprise() + " AND idExercice = " + ed.getIdExercice() + ";";
             ResultSet rsLiaisonsPeriode = fMDataUploader.executerQuery(slqLiaisonPeriode);
-            
+
             while (rsLiaisonsPeriode.next()) {
                 strLiaisonFraisPeriode = "{";
                 strLiaisonFraisPeriode += "\"idPeriode\" : " + rsLiaisonsPeriode.getInt("idPeriode") + ",";
@@ -1623,11 +1648,11 @@ public class FileManager extends ObjetNetWork {
                 strLiaisonFraisPeriode += "\"pourcentage\" : " + rsLiaisonsPeriode.getDouble("pourcentage") + "";
                 strLiaisonFraisPeriode += "},";
             }
-        }else if (dossier.equals(UtilObjet.DOSSIER_AYANT_DROIT)) {
+        } else if (dossier.equals(UtilObjet.DOSSIER_AYANT_DROIT)) {
             //Liaison Eleve - Frais (dans ce cas, il s'agit d'un ayant-droit, donc élève qui ne paiet pas comme les autres)
-            String slqLiaisonFrais = "SELECT * FROM BACKUP_LiaisonFraisEleve WHERE idEleve = " + ed.getId() + " AND idEntreprise = " + ed.getIdEntreprise() + " AND idExercice = " + ed.getIdExercice()+";";
+            String slqLiaisonFrais = "SELECT * FROM BACKUP_LiaisonFraisEleve WHERE idEleve = " + ed.getId() + " AND idEntreprise = " + ed.getIdEntreprise() + " AND idExercice = " + ed.getIdExercice() + ";";
             ResultSet rsLiaisonsFrais = fMDataUploader.executerQuery(slqLiaisonFrais);
-            
+
             while (rsLiaisonsFrais.next()) {
                 strLiaisonFraisEleve = "{";
                 strLiaisonFraisEleve += "\"signatureEleve\" : " + rsLiaisonsFrais.getLong("signatureEleve") + ",";
@@ -1639,7 +1664,7 @@ public class FileManager extends ObjetNetWork {
                 strLiaisonFraisEleve += "},";
             }
         }
-        
+
         String strJSON = "";
         while (rsObjet.next()) {
             Class classe = photoDisqueLocal.getClasse(dossier);
@@ -1660,22 +1685,22 @@ public class FileManager extends ObjetNetWork {
                     System.out.println(" ** champ " + champClasse.getName() + " = " + rsObjet.getObject(champClasse.getName()));
                 }
             }
-            
+
             //S'il y liaisons Frais - classe
-            if(strLiaisonFraisClasse.trim().length() != 0){
+            if (strLiaisonFraisClasse.trim().length() != 0) {
                 strJSON += "\"liaisonsClasses\" : [" + strLiaisonFraisClasse + "],";
             }
-            
+
             //S'il y liaisons Frais - période
-            if(strLiaisonFraisPeriode.trim().length() != 0){
+            if (strLiaisonFraisPeriode.trim().length() != 0) {
                 strJSON += "\"liaisonsPeriodes\" : [" + strLiaisonFraisPeriode + "],";
             }
-            
+
             //S'il y liaisons Frais - Eleve (donc Ayant-droit)
-            if(strLiaisonFraisEleve.trim().length() != 0){
+            if (strLiaisonFraisEleve.trim().length() != 0) {
                 strJSON += "\"listeLiaisons\" : [" + strLiaisonFraisEleve + "],";
             }
-            
+
             strJSON += "\"beta\" : 0";
             strJSON += "}";
             System.out.println(strJSON);
@@ -1688,89 +1713,3 @@ public class FileManager extends ObjetNetWork {
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -41,7 +41,7 @@ public class InterpreteurSql {
             for (Field champ : obj.getClass().getDeclaredFields()) {
                 if (!champ.getName().toLowerCase().equals("beta")
                         && !champ.getName().toLowerCase().equals("liaisonsclasses")
-                        && !champ.getName().toLowerCase().equals("liaisonlfaiseleve")
+                        && !champ.getName().toLowerCase().equals("listeliaisons")
                         && !champ.getName().toLowerCase().equals("liaisonclassefrais")
                         && !champ.getName().toLowerCase().equals("liaisonsperiodes")) {
 

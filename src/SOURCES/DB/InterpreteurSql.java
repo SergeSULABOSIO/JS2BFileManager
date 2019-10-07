@@ -39,7 +39,7 @@ public class InterpreteurSql {
         String valeurs = "VALUES (";
         try {
             for (Field champ : obj.getClass().getDeclaredFields()) {
-                if (!champ.getName().toLowerCase().equals("beta") || !champ.getName().toLowerCase().equals("liaisonsClasses")) {
+                if (!champ.getName().toLowerCase().equals("beta") && !champ.getName().toLowerCase().equals("liaisonsClasses")) {
                     sqlString += "`" + champ.getName() + "`, ";
                     if(champ.getType() == Date.class){
                         valeurs += "'" + UtilObjet.getDateAnglais((Date)champ.get(obj)) + "',";
@@ -64,7 +64,7 @@ public class InterpreteurSql {
         String sqlString = "UPDATE `BACKUP_" + table + "` SET";
         try {
             for (Field champ : obj.getClass().getDeclaredFields()) {
-                if (!champ.getName().toLowerCase().equals("beta") || !champ.getName().toLowerCase().equals("signature") || !champ.getName().toLowerCase().equals("liaisonsClasses")) {
+                if (!champ.getName().toLowerCase().equals("beta") && !champ.getName().toLowerCase().equals("signature") && !champ.getName().toLowerCase().equals("liaisonsClasses")) {
                     sqlString += " `" + champ.getName() + "` ";
                     if(champ.getType() == Date.class){
                         sqlString += "= '" + UtilObjet.getDateAnglais((Date)champ.get(obj)) + "',";

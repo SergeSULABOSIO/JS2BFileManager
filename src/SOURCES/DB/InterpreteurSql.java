@@ -39,7 +39,10 @@ public class InterpreteurSql {
         String valeurs = "VALUES (";
         try {
             for (Field champ : obj.getClass().getDeclaredFields()) {
-                if (!champ.getName().toLowerCase().equals("beta") && !champ.getName().toLowerCase().equals("liaisonsClasses")) {
+                if (!champ.getName().toLowerCase().equals("beta") 
+                        && !champ.getName().toLowerCase().equals("liaisonsclasses") 
+                        && !champ.getName().toLowerCase().equals("liaisonlfaisEleve") 
+                        && !champ.getName().toLowerCase().equals("Liaisonclassefrais")) {
                     sqlString += "`" + champ.getName() + "`, ";
                     if(champ.getType() == Date.class){
                         valeurs += "'" + UtilObjet.getDateAnglais((Date)champ.get(obj)) + "',";

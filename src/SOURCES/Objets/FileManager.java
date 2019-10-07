@@ -1569,11 +1569,11 @@ public class FileManager extends ObjetNetWork {
                     Ayantdroit Ofrais = (Ayantdroit) oObjet;
                     Vector<LiaisonFraisEleve> lfp = Ofrais.getListeLiaisons();
 
-                } else {
-                    String sql = InterpreteurSql.getInsert(oObjet, el.lastModified());
-                    int rep = fMDataUploader.executerUpdate(sql);
-                    System.out.println("\t\tChargement - Nouvelle données... = " + rep);
                 }
+                String sql = InterpreteurSql.getInsert(oObjet, el.lastModified());
+                int rep = fMDataUploader.executerUpdate(sql);
+                System.out.println("\t\tChargement - Nouvelle données... = " + rep);
+                
             } else if (ste.isIsNew() == false && ste.isIsRecent() == true) {
                 //CHARGEMENT SUR LE SERVEUR
                 Object oObjet = fm_ouvrir(rubriqueLocale.getClasse(), nomRub, Integer.parseInt(el.getName()));
@@ -1588,12 +1588,11 @@ public class FileManager extends ObjetNetWork {
                     Ayantdroit Ofrais = (Ayantdroit) oObjet;
                     Vector<LiaisonFraisEleve> lfp = Ofrais.getListeLiaisons();
 
-                } else {
-                    String sql = InterpreteurSql.getUpdate(oObjet, el.lastModified());
-                    int rep = fMDataUploader.executerUpdate(sql);
-                    System.out.println("\t\tChargement - Données modifiées... = " + rep);
                 }
-
+                String sql = InterpreteurSql.getUpdate(oObjet, el.lastModified());
+                int rep = fMDataUploader.executerUpdate(sql);
+                System.out.println("\t\tChargement - Données modifiées... = " + rep);
+                
             }
         }
     }

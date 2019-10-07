@@ -39,7 +39,7 @@ public class InterpreteurSql {
         String valeurs = "VALUES (";
         try {
             for (Field champ : obj.getClass().getDeclaredFields()) {
-                if (!champ.getName().toLowerCase().equals("beta")) {
+                if (!champ.getName().toLowerCase().equals("beta") || !champ.getName().toLowerCase().equals("liaisonsClasses")) {
                     sqlString += "`" + champ.getName() + "`, ";
                     if(champ.getType() == Date.class){
                         valeurs += "'" + UtilObjet.getDateAnglais((Date)champ.get(obj)) + "',";
@@ -64,9 +64,11 @@ public class InterpreteurSql {
         String sqlString = "UPDATE `BACKUP_" + table + "` SET";
         try {
             for (Field champ : obj.getClass().getDeclaredFields()) {
-                if (!champ.getName().toLowerCase().equals("beta") && !champ.getName().toLowerCase().equals("signature")) {
+                if (!champ.getName().toLowerCase().equals("beta") || !champ.getName().toLowerCase().equals("signature") || !champ.getName().toLowerCase().equals("liaisonsClasses")) {
                     sqlString += " `" + champ.getName() + "` ";
-                    if (champ.getType() == String.class) {
+                    if(champ.getType() == Date.class){
+                        sqlString += "= '" + UtilObjet.getDateAnglais((Date)champ.get(obj)) + "',";
+                    }else if (champ.getType() == String.class) {
                         sqlString += "= '" + champ.get(obj) + "',";
                     } else {
                         sqlString += "= " + champ.get(obj) + ",";
@@ -83,6 +85,7 @@ public class InterpreteurSql {
         return sqlString;
     }
 
+    
     public static void main(String[] a) {
         try {
             Date date = new Date();
@@ -92,7 +95,6 @@ public class InterpreteurSql {
             e.printStackTrace();
         }
     }
-
 }
 
 

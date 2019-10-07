@@ -21,17 +21,17 @@ import java.util.Date;
 public class InterpreteurSql {
 
     public InterpreteurSql() {
-        
+
     }
 
     public static String getInsertManifeste(int idEntreprise, int idUtilisateur, String dossier, int dernierID, String dateEnregistrement) {
         //INSERT INTO `BACKUP_MANIFESTE` (`idEntreprise`, `idUtilisateur`, `dossier`, `dernierID`, `dateEnregistrement`) VALUES ('2', '3', 'REVENU1', '40', '478784512200')
-        return "INSERT INTO `BACKUP_MANIFESTE` (`idEntreprise`, `idUtilisateur`, `dossier`, `dernierID`, `dateEnregistrement`) VALUES ('"+ idEntreprise +"', '" + idUtilisateur + "', '" + dossier + "', '" + dernierID + "', '" + dateEnregistrement + "')";
+        return "INSERT INTO `BACKUP_MANIFESTE` (`idEntreprise`, `idUtilisateur`, `dossier`, `dernierID`, `dateEnregistrement`) VALUES ('" + idEntreprise + "', '" + idUtilisateur + "', '" + dossier + "', '" + dernierID + "', '" + dateEnregistrement + "')";
     }
-    
+
     public static String getUpdateManifeste(int idEntreprise, int idUtilisateur, String dossier, int dernierID, String dateEnregistrement) {
         //UPDATE `BACKUP_MANIFESTE` SET `dernierID` = '11', `dateEnregistrement` = '45511220097' WHERE `BACKUP_MANIFESTE`.`id` = 6;
-        return "UPDATE `BACKUP_MANIFESTE` SET `dernierID` = " + dernierID + ", `dateEnregistrement` = '" + dateEnregistrement + "', `idUtilisateur` = "+ idUtilisateur +" WHERE `idEntreprise` = "+ idEntreprise +" AND `dossier` = '"+ dossier +"';";
+        return "UPDATE `BACKUP_MANIFESTE` SET `dernierID` = " + dernierID + ", `dateEnregistrement` = '" + dateEnregistrement + "', `idUtilisateur` = " + idUtilisateur + " WHERE `idEntreprise` = " + idEntreprise + " AND `dossier` = '" + dossier + "';";
     }
 
     public static String getInsert(Object obj, long lastModified) {
@@ -40,13 +40,15 @@ public class InterpreteurSql {
         try {
             for (Field champ : obj.getClass().getDeclaredFields()) {
                 if (!champ.getName().toLowerCase().equals("beta") 
-                        && !champ.getName().toLowerCase().equals("liaisonsclasses") 
-                        && !champ.getName().toLowerCase().equals("liaisonlfaisEleve") 
-                        && !champ.getName().toLowerCase().equals("Liaisonclassefrais")) {
+                        && !champ.getName().toLowerCase().equals("liaisonsclasses")
+                        && !champ.getName().toLowerCase().equals("liaisonlfaiseleve")
+                        && !champ.getName().toLowerCase().equals("liaisonclassefrais")
+                        && !champ.getName().toLowerCase().equals("liaisonperiodefrais")) {
+
                     sqlString += "`" + champ.getName() + "`, ";
-                    if(champ.getType() == Date.class){
-                        valeurs += "'" + UtilObjet.getDateAnglais((Date)champ.get(obj)) + "',";
-                    }else if (champ.getType() == String.class) {
+                    if (champ.getType() == Date.class) {
+                        valeurs += "'" + UtilObjet.getDateAnglais((Date) champ.get(obj)) + "',";
+                    } else if (champ.getType() == String.class) {
                         valeurs += "'" + champ.get(obj) + "',";
                     } else {
                         valeurs += "" + champ.get(obj) + ",";
@@ -69,9 +71,9 @@ public class InterpreteurSql {
             for (Field champ : obj.getClass().getDeclaredFields()) {
                 if (!champ.getName().toLowerCase().equals("beta") && !champ.getName().toLowerCase().equals("signature") && !champ.getName().toLowerCase().equals("liaisonsClasses")) {
                     sqlString += " `" + champ.getName() + "` ";
-                    if(champ.getType() == Date.class){
-                        sqlString += "= '" + UtilObjet.getDateAnglais((Date)champ.get(obj)) + "',";
-                    }else if (champ.getType() == String.class) {
+                    if (champ.getType() == Date.class) {
+                        sqlString += "= '" + UtilObjet.getDateAnglais((Date) champ.get(obj)) + "',";
+                    } else if (champ.getType() == String.class) {
                         sqlString += "= '" + champ.get(obj) + "',";
                     } else {
                         sqlString += "= " + champ.get(obj) + ",";
@@ -88,7 +90,6 @@ public class InterpreteurSql {
         return sqlString;
     }
 
-    
     public static void main(String[] a) {
         try {
             Date date = new Date();
@@ -99,53 +100,3 @@ public class InterpreteurSql {
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

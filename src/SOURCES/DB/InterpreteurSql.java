@@ -43,7 +43,7 @@ public class InterpreteurSql {
                         && !champ.getName().toLowerCase().equals("liaisonsclasses")
                         && !champ.getName().toLowerCase().equals("liaisonlfaiseleve")
                         && !champ.getName().toLowerCase().equals("liaisonclassefrais")
-                        && !champ.getName().toLowerCase().equals("liaisonperiodefrais")) {
+                        && !champ.getName().toLowerCase().equals("liaisonsperiodes")) {
 
                     sqlString += "`" + champ.getName() + "`, ";
                     if (champ.getType() == Date.class) {

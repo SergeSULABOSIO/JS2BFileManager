@@ -1563,6 +1563,10 @@ public class FileManager extends ObjetNetWork {
                 if (rubriqueLocale.getClasse() == Frais.class) {
                     Frais Ofrais = (Frais) oObjet;
                     Vector<LiaisonFraisClasse> lfc = Ofrais.getLiaisonsClasses();
+                    for(LiaisonFraisClasse liaison: lfc){
+                        int rep = fMDataUploader.executerUpdate(InterpreteurSql.getInsertLiaisonFraisClasse(liaison));
+                        System.out.println("\t\tChargement - Nouvelle données - liaison... = " + rep);
+                    }
                     Vector<LiaisonFraisPeriode> lfp = Ofrais.getLiaisonsPeriodes();
 
                 } else if (rubriqueLocale.getClasse() == Ayantdroit.class) {

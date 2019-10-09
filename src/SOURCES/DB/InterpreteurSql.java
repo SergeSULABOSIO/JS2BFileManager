@@ -9,10 +9,12 @@ import SOURCES.Objets.FileManager;
 import SOURCES.Utilitaires.UtilFileManager;
 import Source.Interface.InterfaceCharge;
 import Source.Objet.Charge;
+import Source.Objet.LiaisonFraisClasse;
 import Source.Objet.UtilObjet;
 import java.lang.reflect.Field;
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.Vector;
 
 /**
  *
@@ -36,6 +38,35 @@ public class InterpreteurSql {
 
     public static String getInsert(Object obj, long lastModified) {
         String sqlString = "INSERT INTO `BACKUP_" + obj.getClass().getSimpleName().toUpperCase() + "` (";
+        String valeurs = "VALUES (";
+        try {
+            for (Field champ : obj.getClass().getDeclaredFields()) {
+                if (!champ.getName().toLowerCase().equals("beta")
+                        && !champ.getName().toLowerCase().equals("liaisonsclasses")
+                        && !champ.getName().toLowerCase().equals("listeliaisons")
+                        && !champ.getName().toLowerCase().equals("liaisonclassefrais")
+                        && !champ.getName().toLowerCase().equals("liaisonsperiodes")) {
+
+                    sqlString += "`" + champ.getName() + "`, ";
+                    if (champ.getType() == Date.class) {
+                        valeurs += "'" + UtilObjet.getDateAnglais((Date) champ.get(obj)) + "',";
+                    } else if (champ.getType() == String.class) {
+                        valeurs += "'" + champ.get(obj) + "',";
+                    } else {
+                        valeurs += "" + champ.get(obj) + ",";
+                    }
+                }
+            }
+            valeurs += lastModified + ");";
+            sqlString += "`lastModified`) " + valeurs;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return sqlString;
+    }
+    
+    public static String getInsertLiaisonFraisClasse(LiaisonFraisClasse lfc){
+        String sqlString = "INSERT INTO `BACKUP_LiaisonFraisClasse` (";
         String valeurs = "VALUES (";
         try {
             for (Field champ : obj.getClass().getDeclaredFields()) {

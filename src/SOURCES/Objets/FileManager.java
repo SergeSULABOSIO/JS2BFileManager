@@ -1137,25 +1137,6 @@ public class FileManager extends ObjetNetWork {
             }
             photoDisqueDistant.ajouterRubrique(photoRubriqueDistante);
         }
-
-        //Parcours des LIAISONS ICI !!!!!
-        String[] tabLiaisons = new String[]{
-            "LiaisonFraisClasse",
-            "LiaisonFraisEleve",
-            "LiaisonFraisPeriode"
-        };
-        for (String LIAISON : tabLiaisons) {
-            PhotoRubriqueDistante photoRubriqueDistante = new PhotoRubriqueDistante();
-            photoRubriqueDistante.setNom("BACKUP_" + LIAISON);
-            sql = "select * from " + photoRubriqueDistante.getNom() + " WHERE idEntreprise = " + ecole.getId() + " AND idExercice = " + idExercice + ";";
-            rs = stmt.executeQuery(sql);
-            while (rs.next()) {
-                int id = rs.getInt("id");
-                Date lastModifiedDate = UtilFileManager.convertDatePaiement(rs.getString("lastModified"));
-                photoRubriqueDistante.ajouterContenu(new ElementDistant(id, ecole.getId(), idExercice, lastModifiedDate.getTime()));
-            }
-            photoDisqueDistant.ajouterRubrique(photoRubriqueDistante);
-        }
     }
 
     //"www.visiterlardc.com", "3306", "visiterl_s2b", "visiterl_s2bUser", "ssula@s2b-simple.com"
@@ -1559,21 +1540,6 @@ public class FileManager extends ObjetNetWork {
             if (ste.isIsNew() == true) {
                 //CHARGEMENT SUR LE SERVEUR
                 Object oObjet = fm_ouvrir(rubriqueLocale.getClasse(), nomRub, Integer.parseInt(el.getName()));
-                //FAUT PAS OUBLIER D'ENVOYER LES LIAISONS DANS LEURS TABLES
-                if (rubriqueLocale.getClasse() == Frais.class) {
-                    Frais Ofrais = (Frais) oObjet;
-                    Vector<LiaisonFraisClasse> lfc = Ofrais.getLiaisonsClasses();
-                    for(LiaisonFraisClasse liaison: lfc){
-                        int rep = fMDataUploader.executerUpdate(InterpreteurSql.getInsertLiaisonFraisClasse(liaison));
-                        System.out.println("\t\tChargement - Nouvelle données - liaison... = " + rep);
-                    }
-                    Vector<LiaisonFraisPeriode> lfp = Ofrais.getLiaisonsPeriodes();
-
-                } else if (rubriqueLocale.getClasse() == Ayantdroit.class) {
-                    Ayantdroit Ofrais = (Ayantdroit) oObjet;
-                    Vector<LiaisonFraisEleve> lfp = Ofrais.getListeLiaisons();
-
-                }
                 String sql = InterpreteurSql.getInsert(oObjet, el.lastModified());
                 int rep = fMDataUploader.executerUpdate(sql);
                 System.out.println("\t\tChargement - Nouvelle données... = " + rep);
@@ -1581,18 +1547,6 @@ public class FileManager extends ObjetNetWork {
             } else if (ste.isIsNew() == false && ste.isIsRecent() == true) {
                 //CHARGEMENT SUR LE SERVEUR
                 Object oObjet = fm_ouvrir(rubriqueLocale.getClasse(), nomRub, Integer.parseInt(el.getName()));
-
-                //FAUT PAS OUBLIER D'ENVOYER LES LIAISONS DANS LEURS TABLES
-                if (rubriqueLocale.getClasse() == Frais.class) {
-                    Frais Ofrais = (Frais) oObjet;
-                    Vector<LiaisonFraisClasse> lfc = Ofrais.getLiaisonsClasses();
-                    Vector<LiaisonFraisPeriode> lfp = Ofrais.getLiaisonsPeriodes();
-
-                } else if (rubriqueLocale.getClasse() == Ayantdroit.class) {
-                    Ayantdroit Ofrais = (Ayantdroit) oObjet;
-                    Vector<LiaisonFraisEleve> lfp = Ofrais.getListeLiaisons();
-
-                }
                 String sql = InterpreteurSql.getUpdate(oObjet, el.lastModified());
                 int rep = fMDataUploader.executerUpdate(sql);
                 System.out.println("\t\tChargement - Données modifiées... = " + rep);
@@ -1622,52 +1576,7 @@ public class FileManager extends ObjetNetWork {
         ResultSet rsObjet = fMDataUploader.executerQuery(sql);
 
         //Note: il faut prendre en compte les liaisons et savoir les reconstituer en local car sur la base, les liaisons sont séparées de leurs responsables
-        String strLiaisonFraisClasse = "";
-        String strLiaisonFraisPeriode = "";
-        String strLiaisonFraisEleve = "";
-        if (dossier.equals(UtilObjet.DOSSIER_FRAIS)) {
-            //Liaison Frais - Classe
-            String slqLiaisonClasse = "SELECT * FROM BACKUP_LiaisonFraisClasse WHERE idFrais = " + ed.getId() + " AND idEntreprise = " + ed.getIdEntreprise() + " AND idExercice = " + ed.getIdExercice() + ";";
-            ResultSet rsLiaisonsClasse = fMDataUploader.executerQuery(slqLiaisonClasse);
-
-            while (rsLiaisonsClasse.next()) {
-                strLiaisonFraisClasse = "{";
-                strLiaisonFraisClasse += "\"idClasse\" : " + rsLiaisonsClasse.getInt("idClasse") + ",";
-                strLiaisonFraisClasse += "\"nomClasse\" : '" + rsLiaisonsClasse.getString("nomClasse") + "',";
-                strLiaisonFraisClasse += "\"signatureClasse\" : " + rsLiaisonsClasse.getLong("signatureClasse") + ",";
-                strLiaisonFraisClasse += "\"montant\" : " + rsLiaisonsClasse.getDouble("montant") + "";
-                strLiaisonFraisClasse += "},";
-            }
-
-            //Liaison Frais - Période
-            String slqLiaisonPeriode = "SELECT * FROM BACKUP_LiaisonFraisPeriode WHERE idFrais = " + ed.getId() + " AND idEntreprise = " + ed.getIdEntreprise() + " AND idExercice = " + ed.getIdExercice() + ";";
-            ResultSet rsLiaisonsPeriode = fMDataUploader.executerQuery(slqLiaisonPeriode);
-
-            while (rsLiaisonsPeriode.next()) {
-                strLiaisonFraisPeriode = "{";
-                strLiaisonFraisPeriode += "\"idPeriode\" : " + rsLiaisonsPeriode.getInt("idPeriode") + ",";
-                strLiaisonFraisPeriode += "\"nomPeriode\" : '" + rsLiaisonsPeriode.getString("nomPeriode") + "',";
-                strLiaisonFraisPeriode += "\"signaturePeriode\" : " + rsLiaisonsPeriode.getLong("signaturePeriode") + ",";
-                strLiaisonFraisPeriode += "\"pourcentage\" : " + rsLiaisonsPeriode.getDouble("pourcentage") + "";
-                strLiaisonFraisPeriode += "},";
-            }
-        } else if (dossier.equals(UtilObjet.DOSSIER_AYANT_DROIT)) {
-            //Liaison Eleve - Frais (dans ce cas, il s'agit d'un ayant-droit, donc élève qui ne paiet pas comme les autres)
-            String slqLiaisonFrais = "SELECT * FROM BACKUP_LiaisonFraisEleve WHERE idEleve = " + ed.getId() + " AND idEntreprise = " + ed.getIdEntreprise() + " AND idExercice = " + ed.getIdExercice() + ";";
-            ResultSet rsLiaisonsFrais = fMDataUploader.executerQuery(slqLiaisonFrais);
-
-            while (rsLiaisonsFrais.next()) {
-                strLiaisonFraisEleve = "{";
-                strLiaisonFraisEleve += "\"signatureEleve\" : " + rsLiaisonsFrais.getLong("signatureEleve") + ",";
-                strLiaisonFraisEleve += "\"signatureFrais\" : " + rsLiaisonsFrais.getLong("signatureFrais") + ",";
-                strLiaisonFraisEleve += "\"idFrais\" : " + rsLiaisonsFrais.getInt("idFrais") + ",";
-                strLiaisonFraisEleve += "\"montant\" : " + rsLiaisonsFrais.getDouble("montant") + "";
-                strLiaisonFraisEleve += "\"idMonnaie\" : " + rsLiaisonsFrais.getInt("idMonnaie") + "";
-                strLiaisonFraisEleve += "\"monnaie\" : '" + rsLiaisonsFrais.getString("	monnaie") + "'";
-                strLiaisonFraisEleve += "},";
-            }
-        }
-
+        
         String strJSON = "";
         while (rsObjet.next()) {
             Class classe = photoDisqueLocal.getClasse(dossier);
@@ -1687,21 +1596,6 @@ public class FileManager extends ObjetNetWork {
                     }
                     System.out.println(" ** champ " + champClasse.getName() + " = " + rsObjet.getObject(champClasse.getName()));
                 }
-            }
-
-            //S'il y liaisons Frais - classe
-            if (strLiaisonFraisClasse.trim().length() != 0) {
-                strJSON += "\"liaisonsClasses\" : [" + strLiaisonFraisClasse + "],";
-            }
-
-            //S'il y liaisons Frais - période
-            if (strLiaisonFraisPeriode.trim().length() != 0) {
-                strJSON += "\"liaisonsPeriodes\" : [" + strLiaisonFraisPeriode + "],";
-            }
-
-            //S'il y liaisons Frais - Eleve (donc Ayant-droit)
-            if (strLiaisonFraisEleve.trim().length() != 0) {
-                strJSON += "\"listeLiaisons\" : [" + strLiaisonFraisEleve + "],";
             }
 
             strJSON += "\"beta\" : 0";

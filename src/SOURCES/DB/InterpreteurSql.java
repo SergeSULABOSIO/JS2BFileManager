@@ -10,6 +10,7 @@ import SOURCES.Utilitaires.UtilFileManager;
 import Source.Interface.InterfaceCharge;
 import Source.Objet.Charge;
 import Source.Objet.LiaisonFraisClasse;
+import Source.Objet.LiaisonFraisPeriode;
 import Source.Objet.UtilObjet;
 import java.lang.reflect.Field;
 import java.text.DateFormat;
@@ -41,16 +42,11 @@ public class InterpreteurSql {
         String valeurs = "VALUES (";
         try {
             for (Field champ : obj.getClass().getDeclaredFields()) {
-                if (!champ.getName().toLowerCase().equals("beta")
-                        && !champ.getName().toLowerCase().equals("liaisonsclasses")
-                        && !champ.getName().toLowerCase().equals("listeliaisons")
-                        && !champ.getName().toLowerCase().equals("liaisonclassefrais")
-                        && !champ.getName().toLowerCase().equals("liaisonsperiodes")) {
-
+                if (!champ.getName().toLowerCase().equals("beta")) {
                     sqlString += "`" + champ.getName() + "`, ";
                     if (champ.getType() == Date.class) {
                         valeurs += "'" + UtilObjet.getDateAnglais((Date) champ.get(obj)) + "',";
-                    } else if (champ.getType() == String.class) {
+                    } else if (champ.getType() == String.class || champ.getType() == Vector.class) {
                         valeurs += "'" + champ.get(obj) + "',";
                     } else {
                         valeurs += "" + champ.get(obj) + ",";
@@ -65,34 +61,7 @@ public class InterpreteurSql {
         return sqlString;
     }
     
-    public static String getInsertLiaisonFraisClasse(LiaisonFraisClasse lfc){
-        String sqlString = "INSERT INTO `BACKUP_LiaisonFraisClasse` (";
-        String valeurs = "VALUES (";
-        try {
-            for (Field champ : obj.getClass().getDeclaredFields()) {
-                if (!champ.getName().toLowerCase().equals("beta")
-                        && !champ.getName().toLowerCase().equals("liaisonsclasses")
-                        && !champ.getName().toLowerCase().equals("listeliaisons")
-                        && !champ.getName().toLowerCase().equals("liaisonclassefrais")
-                        && !champ.getName().toLowerCase().equals("liaisonsperiodes")) {
-
-                    sqlString += "`" + champ.getName() + "`, ";
-                    if (champ.getType() == Date.class) {
-                        valeurs += "'" + UtilObjet.getDateAnglais((Date) champ.get(obj)) + "',";
-                    } else if (champ.getType() == String.class) {
-                        valeurs += "'" + champ.get(obj) + "',";
-                    } else {
-                        valeurs += "" + champ.get(obj) + ",";
-                    }
-                }
-            }
-            valeurs += lastModified + ");";
-            sqlString += "`lastModified`) " + valeurs;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return sqlString;
-    }
+    
 
     public static String getUpdate(Object obj, long lastModified) {
         //UPDATE `BACKUP_CHARGE` SET `idUtilisateur` = '13', `nom` = 'SALAIRE DU PERSONNEL', `limiteAnnuelle` = '1000000' WHERE `BACKUP_CHARGE`.`id` = 1;
@@ -100,16 +69,11 @@ public class InterpreteurSql {
         String sqlString = "UPDATE `BACKUP_" + table + "` SET";
         try {
             for (Field champ : obj.getClass().getDeclaredFields()) {
-                if (!champ.getName().toLowerCase().equals("beta")
-                        && !champ.getName().toLowerCase().equals("signature")
-                        && !champ.getName().toLowerCase().equals("liaisonsclasses")
-                        && !champ.getName().toLowerCase().equals("liaisonlfaiseleve")
-                        && !champ.getName().toLowerCase().equals("liaisonclassefrais")
-                        && !champ.getName().toLowerCase().equals("liaisonperiodefrais")) {
+                if (!champ.getName().toLowerCase().equals("beta") && !champ.getName().toLowerCase().equals("signature")) {
                     sqlString += " `" + champ.getName() + "` ";
                     if (champ.getType() == Date.class) {
                         sqlString += "= '" + UtilObjet.getDateAnglais((Date) champ.get(obj)) + "',";
-                    } else if (champ.getType() == String.class) {
+                    } else if (champ.getType() == String.class || champ.getType() == Vector.class) {
                         sqlString += "= '" + champ.get(obj) + "',";
                     } else {
                         sqlString += "= " + champ.get(obj) + ",";

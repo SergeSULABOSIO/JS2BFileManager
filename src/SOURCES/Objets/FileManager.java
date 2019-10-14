@@ -1094,23 +1094,29 @@ public class FileManager extends ObjetNetWork {
         System.out.println("..");
 
         //Parcours du tableau de tous les DOSSIERS EXISTANTS
-        String[] tabDossiers = new String[]{
-            UtilObjet.DOSSIER_ANNEE,
-            UtilObjet.DOSSIER_MONNAIE,
-            UtilObjet.DOSSIER_CLASSE,
-            UtilObjet.DOSSIER_PERIODE,
-            UtilObjet.DOSSIER_AGENT,
-            UtilObjet.DOSSIER_COURS,
-            UtilObjet.DOSSIER_REVENU,
-            UtilObjet.DOSSIER_CHARGE,
-            UtilObjet.DOSSIER_FRAIS,
-            UtilObjet.DOSSIER_ELEVE,
-            UtilObjet.DOSSIER_AYANT_DROIT,
-            UtilObjet.DOSSIER_PAIEMENT,
-            UtilObjet.DOSSIER_ENCAISSEMENT,
-            UtilObjet.DOSSIER_DECAISSEMENT,
-            UtilObjet.DOSSIER_FICHE_DE_PAIE
-        };
+        String[] tabDossiers = null;
+
+        if (idExercice == -1) {
+            tabDossiers = new String[]{UtilObjet.DOSSIER_ANNEE};
+        } else {
+            tabDossiers = new String[]{
+                UtilObjet.DOSSIER_ANNEE,
+                UtilObjet.DOSSIER_MONNAIE,
+                UtilObjet.DOSSIER_CLASSE,
+                UtilObjet.DOSSIER_PERIODE,
+                UtilObjet.DOSSIER_AGENT,
+                UtilObjet.DOSSIER_COURS,
+                UtilObjet.DOSSIER_REVENU,
+                UtilObjet.DOSSIER_CHARGE,
+                UtilObjet.DOSSIER_FRAIS,
+                UtilObjet.DOSSIER_ELEVE,
+                UtilObjet.DOSSIER_AYANT_DROIT,
+                UtilObjet.DOSSIER_PAIEMENT,
+                UtilObjet.DOSSIER_ENCAISSEMENT,
+                UtilObjet.DOSSIER_DECAISSEMENT,
+                UtilObjet.DOSSIER_FICHE_DE_PAIE
+            };
+        }
 
         for (String DOSSIER : tabDossiers) {
             //On demande au serveur de supprimer les données qui ont été supprimées en local
@@ -1192,6 +1198,7 @@ public class FileManager extends ObjetNetWork {
 
             if (idExerciceEncours == -1) {
                 dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_ANNEE, Exercice.class));
+                System.out.println("SYNCHRONISATION D'EXERCICES UNIQUEMENT !");
             } else {
                 if (currentUser.getDroitExercice() == InterfaceUtilisateur.DROIT_CONTROLER) {
                     dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_ANNEE, Exercice.class));
@@ -1242,7 +1249,7 @@ public class FileManager extends ObjetNetWork {
                         //On lance la comparaison de ces deux disques
                         PhotoDisqueLocal photoDisqueLocal = fm_getPhotoDisqueLocal(dossiersControledByCurrentUser);
                         fm_comparerDisques(photoDisqueLocal, photoDisqueDistant, ecouteurSynchronisation);
-
+                        
                         System.out.println("** Fin de la synchronisation **");
 
                         if (ecouteurSynchronisation != null) {

@@ -1190,40 +1190,44 @@ public class FileManager extends ObjetNetWork {
         if (currentUser != null) {
             Vector<Dossier> dossiersControledByCurrentUser = new Vector<>();
 
-            if (currentUser.getDroitExercice() == InterfaceUtilisateur.DROIT_CONTROLER) {
+            if (idExerciceEncours == -1) {
                 dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_ANNEE, Exercice.class));
-                dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_AGENT, Agent.class));
-                dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_CHARGE, Charge.class));
-                dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_CLASSE, Classe.class));
-                dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_FRAIS, Frais.class));
-                dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_PERIODE, Periode.class));
-                dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_REVENU, Revenu.class));
-                dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_COURS, Cours.class));
-                dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_MONNAIE, Monnaie.class));
             } else {
-                System.out.println(currentUser.getNom() + " ne peut pas contôler les années scolaires");
-            }
-            if (currentUser.getDroitFacture() == InterfaceUtilisateur.DROIT_CONTROLER) {
-                dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_PAIEMENT, Paiement.class));
-            } else {
-                System.out.println(currentUser.getNom() + " ne peut pas contôler les factures");
-            }
-            if (currentUser.getDroitInscription() == InterfaceUtilisateur.DROIT_CONTROLER) {
-                dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_ELEVE, Eleve.class));
-                dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_AYANT_DROIT, Ayantdroit.class));
-            } else {
-                System.out.println(currentUser.getNom() + " ne peut pas contôler les inscriptions");
-            }
-            if (currentUser.getDroitPaie() == InterfaceUtilisateur.DROIT_CONTROLER) {
-                dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_FICHE_DE_PAIE, Fiche.class));
-            } else {
-                System.out.println(currentUser.getNom() + " ne peut pas contôler la paie");
-            }
-            if (currentUser.getDroitTresorerie() == InterfaceUtilisateur.DROIT_CONTROLER) {
-                dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_DECAISSEMENT, Decaissement.class));
-                dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_ENCAISSEMENT, Encaissement.class));
-            } else {
-                System.out.println(currentUser.getNom() + " ne peut pas contôler la trésorerie");
+                if (currentUser.getDroitExercice() == InterfaceUtilisateur.DROIT_CONTROLER) {
+                    dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_ANNEE, Exercice.class));
+                    dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_AGENT, Agent.class));
+                    dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_CHARGE, Charge.class));
+                    dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_CLASSE, Classe.class));
+                    dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_FRAIS, Frais.class));
+                    dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_PERIODE, Periode.class));
+                    dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_REVENU, Revenu.class));
+                    dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_COURS, Cours.class));
+                    dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_MONNAIE, Monnaie.class));
+                } else {
+                    System.out.println(currentUser.getNom() + " ne peut pas contôler les années scolaires");
+                }
+                if (currentUser.getDroitFacture() == InterfaceUtilisateur.DROIT_CONTROLER) {
+                    dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_PAIEMENT, Paiement.class));
+                } else {
+                    System.out.println(currentUser.getNom() + " ne peut pas contôler les factures");
+                }
+                if (currentUser.getDroitInscription() == InterfaceUtilisateur.DROIT_CONTROLER) {
+                    dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_ELEVE, Eleve.class));
+                    dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_AYANT_DROIT, Ayantdroit.class));
+                } else {
+                    System.out.println(currentUser.getNom() + " ne peut pas contôler les inscriptions");
+                }
+                if (currentUser.getDroitPaie() == InterfaceUtilisateur.DROIT_CONTROLER) {
+                    dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_FICHE_DE_PAIE, Fiche.class));
+                } else {
+                    System.out.println(currentUser.getNom() + " ne peut pas contôler la paie");
+                }
+                if (currentUser.getDroitTresorerie() == InterfaceUtilisateur.DROIT_CONTROLER) {
+                    dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_DECAISSEMENT, Decaissement.class));
+                    dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_ENCAISSEMENT, Encaissement.class));
+                } else {
+                    System.out.println(currentUser.getNom() + " ne peut pas contôler la trésorerie");
+                }
             }
 
             System.out.println("Synchronisation en cours...");
@@ -1543,14 +1547,14 @@ public class FileManager extends ObjetNetWork {
                 String sql = InterpreteurSql.getInsert(oObjet, el.lastModified());
                 int rep = fMDataUploader.executerUpdate(sql);
                 System.out.println("\t\tChargement - Nouvelle données... = " + rep);
-                
+
             } else if (ste.isIsNew() == false && ste.isIsRecent() == true) {
                 //CHARGEMENT SUR LE SERVEUR
                 Object oObjet = fm_ouvrir(rubriqueLocale.getClasse(), nomRub, Integer.parseInt(el.getName()));
                 String sql = InterpreteurSql.getUpdate(oObjet, el.lastModified());
                 int rep = fMDataUploader.executerUpdate(sql);
                 System.out.println("\t\tChargement - Données modifiées... = " + rep);
-                
+
             }
         }
     }
@@ -1576,7 +1580,6 @@ public class FileManager extends ObjetNetWork {
         ResultSet rsObjet = fMDataUploader.executerQuery(sql);
 
         //Note: il faut prendre en compte les liaisons et savoir les reconstituer en local car sur la base, les liaisons sont séparées de leurs responsables
-        
         String strJSON = "";
         while (rsObjet.next()) {
             Class classe = photoDisqueLocal.getClasse(dossier);

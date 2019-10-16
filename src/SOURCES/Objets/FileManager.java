@@ -1131,7 +1131,11 @@ public class FileManager extends ObjetNetWork {
 
             sql = "";
             if (DOSSIER.trim().equals(UtilObjet.DOSSIER_ANNEE)) {
-                sql = "select * from " + photoRubriqueDistante.getNom() + " WHERE idEntreprise = " + ecole.getId() + " AND id = " + idExercice + ";";
+                if(idExercice != -1){
+                    sql = "select * from " + photoRubriqueDistante.getNom() + " WHERE idEntreprise = " + ecole.getId() + " AND id = " + idExercice + ";";
+                }else{
+                    sql = "select * from " + photoRubriqueDistante.getNom() + " WHERE idEntreprise = " + ecole.getId() + ";";
+                }
             } else {
                 sql = "select * from " + photoRubriqueDistante.getNom() + " WHERE idEntreprise = " + ecole.getId() + " AND idExercice = " + idExercice + ";";
             }
@@ -1620,3 +1624,10 @@ public class FileManager extends ObjetNetWork {
         }
     }
 }
+
+
+
+
+
+
+

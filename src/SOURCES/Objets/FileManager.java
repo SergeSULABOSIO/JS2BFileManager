@@ -1551,7 +1551,7 @@ public class FileManager extends ObjetNetWork {
             String nomRub = rubriqueLocale.getNom();
             StatusElement ste = photoDisqueDistant.comparer(nomRub, el);
             System.out.println("\t" + el.getName() + ", lastMidified: " + el.lastModified() + " - " + ste.toString());
-
+            
             if (ste.isIsNew() == true) {
                 //CHARGEMENT SUR LE SERVEUR
                 Object oObjet = fm_ouvrir(rubriqueLocale.getClasse(), nomRub, Integer.parseInt(el.getName()));
@@ -1624,6 +1624,7 @@ public class FileManager extends ObjetNetWork {
         }
     }
 }
+
 
 
 

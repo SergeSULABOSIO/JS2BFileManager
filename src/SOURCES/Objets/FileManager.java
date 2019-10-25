@@ -43,7 +43,7 @@ import Source.Objet.Decaissement;
 import Source.Objet.Eleve;
 import Source.Objet.Encaissement;
 import Source.Objet.Entreprise;
-import Source.Objet.Exercice;
+import Source.Objet.Annee;
 import Source.Objet.Fiche;
 import Source.Objet.Frais;
 import Source.Objet.LiaisonFraisClasse;
@@ -1201,11 +1201,11 @@ public class FileManager extends ObjetNetWork {
             Vector<Dossier> dossiersControledByCurrentUser = new Vector<>();
 
             if (idExerciceEncours == -1) {
-                dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_ANNEE, Exercice.class));
+                dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_ANNEE, Annee.class));
                 System.out.println("SYNCHRONISATION D'EXERCICES UNIQUEMENT !");
             } else {
                 if (currentUser.getDroitExercice() == InterfaceUtilisateur.DROIT_CONTROLER) {
-                    dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_ANNEE, Exercice.class));
+                    dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_ANNEE, Annee.class));
                     dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_AGENT, Agent.class));
                     dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_CHARGE, Charge.class));
                     dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_CLASSE, Classe.class));

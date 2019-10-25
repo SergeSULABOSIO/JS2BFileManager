@@ -1587,7 +1587,14 @@ public class FileManager extends ObjetNetWork {
     }
 
     private void saveNewDate(boolean ecraseAncien, String nomTable, String dossier, PhotoDisqueLocal photoDisqueLocal, FMDataUploader fMDataUploader, ElementDistant ed) throws Exception {
-        String sql = "SELECT * FROM " + nomTable + " WHERE idEntreprise = " + ed.getIdEntreprise() + " AND id = " + ed.getId() + " AND idExercice = " + ed.getIdExercice() + ";";
+        String sql = "";
+        if(nomTable.equals("BACKUP_ANNEE")){
+            sql = "SELECT * FROM " + nomTable + " WHERE idEntreprise = " + ed.getIdEntreprise() + " AND id = " + ed.getId() + ";";
+        }else{
+            sql = "SELECT * FROM " + nomTable + " WHERE idEntreprise = " + ed.getIdEntreprise() + " AND id = " + ed.getId() + " AND idExercice = " + ed.getIdExercice() + ";";
+        }
+        
+        
         ResultSet rsObjet = fMDataUploader.executerQuery(sql);
 
         //Note: il faut prendre en compte les liaisons et savoir les reconstituer en local car sur la base, les liaisons sont séparées de leurs responsables

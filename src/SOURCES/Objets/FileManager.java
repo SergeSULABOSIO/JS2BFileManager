@@ -1612,6 +1612,8 @@ public class FileManager extends ObjetNetWork {
                     strJSON += "\"" + champClasse.getName() + "\" : ";
                     if (champClasse.getType() == String.class) {
                         strJSON += "\"" + rsObjet.getObject(champClasse.getName()) + "\",";
+                    }else if (champClasse.getType() == Date.class) {
+                        strJSON += UtilFileManager.convertDatePaiement("" + rsObjet.getObject(champClasse.getName())).getTime() + ",";
                     } else {
                         strJSON += rsObjet.getObject(champClasse.getName()) + ",";
                     }

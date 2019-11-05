@@ -1196,7 +1196,7 @@ public class FileManager extends ObjetNetWork {
     }
 
     public void fm_synchroniser(Utilisateur currentUser, int idExerciceEncours, EcouteurSynchronisation ecouteurSynchronisation) {
-
+        
         if (currentUser != null) {
             Vector<Dossier> dossiersControledByCurrentUser = new Vector<>();
 
@@ -1604,20 +1604,22 @@ public class FileManager extends ObjetNetWork {
             System.out.println("Classe " + classe);
             strJSON += "{";
             String fileName = null;
-            for (Field champClasse : classe.getDeclaredFields()) {
-                if (!champClasse.getName().toLowerCase().equals("beta")) {
-                    if (champClasse.getName().toLowerCase().equals("id")) {
-                        fileName = "" + rsObjet.getInt(champClasse.getName());
+            for (Field champ : classe.getDeclaredFields()) {
+                if (!champ.getName().toLowerCase().equals("beta")) {
+                    if (champ.getName().toLowerCase().equals("id")) {
+                        fileName = "" + rsObjet.getInt(champ.getName());
                     }
-                    strJSON += "\"" + champClasse.getName() + "\" : ";
-                    if (champClasse.getType() == String.class) {
-                        strJSON += "\"" + rsObjet.getObject(champClasse.getName()) + "\",";
-                    }else if (champClasse.getType() == Date.class) {
-                        strJSON += UtilFileManager.convertDatePaiement("" + rsObjet.getObject(champClasse.getName())).getTime() + ",";
+                    strJSON += "\"" + champ.getName() + "\" : ";
+                    if (champ.getType() == String.class) {
+                        strJSON += "\"" + rsObjet.getObject(champ.getName()) + "\",";
+                    }else if (champ.getType() == Date.class) {
+                        strJSON += UtilFileManager.convertDatePaiement("" + rsObjet.getObject(champ.getName())).getTime() + ",";
+                    }else if(champ.getType() == Date.class){
+                    
                     } else {
-                        strJSON += rsObjet.getObject(champClasse.getName()) + ",";
+                        strJSON += rsObjet.getObject(champ.getName()) + ",";
                     }
-                    System.out.println(" ** champ " + champClasse.getName() + " = " + rsObjet.getObject(champClasse.getName()));
+                    System.out.println(" ** champ " + champ.getName() + " = " + rsObjet.getObject(champ.getName()));
                 }
             }
 
@@ -1633,6 +1635,11 @@ public class FileManager extends ObjetNetWork {
         }
     }
 }
+
+
+
+
+
 
 
 

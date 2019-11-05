@@ -1614,12 +1614,24 @@ public class FileManager extends ObjetNetWork {
                         strJSON += "\"" + rsObjet.getObject(champ.getName()) + "\",";
                     }else if (champ.getType() == Date.class) {
                         strJSON += UtilFileManager.convertDatePaiement("" + rsObjet.getObject(champ.getName())).getTime() + ",";
-                    }else if(champ.getType() == Vector.class){
+                    }else if(champ.getType() == Vector.class && champ.getName().equals("liaisonsClasses")){
+                        
+                        //Normalement cette portion doit rester dans une méthode !!!!!                       
+                        
+                        Vector lFC = (Vector)rsObjet.getObject(champ.getName());
+                        System.out.println("liaisonsClasses:");
+                        for(Object Obj : lFC){
+                            LiaisonFraisClasse lfc = (LiaisonFraisClasse)Obj;
+                            System.out.println(" *** " + lfc.toString());
+                        }
+                        
+                        
+                        
                         
                     } else {
                         strJSON += rsObjet.getObject(champ.getName()) + ",";
                     }
-                    System.out.println(" ** champ " + champ.getName() + " = " + rsObjet.getObject(champ.getName())+", Type = " + champ.getType());
+                    System.out.println(" ** champ " + champ.getName()+", Type = " + champ.getType() + " Data = " + rsObjet.getObject(champ.getName()));
                 }
             }
 
@@ -1635,6 +1647,26 @@ public class FileManager extends ObjetNetWork {
         }
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

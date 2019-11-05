@@ -1618,7 +1618,7 @@ public class FileManager extends ObjetNetWork {
                         
                         //Normalement cette portion doit rester dans une méthode !!!!!
                         //Car ici dedans on fera la traduction du String de liaison vers un vecteur d'objets
-                        System.out.println(" *** Data content (à convertir) : " + (Vector)rsObjet.getObject(champ.getName()));
+                        System.out.println(" *** Data content (à convertir) : " + rsObjet.getObject(champ.getName()));
                         System.out.println(" *** Data Type (à convertir) : " + champ.getType());
                         
                         /*
@@ -1652,6 +1652,7 @@ public class FileManager extends ObjetNetWork {
         }
     }
 }
+
 
 
 

@@ -1616,7 +1616,12 @@ public class FileManager extends ObjetNetWork {
                         strJSON += UtilFileManager.convertDatePaiement("" + rsObjet.getObject(champ.getName())).getTime() + ",";
                     }else if(champ.getType() == Vector.class && champ.getName().equals("liaisonsClasses")){
                         
-                        //Normalement cette portion doit rester dans une méthode !!!!!                       
+                        //Normalement cette portion doit rester dans une méthode !!!!!
+                        //Car ici dedans on fera la traduction du String de liaison vers un vecteur d'objets
+                        System.out.println(" *** Data content (à convertir) : " + (Vector)rsObjet.getObject(champ.getName()));
+                        System.out.println(" *** Data Type (à convertir) : " + champ.getType());
+                        
+                        /*
                         
                         Vector lFC = (Vector)rsObjet.getObject(champ.getName());
                         System.out.println("liaisonsClasses:");
@@ -1625,7 +1630,7 @@ public class FileManager extends ObjetNetWork {
                             System.out.println(" *** " + lfc.toString());
                         }
                         
-                        
+                        */
                         
                         
                     } else {
@@ -1647,6 +1652,17 @@ public class FileManager extends ObjetNetWork {
         }
     }
 }
+
+
+
+
+
+
+
+
+
+
+
 
 
 

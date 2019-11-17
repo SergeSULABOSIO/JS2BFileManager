@@ -1614,7 +1614,16 @@ public class FileManager extends ObjetNetWork {
                         strJSON += "\"" + rsObjet.getObject(champ.getName()) + "\",";
                     }else if (champ.getType() == Date.class) {
                         strJSON += UtilFileManager.convertDatePaiement("" + rsObjet.getObject(champ.getName())).getTime() + ",";
-                    }else if(champ.getType() == Vector.class && champ.getName().equals("liaisonsClasses")){
+                    }else if(champ.getType() == Vector.class){
+                        
+                        boolean isliaisonsClasses = champ.getName().toLowerCase().equals("liaisonsClasses");
+                        boolean isliaisonsPeriodes = champ.getName().toLowerCase().equals("liaisonsPeriodes");
+                        
+                        if(isliaisonsClasses == true){
+                            
+                        }else if(isliaisonsPeriodes == true){
+                            
+                        }
                         
                         //Normalement cette portion doit rester dans une méthode !!!!!
                         //Car ici dedans on fera la traduction du String de liaison vers un vecteur d'objets
@@ -1631,7 +1640,7 @@ public class FileManager extends ObjetNetWork {
                         }
                         
                         */
-                        
+                        strJSON += rsObjet.getObject(champ.getName()) + ",";
                         
                     } else {
                         strJSON += rsObjet.getObject(champ.getName()) + ",";

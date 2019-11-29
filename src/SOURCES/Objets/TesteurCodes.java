@@ -31,9 +31,14 @@ public class TesteurCodes {
             if(liaison.trim().length() != 0){
                 System.out.println(" * " + liaison);
                 Field[] TabAttributs = objetLiaison.getClass().getDeclaredFields();
+                String STabAttributs = "(";
                 for(Field champ : TabAttributs){
                     System.out.println("\t - " + champ.getName());
+                    STabAttributs += champ.getName() + "=|";
                 }
+                STabAttributs = STabAttributs.substring(0, STabAttributs.length()-1);
+                STabAttributs = STabAttributs + ")";
+                System.out.println(" ** " + STabAttributs);
             }
         }
         
@@ -55,6 +60,26 @@ public class TesteurCodes {
     }
     
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

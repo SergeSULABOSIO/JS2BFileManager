@@ -5,11 +5,11 @@
  */
 package SOURCES.Objets;
 
+import SOURCES.Utilitaires.UtilFileManager;
 import Source.Objet.LiaisonFraisPeriode;
 import java.lang.reflect.Field;
+import java.sql.Date;
 import java.util.Vector;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  *
@@ -66,6 +66,8 @@ public class TesteurCodes {
                             attirib.set(objetLiaison, "" + (listeValeurs.elementAt(index)));
                         }else if(attirib.getType().equals(Long.class)){
                             attirib.setLong(objetLiaison, Long.parseLong("" + (listeValeurs.elementAt(index))));
+                        }else if(attirib.getType().equals(Date.class)){
+                            attirib.set(objetLiaison, UtilFileManager.convertDatePaiement("" + (listeValeurs.elementAt(index))));
                         }
                         index++;
                     } catch (Exception e) {
@@ -73,6 +75,7 @@ public class TesteurCodes {
                     }
                 }
             }
+            System.out.println("Output: " + objetLiaison.toString());
         }
 
         /*
@@ -91,6 +94,13 @@ public class TesteurCodes {
     }
 
 }
+
+
+
+
+
+
+
 
 
 

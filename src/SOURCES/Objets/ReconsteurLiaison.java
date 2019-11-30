@@ -15,11 +15,11 @@ import java.util.Vector;
  *
  * @author HP Pavilion
  */
-public class TesteurCodes {
+public class ReconsteurLiaison {
 
     public static String data = "[LiaisonFraisPeriode{idPeriode=1, nomPeriode=1er Trimestre, signaturePeriode=5450854614453354157, pourcentage=33.0}, LiaisonFraisPeriode{idPeriode=2, nomPeriode=2ème Trimestre, signaturePeriode=-9105976197124345236, pourcentage=33.0}, LiaisonFraisPeriode{idPeriode=3, nomPeriode=3ème Trimestre, signaturePeriode=-5421709498265554820, pourcentage=33.0}]";
 
-    public static Vector getLiaisonReconstruite(Class objetType, String data) {
+    public static Vector getLiaison(Class objetType, String data) {
         Vector listeOutput = new Vector();
         
         data = data.substring(1);
@@ -59,20 +59,19 @@ public class TesteurCodes {
                 //On charge les valeurs dans les attributs de l'objet
                 try {
                     Object tempObject = objetType.newInstance();
-
                     int index = 0;
-                    for (Field attirib : TabAttributs) {
+                    for (Field attrib : TabAttributs) {
                         try {
-                            if (attirib.getType() == Integer.TYPE) {
-                                attirib.setInt(tempObject, Integer.parseInt("" + (listeValeurs.elementAt(index))));
-                            } else if (attirib.getType() == Double.TYPE) {
-                                attirib.setDouble(tempObject, Double.parseDouble("" + (listeValeurs.elementAt(index))));
-                            } else if (attirib.getType() == String.class) {
-                                attirib.set(tempObject, "" + (listeValeurs.elementAt(index)));
-                            } else if (attirib.getType() == Long.TYPE) {
-                                attirib.setLong(tempObject, Long.parseLong("" + (listeValeurs.elementAt(index))));
-                            } else if (attirib.getType() == Date.class) {
-                                attirib.set(tempObject, UtilFileManager.convertDatePaiement("" + (listeValeurs.elementAt(index))));
+                            if (attrib.getType() == Integer.TYPE) {
+                                attrib.setInt(tempObject, Integer.parseInt("" + (listeValeurs.elementAt(index))));
+                            } else if (attrib.getType() == Double.TYPE) {
+                                attrib.setDouble(tempObject, Double.parseDouble("" + (listeValeurs.elementAt(index))));
+                            } else if (attrib.getType() == String.class) {
+                                attrib.set(tempObject, "" + (listeValeurs.elementAt(index)));
+                            } else if (attrib.getType() == Long.TYPE) {
+                                attrib.setLong(tempObject, Long.parseLong("" + (listeValeurs.elementAt(index))));
+                            } else if (attrib.getType() == Date.class) {
+                                attrib.set(tempObject, UtilFileManager.convertDatePaiement("" + (listeValeurs.elementAt(index))));
                             }
                             //System.out.println(attirib.getType());
                             index++;
@@ -92,13 +91,12 @@ public class TesteurCodes {
 
     public static void main(String[] a) {
         
-        Vector tabLiaison = getLiaisonReconstruite(LiaisonFraisPeriode.class, data);
+        Vector tabLiaison = getLiaison(LiaisonFraisPeriode.class, data);
         for(Object oLiaison : tabLiaison){
             LiaisonFraisPeriode lPeriode = (LiaisonFraisPeriode) oLiaison;
             System.out.println(lPeriode.toString());
         }
-        
-        
+        System.out.println("!" + tabLiaison+"!");
     }
 
 }

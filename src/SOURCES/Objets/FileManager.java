@@ -1131,9 +1131,9 @@ public class FileManager extends ObjetNetWork {
 
             sql = "";
             if (DOSSIER.trim().equals(UtilObjet.DOSSIER_ANNEE)) {
-                if(idExercice != -1){
+                if (idExercice != -1) {
                     sql = "select * from " + photoRubriqueDistante.getNom() + " WHERE idEntreprise = " + ecole.getId() + " AND id = " + idExercice + ";";
-                }else{
+                } else {
                     sql = "select * from " + photoRubriqueDistante.getNom() + " WHERE idEntreprise = " + ecole.getId() + ";";
                 }
             } else {
@@ -1196,7 +1196,7 @@ public class FileManager extends ObjetNetWork {
     }
 
     public void fm_synchroniser(Utilisateur currentUser, int idExerciceEncours, EcouteurSynchronisation ecouteurSynchronisation) {
-        
+
         if (currentUser != null) {
             Vector<Dossier> dossiersControledByCurrentUser = new Vector<>();
 
@@ -1253,7 +1253,7 @@ public class FileManager extends ObjetNetWork {
                         //On lance la comparaison de ces deux disques
                         PhotoDisqueLocal photoDisqueLocal = fm_getPhotoDisqueLocal(dossiersControledByCurrentUser);
                         fm_comparerDisques(photoDisqueLocal, photoDisqueDistant, ecouteurSynchronisation);
-                        
+
                         System.out.println("** Fin de la synchronisation **");
 
                         if (ecouteurSynchronisation != null) {
@@ -1551,14 +1551,14 @@ public class FileManager extends ObjetNetWork {
             String nomRub = rubriqueLocale.getNom();
             StatusElement ste = photoDisqueDistant.comparer(nomRub, el);
             System.out.println("\t" + el.getName() + ", lastMidified: " + el.lastModified() + " - " + ste.toString());
-            
+
             if (ste.isIsNew() == true) {
                 //CHARGEMENT SUR LE SERVEUR
                 Object oObjet = fm_ouvrir(rubriqueLocale.getClasse(), nomRub, Integer.parseInt(el.getName()));
                 String sql = InterpreteurSql.getInsert(oObjet, el.lastModified());
                 int rep = fMDataUploader.executerUpdate(sql);
                 System.out.println("\t\tChargement - Nouvelle données... = " + rep);
-                
+
             } else if (ste.isIsNew() == false && ste.isIsRecent() == true) {
                 //CHARGEMENT SUR LE SERVEUR
                 Object oObjet = fm_ouvrir(rubriqueLocale.getClasse(), nomRub, Integer.parseInt(el.getName()));
@@ -1588,16 +1588,15 @@ public class FileManager extends ObjetNetWork {
 
     private void saveNewDate(boolean ecraseAncien, String nomTable, String dossier, PhotoDisqueLocal photoDisqueLocal, FMDataUploader fMDataUploader, ElementDistant ed) throws Exception {
         String sql = "";
-        if(nomTable.equals("BACKUP_ANNEE")){
+        if (nomTable.equals("BACKUP_ANNEE")) {
             sql = "SELECT * FROM " + nomTable + " WHERE idEntreprise = " + ed.getIdEntreprise() + " AND id = " + ed.getId() + ";";
-        }else{
+        } else {
             sql = "SELECT * FROM " + nomTable + " WHERE idEntreprise = " + ed.getIdEntreprise() + " AND id = " + ed.getId() + " AND idExercice = " + ed.getIdExercice() + ";";
         }
-        
-        
+
         ResultSet rsObjet = fMDataUploader.executerQuery(sql);
 
-        //Note: il faut prendre en compte les liaisons et savoir les reconstituer en local car sur la base, les liaisons sont séparées de leurs responsables
+        //Note: il faut prendre en compte les liaisons et savoir les reconstituer en local
         String strJSON = "";
         while (rsObjet.next()) {
             Class classe = photoDisqueLocal.getClasse(dossier);
@@ -1612,40 +1611,47 @@ public class FileManager extends ObjetNetWork {
                     strJSON += "\"" + champ.getName() + "\" : ";
                     if (champ.getType() == String.class) {
                         strJSON += "\"" + rsObjet.getObject(champ.getName()) + "\",";
-                    }else if (champ.getType() == Date.class) {
+                    } else if (champ.getType() == Date.class) {
                         strJSON += UtilFileManager.convertDatePaiement("" + rsObjet.getObject(champ.getName())).getTime() + ",";
-                    }else if(champ.getType() == Vector.class){
-                        
-                        boolean isliaisonsClasses = champ.getName().toLowerCase().equals("liaisonsClasses");
-                        boolean isliaisonsPeriodes = champ.getName().toLowerCase().equals("liaisonsPeriodes");
-                        
-                        if(isliaisonsClasses == true){
-                            
-                        }else if(isliaisonsPeriodes == true){
-                            
-                        }
-                        
+                    } else if (champ.getType() == Vector.class) {
+
                         //Normalement cette portion doit rester dans une méthode !!!!!
                         //Car ici dedans on fera la traduction du String de liaison vers un vecteur d'objets
                         System.out.println(" *** Data content (à convertir) : " + rsObjet.getObject(champ.getName()));
                         System.out.println(" *** Data Type (à convertir) : " + champ.getType());
                         
-                        /*
                         
-                        Vector lFC = (Vector)rsObjet.getObject(champ.getName());
-                        System.out.println("liaisonsClasses:");
-                        for(Object Obj : lFC){
-                            LiaisonFraisClasse lfc = (LiaisonFraisClasse)Obj;
-                            System.out.println(" *** " + lfc.toString());
+                        boolean isliaisonsClasses = champ.getName().toLowerCase().equals("liaisonsClasses");    //liaisonsClasses
+                        boolean isliaisonsPeriodes = champ.getName().toLowerCase().equals("liaisonsPeriodes");  //liaisonsPeriodes
+                        boolean isliaisonsAyantdroit = champ.getName().toLowerCase().equals("listeLiaisons");   //listeLiaisons
+
+                        
+                        if (isliaisonsClasses == true) {
+                            Vector listeLiaison = ReconsteurLiaison.getLiaison(LiaisonFraisClasse.class, "" + rsObjet.getObject(champ.getName()));
+                            for (Object lisiason : listeLiaison) {
+                                LiaisonFraisClasse lfc = (LiaisonFraisClasse) lisiason;
+                                System.out.println(" \t\t\t*** liaison reconstituée : " + lfc.toString());
+                            }
+                            strJSON += getJSON(listeLiaison) + ",";
+                        } else if (isliaisonsPeriodes == true) {
+                            Vector listeLiaison = ReconsteurLiaison.getLiaison(LiaisonFraisPeriode.class, "" + rsObjet.getObject(champ.getName()));
+                            for (Object lisiason : listeLiaison) {
+                                LiaisonFraisPeriode lfc = (LiaisonFraisPeriode) lisiason;
+                                System.out.println(" \t\t\t*** liaison reconstituée : " + lfc.toString());
+                            }
+                            strJSON += getJSON(listeLiaison) + ",";
+                        } else if (isliaisonsAyantdroit == true) {
+                            Vector listeLiaison = ReconsteurLiaison.getLiaison(LiaisonFraisEleve.class, "" + rsObjet.getObject(champ.getName()));
+                            for (Object lisiason : listeLiaison) {
+                                LiaisonFraisEleve lfc = (LiaisonFraisEleve) lisiason;
+                                System.out.println(" \t\t\t*** liaison reconstituée : " + lfc.toString());
+                            }
+                            strJSON += getJSON(listeLiaison) + ",";
                         }
-                        
-                        */
-                        strJSON += rsObjet.getObject(champ.getName()) + ",";
-                        
                     } else {
                         strJSON += rsObjet.getObject(champ.getName()) + ",";
                     }
-                    System.out.println(" ** champ " + champ.getName()+", Type = " + champ.getType() + " Data = " + rsObjet.getObject(champ.getName()));
+                    System.out.println(" ** champ " + champ.getName() + ", Type = " + champ.getType() + " Data = " + rsObjet.getObject(champ.getName()));
                 }
             }
 
@@ -1661,61 +1667,3 @@ public class FileManager extends ObjetNetWork {
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

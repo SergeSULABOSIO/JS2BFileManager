@@ -37,7 +37,7 @@ public class TesteurCodes {
                     //System.out.println("\t - " + champ.getName());
                     patternVal += champ.getName() + "=|";
                 }
-
+                
                 patternVal = patternVal.substring(0, patternVal.length() - 1);
                 patternVal = patternVal + ")";
                 //System.out.println(" ** " + patternVal);

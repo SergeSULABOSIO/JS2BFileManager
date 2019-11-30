@@ -17,27 +17,29 @@ import java.util.Vector;
  */
 public class TesteurCodes {
 
-    public static String data = "[LiaisonPeriodeFrais{idPeriode=1, nomPeriode=1er Trimestre, signaturePeriode=5450854614453354157, pourcentage=33.0}, LiaisonPeriodeFrais{idPeriode=2, nomPeriode=2ème Trimestre, signaturePeriode=-9105976197124345236, pourcentage=33.0}, LiaisonPeriodeFrais{idPeriode=3, nomPeriode=3ème Trimestre, signaturePeriode=-5421709498265554820, pourcentage=33.0}]";
+    public static String data = "[LiaisonFraisPeriode{idPeriode=1, nomPeriode=1er Trimestre, signaturePeriode=5450854614453354157, pourcentage=33.0}, LiaisonFraisPeriode{idPeriode=2, nomPeriode=2ème Trimestre, signaturePeriode=-9105976197124345236, pourcentage=33.0}, LiaisonFraisPeriode{idPeriode=3, nomPeriode=3ème Trimestre, signaturePeriode=-5421709498265554820, pourcentage=33.0}]";
 
-    public static void main(String[] a) {
-        LiaisonFraisPeriode objetLiaison = new LiaisonFraisPeriode();
-
+    public static Vector getLiaisonReconstruite(Class objetType, String data) {
+        Vector listeOutput = new Vector();
+        
         data = data.substring(1);
         data = data.substring(0, data.length() - 1);
         data = data.replaceAll("}$", "");
         System.out.println(data);
-        String[] tabData = data.split("(L|l)iaison(P|p)eriode(F|f)rais\\{");
+        //String[] tabData = data.split("(L|l)iaison(P|p)eriode(F|f)rais\\{");
+        System.out.println(" **** " + objetType.getSimpleName());
+        String[] tabData = data.split("" + objetType.getSimpleName() + "\\{");
         for (String liaison : tabData) {
             liaison = liaison.replaceAll("},\\s?$", "");
             if (liaison.trim().length() != 0) {
-                System.out.println(" * " + liaison);
-                Field[] TabAttributs = objetLiaison.getClass().getDeclaredFields();
+                //System.out.println(" * " + liaison);
+                Field[] TabAttributs = objetType.getDeclaredFields();
                 String patternVal = "(";
                 for (Field champ : TabAttributs) {
                     //System.out.println("\t - " + champ.getName());
                     patternVal += champ.getName() + "=|";
                 }
-                
+
                 patternVal = patternVal.substring(0, patternVal.length() - 1);
                 patternVal = patternVal + ")";
                 //System.out.println(" ** " + patternVal);
@@ -55,79 +57,48 @@ public class TesteurCodes {
                 }
 
                 //On charge les valeurs dans les attributs de l'objet
-                int index = 0;
-                for (Field attirib : TabAttributs) {
-                    try {
-                        if (attirib.getType() == Integer.TYPE) {
-                            attirib.setInt(objetLiaison, Integer.parseInt("" + (listeValeurs.elementAt(index))));
-                        }else if(attirib.getType() == Double.TYPE){
-                            attirib.setDouble(objetLiaison, Double.parseDouble("" + (listeValeurs.elementAt(index))));
-                        }else if(attirib.getType() == String.class){
-                            attirib.set(objetLiaison, "" + (listeValeurs.elementAt(index)));
-                        }else if(attirib.getType() == Long.TYPE){
-                            attirib.setLong(objetLiaison, Long.parseLong("" + (listeValeurs.elementAt(index))));
-                        }else if(attirib.getType() == Date.class){
-                            attirib.set(objetLiaison, UtilFileManager.convertDatePaiement("" + (listeValeurs.elementAt(index))));
+                try {
+                    Object tempObject = objetType.newInstance();
+
+                    int index = 0;
+                    for (Field attirib : TabAttributs) {
+                        try {
+                            if (attirib.getType() == Integer.TYPE) {
+                                attirib.setInt(tempObject, Integer.parseInt("" + (listeValeurs.elementAt(index))));
+                            } else if (attirib.getType() == Double.TYPE) {
+                                attirib.setDouble(tempObject, Double.parseDouble("" + (listeValeurs.elementAt(index))));
+                            } else if (attirib.getType() == String.class) {
+                                attirib.set(tempObject, "" + (listeValeurs.elementAt(index)));
+                            } else if (attirib.getType() == Long.TYPE) {
+                                attirib.setLong(tempObject, Long.parseLong("" + (listeValeurs.elementAt(index))));
+                            } else if (attirib.getType() == Date.class) {
+                                attirib.set(tempObject, UtilFileManager.convertDatePaiement("" + (listeValeurs.elementAt(index))));
+                            }
+                            //System.out.println(attirib.getType());
+                            index++;
+                        } catch (Exception e) {
+                            e.printStackTrace();
                         }
-                        //System.out.println(attirib.getType());
-                        index++;
-                    } catch (Exception e) {
-                        e.printStackTrace();
                     }
+                    //System.out.println("Output: " + tempObject.toString());
+                    listeOutput.add(tempObject);
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-                System.out.println("Output: " + objetLiaison.toString());
             }
         }
+        return listeOutput;
+    }
 
-        /*
-        Pattern pattern = Pattern.compile("(L|l)iaison(P|p)eriode(F|f)rais");
-        // in case you would like to ignore case sensitivity,
-        // you could use this statement:
-        // Pattern pattern = Pattern.compile("\\s+", Pattern.CASE_INSENSITIVE);
-        Matcher matcher = pattern.matcher(data);
-        // check all occurance
-        while (matcher.find()) {
-            //System.out.print("Start index: " + matcher.start());
-            //System.out.print(" End index: " + matcher.end() + " ");
-            System.out.println(matcher.group());
+    public static void main(String[] a) {
+        
+        Vector tabLiaison = getLiaisonReconstruite(LiaisonFraisPeriode.class, data);
+        for(Object oLiaison : tabLiaison){
+            LiaisonFraisPeriode lPeriode = (LiaisonFraisPeriode) oLiaison;
+            System.out.println(lPeriode.toString());
         }
-         */
+        
+        
     }
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

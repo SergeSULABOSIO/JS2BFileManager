@@ -34,22 +34,22 @@ public class TesteurCodes {
                 Field[] TabAttributs = objetLiaison.getClass().getDeclaredFields();
                 String patternVal = "(";
                 for (Field champ : TabAttributs) {
-                    System.out.println("\t - " + champ.getName());
+                    //System.out.println("\t - " + champ.getName());
                     patternVal += champ.getName() + "=|";
                 }
 
                 patternVal = patternVal.substring(0, patternVal.length() - 1);
                 patternVal = patternVal + ")";
-                System.out.println(" ** " + patternVal);
+                //System.out.println(" ** " + patternVal);
 
                 liaison = liaison.replaceAll(patternVal, "sososo");
-                System.out.println(" * " + liaison);
+                //System.out.println(" * " + liaison);
                 String[] tabVal = liaison.split("sososo");
                 Vector listeValeurs = new Vector();
                 for (String valeurAttr : tabVal) {
                     if (valeurAttr.trim().length() != 0) {
                         valeurAttr = valeurAttr.trim().replaceAll(",", "");
-                        System.out.println("\t\t" + valeurAttr);
+                        //System.out.println("\t\t" + valeurAttr);
                         listeValeurs.add(valeurAttr);
                     }
                 }
@@ -58,24 +58,25 @@ public class TesteurCodes {
                 int index = 0;
                 for (Field attirib : TabAttributs) {
                     try {
-                        if (attirib.getType().equals(Integer.class)) {
+                        if (attirib.getType() == Integer.TYPE) {
                             attirib.setInt(objetLiaison, Integer.parseInt("" + (listeValeurs.elementAt(index))));
-                        }else if(attirib.getType().equals(Double.class)){
+                        }else if(attirib.getType() == Double.TYPE){
                             attirib.setDouble(objetLiaison, Double.parseDouble("" + (listeValeurs.elementAt(index))));
-                        }else if(attirib.getType().equals(String.class)){
+                        }else if(attirib.getType() == String.class){
                             attirib.set(objetLiaison, "" + (listeValeurs.elementAt(index)));
-                        }else if(attirib.getType().equals(Long.class)){
+                        }else if(attirib.getType() == Long.TYPE){
                             attirib.setLong(objetLiaison, Long.parseLong("" + (listeValeurs.elementAt(index))));
-                        }else if(attirib.getType().equals(Date.class)){
+                        }else if(attirib.getType() == Date.class){
                             attirib.set(objetLiaison, UtilFileManager.convertDatePaiement("" + (listeValeurs.elementAt(index))));
                         }
+                        //System.out.println(attirib.getType());
                         index++;
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
+                System.out.println("Output: " + objetLiaison.toString());
             }
-            System.out.println("Output: " + objetLiaison.toString());
         }
 
         /*

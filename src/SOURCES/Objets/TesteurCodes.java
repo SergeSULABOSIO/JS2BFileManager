@@ -27,7 +27,7 @@ public class TesteurCodes {
         data = data.replaceAll("}$", "");
         System.out.println(data);
         //String[] tabData = data.split("(L|l)iaison(P|p)eriode(F|f)rais\\{");
-        System.out.println(" **** " + objetType.getSimpleName());
+        //System.out.println(" **** " + objetType.getSimpleName());
         String[] tabData = data.split("" + objetType.getSimpleName() + "\\{");
         for (String liaison : tabData) {
             liaison = liaison.replaceAll("},\\s?$", "");

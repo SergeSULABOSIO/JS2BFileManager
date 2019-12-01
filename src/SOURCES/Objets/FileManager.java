@@ -1622,9 +1622,9 @@ public class FileManager extends ObjetNetWork {
                         System.out.println(" *** Data Type (à convertir) : " + champ.getType());
                         
                         
-                        boolean isliaisonsClasses = champ.getName().toLowerCase().equals("liaisonsClasses");    //liaisonsClasses
-                        boolean isliaisonsPeriodes = champ.getName().toLowerCase().equals("liaisonsPeriodes");  //liaisonsPeriodes
-                        boolean isliaisonsAyantdroit = champ.getName().toLowerCase().equals("listeLiaisons");   //listeLiaisons
+                        boolean isliaisonsClasses = champ.getName().equals("liaisonsClasses");    //liaisonsClasses
+                        boolean isliaisonsPeriodes = champ.getName().equals("liaisonsPeriodes");  //liaisonsPeriodes
+                        boolean isliaisonsAyantdroit = champ.getName().equals("listeLiaisons");   //listeLiaisons
 
                         if (isliaisonsClasses == true) {
                             Vector listeLiaison = ReconsteurLiaison.getLiaison(LiaisonFraisClasse.class, "" + rsObjet.getObject(champ.getName()));

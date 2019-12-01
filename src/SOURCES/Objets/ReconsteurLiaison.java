@@ -17,7 +17,7 @@ import java.util.Vector;
  */
 public class ReconsteurLiaison {
 
-    public static String data = "[LiaisonFraisPeriode{idPeriode=1, nomPeriode=1er Trimestre, signaturePeriode=5450854614453354157, pourcentage=33.0}, LiaisonFraisPeriode{idPeriode=2, nomPeriode=2ème Trimestre, signaturePeriode=-9105976197124345236, pourcentage=33.0}, LiaisonFraisPeriode{idPeriode=3, nomPeriode=3ème Trimestre, signaturePeriode=-5421709498265554820, pourcentage=33.0}]";
+    public static String data = "[LiaisonFraisPeriode{idPeriode=1, nomPeriode=1er Trimestre, signaturePeriode=4610921427038036296, pourcentage=33.0}, LiaisonFraisPeriode{idPeriode=2, nomPeriode=2ème Trimestre, signaturePeriode=-6296768174954075040, pourcentage=33.0}, LiaisonFraisPeriode{idPeriode=3, nomPeriode=3ème Trimestre, signaturePeriode=1004137776615229220, pourcentage=33.0}]";
 
     public static Vector getLiaison(Class objetType, String data) {
         Vector listeOutput = new Vector();

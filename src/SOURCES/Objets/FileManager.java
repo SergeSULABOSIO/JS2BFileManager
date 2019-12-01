@@ -1550,6 +1550,7 @@ public class FileManager extends ObjetNetWork {
         for (File el : rubriqueLocale.getContenus()) {
             String nomRub = rubriqueLocale.getNom();
             StatusElement ste = photoDisqueDistant.comparer(nomRub, el);
+
             System.out.println("\t" + el.getName() + ", lastMidified: " + el.lastModified() + " - " + ste.toString());
 
             if (ste.isIsNew() == true) {
@@ -1625,7 +1626,6 @@ public class FileManager extends ObjetNetWork {
                         boolean isliaisonsPeriodes = champ.getName().toLowerCase().equals("liaisonsPeriodes");  //liaisonsPeriodes
                         boolean isliaisonsAyantdroit = champ.getName().toLowerCase().equals("listeLiaisons");   //listeLiaisons
 
-                        
                         if (isliaisonsClasses == true) {
                             Vector listeLiaison = ReconsteurLiaison.getLiaison(LiaisonFraisClasse.class, "" + rsObjet.getObject(champ.getName()));
                             for (Object lisiason : listeLiaison) {

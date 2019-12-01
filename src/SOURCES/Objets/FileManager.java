@@ -1633,14 +1633,18 @@ public class FileManager extends ObjetNetWork {
                                 System.out.println(" \t\t\t*** liaison reconstituée : " + lfc.toString());
                             }
                             strJSON += getJSON(listeLiaison) + ",";
-                        } else if (isliaisonsPeriodes == true) {
+                        }
+                        
+                        if (isliaisonsPeriodes == true) {
                             Vector listeLiaison = ReconsteurLiaison.getLiaison(LiaisonFraisPeriode.class, "" + rsObjet.getObject(champ.getName()));
                             for (Object lisiason : listeLiaison) {
                                 LiaisonFraisPeriode lfc = (LiaisonFraisPeriode) lisiason;
                                 System.out.println(" \t\t\t*** liaison reconstituée : " + lfc.toString());
                             }
                             strJSON += getJSON(listeLiaison) + ",";
-                        } else if (isliaisonsAyantdroit == true) {
+                        }
+                        
+                        if (isliaisonsAyantdroit == true) {
                             Vector listeLiaison = ReconsteurLiaison.getLiaison(LiaisonFraisEleve.class, "" + rsObjet.getObject(champ.getName()));
                             for (Object lisiason : listeLiaison) {
                                 LiaisonFraisEleve lfc = (LiaisonFraisEleve) lisiason;

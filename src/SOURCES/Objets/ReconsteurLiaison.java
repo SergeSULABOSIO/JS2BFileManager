@@ -97,6 +97,7 @@ public class ReconsteurLiaison {
             System.out.println(lPeriode.toString());
         }
         System.out.println("!" + tabLiaison+"!");
+        System.out.println("!" + FileManager.getJSON(tabLiaison) +"!");
     }
 
 }

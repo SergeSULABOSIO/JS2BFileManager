@@ -1612,13 +1612,20 @@ public class FileManager extends ObjetNetWork {
                     strJSON += "\"" + champ.getName() + "\" : ";
                     if (champ.getType() == String.class) {
                         strJSON += "\"" + rsObjet.getObject(champ.getName()) + "\",";
-                    } else if (champ.getType() == Date.class) {
+                    }
+                    if (champ.getType() == Date.class) {
                         strJSON += UtilFileManager.convertDatePaiement("" + rsObjet.getObject(champ.getName())).getTime() + ",";
-                    } else if (champ.getType() == Integer.TYPE) {
+                    }
+                    if (champ.getType() == Integer.TYPE) {
                         strJSON += rsObjet.getInt(champ.getName()) + ",";
-                    } else if (champ.getType() == Double.TYPE) {
+                    }
+                    if (champ.getType() == Double.TYPE) {
                         strJSON += rsObjet.getDouble(champ.getName()) + ",";
-                    } else if (champ.getType() == Vector.class) {
+                    }
+                    if (champ.getType() == Long.TYPE) {
+                        strJSON += rsObjet.getLong(champ.getName()) + ",";
+                    }
+                    if (champ.getType() == Vector.class) {
 
                         //Normalement cette portion doit rester dans une méthode !!!!!
                         //Car ici dedans on fera la traduction du String de liaison vers un vecteur d'objets
@@ -1657,7 +1664,7 @@ public class FileManager extends ObjetNetWork {
                             strJSON += getJSON(listeLiaison) + ",";
                         }
                     } else {
-                        strJSON += rsObjet.getObject(champ.getName()) + ",";
+                        //strJSON += rsObjet.getObject(champ.getName()) + ",";
                     }
                     System.out.println(" ** champ " + champ.getName() + ", Type = " + champ.getType() + " Data = " + rsObjet.getObject(champ.getName()));
                 }

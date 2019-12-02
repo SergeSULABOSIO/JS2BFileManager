@@ -1653,7 +1653,7 @@ public class FileManager extends ObjetNetWork {
                             strJSON += getJSON(listeLiaison) + ",";
                         }
                     } else {
-                        strJSON += rsObjet.getObject(champ.getName()) + ",";
+                        strJSON += rsObjet.getObject(champ.getName()) + "|,";
                     }
                     System.out.println(" ** champ " + champ.getName() + ", Type = " + champ.getType() + " Data = " + rsObjet.getObject(champ.getName()));
                 }

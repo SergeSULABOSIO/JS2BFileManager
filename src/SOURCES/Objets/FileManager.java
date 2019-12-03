@@ -1611,6 +1611,9 @@ public class FileManager extends ObjetNetWork {
                     champ.setInt(objetTempo, InterfaceAyantDroit.BETA_EXISTANT);
                 } else {
                     if (champ.getType() == Integer.TYPE) {
+                        if (champ.getName().toLowerCase().equals("id")) {
+                            fileName = "" + rsObjet.getInt(champ.getName());
+                        }
                         champ.setInt(objetTempo, rsObjet.getInt(champ.getName()));
                     } else if (champ.getType() == Double.TYPE) {
                         champ.setDouble(objetTempo, rsObjet.getDouble(champ.getName()));
@@ -1754,6 +1757,12 @@ public class FileManager extends ObjetNetWork {
         }
     }
 }
+
+
+
+
+
+
 
 
 

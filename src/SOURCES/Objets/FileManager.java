@@ -1633,7 +1633,8 @@ public class FileManager extends ObjetNetWork {
                             LiaisonFraisClasse lfc = (LiaisonFraisClasse) lisiason;
                             System.out.println(" \t\t\t*** liaison reconstituée : " + lfc.toString());
                         }
-                        strJSON += getJSON(listeLiaison) + ",";
+                        //strJSON += getJSON(listeLiaison) + ",";
+                        champ.set(objetTempo, listeLiaison);
                     }
 
                     if (isliaisonsPeriodes == true) {
@@ -1642,7 +1643,8 @@ public class FileManager extends ObjetNetWork {
                             LiaisonFraisPeriode lfc = (LiaisonFraisPeriode) lisiason;
                             System.out.println(" \t\t\t*** liaison reconstituée : " + lfc.toString());
                         }
-                        strJSON += getJSON(listeLiaison) + ",";
+                        //strJSON += getJSON(listeLiaison) + ",";
+                        champ.set(objetTempo, listeLiaison);
                     }
 
                     if (isliaisonsAyantdroit == true) {
@@ -1651,7 +1653,8 @@ public class FileManager extends ObjetNetWork {
                             LiaisonFraisEleve lfc = (LiaisonFraisEleve) lisiason;
                             System.out.println(" \t\t\t*** liaison reconstituée : " + lfc.toString());
                         }
-                        strJSON += getJSON(listeLiaison) + ",";
+                        //strJSON += getJSON(listeLiaison) + ",";
+                        champ.set(objetTempo, listeLiaison);
                     }
 
                 }
@@ -1664,9 +1667,10 @@ public class FileManager extends ObjetNetWork {
                 
                 
                 
-                
-                
-                ///*********************** ancien code ********************
+                /**
+                 
+                 
+                 ///*********************** ancien code ********************
 
                 if (!champ.getName().toLowerCase().equals("beta")) {
                     if (champ.getName().toLowerCase().equals("id")) {
@@ -1731,11 +1735,31 @@ public class FileManager extends ObjetNetWork {
                     }
                     System.out.println(" ** champ " + champ.getName() + ", Type = " + champ.getType() + " Data = " + rsObjet.getObject(champ.getName()));
                 }
+                //********************************* ancien code ********************************
+                
+                 
+                 
+                 */
+                
+                
+                
+                
             }
 
-            strJSON += "\"beta\" : 0";
-            strJSON += "}";
+            
+            //******** ancien code *****************
+            //strJSON += "\"beta\" : 0";
+            //strJSON += "}";
+            //System.out.println(strJSON);
+            //************** ancien code ************
+            
+            
+            
+            //******* nouveau code *************
+            strJSON = getJSON(objetTempo);
             System.out.println(strJSON);
+            
+            
             long lastModified = rsObjet.getLong("lastModified");
             if (fileName != null) {
                 boolean repSaveData = enregistrerDataFromServer(strJSON, dossier, fileName, lastModified, ecraseAncien);

@@ -1603,12 +1603,76 @@ public class FileManager extends ObjetNetWork {
             Class classe = photoDisqueLocal.getClasse(dossier);
             System.out.println("Classe " + classe);
             strJSON += "{";
+            Object objetTempo = classe.newInstance();
             String fileName = null;
             for (Field champ : classe.getDeclaredFields()) {
+                if (champ.getType() == Integer.TYPE) {
+                    champ.setInt(objetTempo, rsObjet.getInt(champ.getName()));
+                } else if (champ.getType() == Double.TYPE) {
+                    champ.setDouble(objetTempo, rsObjet.getDouble(champ.getName()));
+                } else if (champ.getType() == Float.TYPE) {
+                    champ.setFloat(objetTempo, rsObjet.getFloat(champ.getName()));
+                } else if (champ.getType() == Long.TYPE) {
+                    champ.setLong(objetTempo, rsObjet.getLong(champ.getName()));
+                } else if (champ.getType() == Short.TYPE) {
+                    champ.setShort(objetTempo, rsObjet.getShort(champ.getName()));
+                } else if (champ.getType() == Boolean.TYPE) {
+                    champ.setBoolean(objetTempo, rsObjet.getBoolean(champ.getName()));
+                } else if (champ.getType() == String.class) {
+                    champ.set(objetTempo, rsObjet.getString(champ.getName()));
+                } else if (champ.getType() == Date.class) {
+                    champ.set(objetTempo, UtilFileManager.convertDatePaiement(rsObjet.getString(champ.getName())));
+                } else if (champ.getType() == Vector.class) {
+                    boolean isliaisonsClasses = champ.getName().equals("liaisonsClasses");    //liaisonsClasses
+                    boolean isliaisonsPeriodes = champ.getName().equals("liaisonsPeriodes");  //liaisonsPeriodes
+                    boolean isliaisonsAyantdroit = champ.getName().equals("listeLiaisons");   //listeLiaisons
+                    
+                    if (isliaisonsClasses == true) {
+                        Vector listeLiaison = ReconsteurLiaison.getLiaison(LiaisonFraisClasse.class, "" + rsObjet.getObject(champ.getName()));
+                        for (Object lisiason : listeLiaison) {
+                            LiaisonFraisClasse lfc = (LiaisonFraisClasse) lisiason;
+                            System.out.println(" \t\t\t*** liaison reconstituée : " + lfc.toString());
+                        }
+                        strJSON += getJSON(listeLiaison) + ",";
+                    }
+
+                    if (isliaisonsPeriodes == true) {
+                        Vector listeLiaison = ReconsteurLiaison.getLiaison(LiaisonFraisPeriode.class, "" + rsObjet.getObject(champ.getName()));
+                        for (Object lisiason : listeLiaison) {
+                            LiaisonFraisPeriode lfc = (LiaisonFraisPeriode) lisiason;
+                            System.out.println(" \t\t\t*** liaison reconstituée : " + lfc.toString());
+                        }
+                        strJSON += getJSON(listeLiaison) + ",";
+                    }
+
+                    if (isliaisonsAyantdroit == true) {
+                        Vector listeLiaison = ReconsteurLiaison.getLiaison(LiaisonFraisEleve.class, "" + rsObjet.getObject(champ.getName()));
+                        for (Object lisiason : listeLiaison) {
+                            LiaisonFraisEleve lfc = (LiaisonFraisEleve) lisiason;
+                            System.out.println(" \t\t\t*** liaison reconstituée : " + lfc.toString());
+                        }
+                        strJSON += getJSON(listeLiaison) + ",";
+                    }
+
+                }
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                ///*********************** ancien code ********************
+
                 if (!champ.getName().toLowerCase().equals("beta")) {
                     if (champ.getName().toLowerCase().equals("id")) {
                         fileName = "" + rsObjet.getInt(champ.getName());
                     }
+
                     strJSON += "\"" + champ.getName() + "\" : ";
                     if (champ.getType() == String.class) {
                         strJSON += "\"" + rsObjet.getObject(champ.getName()) + "\",";
@@ -1631,8 +1695,7 @@ public class FileManager extends ObjetNetWork {
                         //Car ici dedans on fera la traduction du String de liaison vers un vecteur d'objets
                         System.out.println(" *** Data content (à convertir) : " + rsObjet.getObject(champ.getName()));
                         System.out.println(" *** Data Type (à convertir) : " + champ.getType());
-                        
-                        
+
                         boolean isliaisonsClasses = champ.getName().equals("liaisonsClasses");    //liaisonsClasses
                         boolean isliaisonsPeriodes = champ.getName().equals("liaisonsPeriodes");  //liaisonsPeriodes
                         boolean isliaisonsAyantdroit = champ.getName().equals("listeLiaisons");   //listeLiaisons
@@ -1645,7 +1708,7 @@ public class FileManager extends ObjetNetWork {
                             }
                             strJSON += getJSON(listeLiaison) + ",";
                         }
-                        
+
                         if (isliaisonsPeriodes == true) {
                             Vector listeLiaison = ReconsteurLiaison.getLiaison(LiaisonFraisPeriode.class, "" + rsObjet.getObject(champ.getName()));
                             for (Object lisiason : listeLiaison) {
@@ -1654,7 +1717,7 @@ public class FileManager extends ObjetNetWork {
                             }
                             strJSON += getJSON(listeLiaison) + ",";
                         }
-                        
+
                         if (isliaisonsAyantdroit == true) {
                             Vector listeLiaison = ReconsteurLiaison.getLiaison(LiaisonFraisEleve.class, "" + rsObjet.getObject(champ.getName()));
                             for (Object lisiason : listeLiaison) {

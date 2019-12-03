@@ -1744,6 +1744,8 @@ public class FileManager extends ObjetNetWork {
             //strJSON += "}";
             //System.out.println(strJSON);
             //************** ancien code ************
+            
+            
             //******* nouveau code *************
             strJSON = getJSON(objetTempo);
             System.out.println(strJSON);
@@ -1757,6 +1759,9 @@ public class FileManager extends ObjetNetWork {
         }
     }
 }
+
+
+
 
 
 

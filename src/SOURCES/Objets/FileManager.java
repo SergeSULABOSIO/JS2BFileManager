@@ -1603,7 +1603,6 @@ public class FileManager extends ObjetNetWork {
         while (rsObjet.next()) {
             Class classe = photoDisqueLocal.getClasse(dossier);
             System.out.println("Classe " + classe);
-            strJSON += "{";
             Object objetTempo = classe.newInstance();
             String fileName = null;
             for (Field champ : classe.getDeclaredFields()) {
@@ -1633,119 +1632,34 @@ public class FileManager extends ObjetNetWork {
                         boolean isliaisonsClasses = champ.getName().equals("liaisonsClasses");    //liaisonsClasses
                         boolean isliaisonsPeriodes = champ.getName().equals("liaisonsPeriodes");  //liaisonsPeriodes
                         boolean isliaisonsAyantdroit = champ.getName().equals("listeLiaisons");   //listeLiaisons
-
                         if (isliaisonsClasses == true) {
                             Vector listeLiaison = ReconsteurLiaison.getLiaison(LiaisonFraisClasse.class, "" + rsObjet.getObject(champ.getName()));
                             for (Object lisiason : listeLiaison) {
                                 LiaisonFraisClasse lfc = (LiaisonFraisClasse) lisiason;
                                 System.out.println(" \t\t\t*** liaison reconstituée : " + lfc.toString());
                             }
-                            //strJSON += getJSON(listeLiaison) + ",";
                             champ.set(objetTempo, listeLiaison);
                         }
-
                         if (isliaisonsPeriodes == true) {
                             Vector listeLiaison = ReconsteurLiaison.getLiaison(LiaisonFraisPeriode.class, "" + rsObjet.getObject(champ.getName()));
                             for (Object lisiason : listeLiaison) {
                                 LiaisonFraisPeriode lfc = (LiaisonFraisPeriode) lisiason;
                                 System.out.println(" \t\t\t*** liaison reconstituée : " + lfc.toString());
                             }
-                            //strJSON += getJSON(listeLiaison) + ",";
                             champ.set(objetTempo, listeLiaison);
                         }
-
                         if (isliaisonsAyantdroit == true) {
                             Vector listeLiaison = ReconsteurLiaison.getLiaison(LiaisonFraisEleve.class, "" + rsObjet.getObject(champ.getName()));
                             for (Object lisiason : listeLiaison) {
                                 LiaisonFraisEleve lfc = (LiaisonFraisEleve) lisiason;
                                 System.out.println(" \t\t\t*** liaison reconstituée : " + lfc.toString());
                             }
-                            //strJSON += getJSON(listeLiaison) + ",";
                             champ.set(objetTempo, listeLiaison);
                         }
-
                     }
                 }
-
-                /**
-                 *
-                 *
-                 * ///*********************** ancien code ********************
-                 *
-                 * if (!champ.getName().toLowerCase().equals("beta")) { if
-                 * (champ.getName().toLowerCase().equals("id")) { fileName = ""
-                 * + rsObjet.getInt(champ.getName()); }
-                 *
-                 * strJSON += "\"" + champ.getName() + "\" : "; if
-                 * (champ.getType() == String.class) { strJSON += "\"" +
-                 * rsObjet.getObject(champ.getName()) + "\","; } if
-                 * (champ.getType() == Date.class) { strJSON +=
-                 * UtilFileManager.convertDatePaiement("" +
-                 * rsObjet.getObject(champ.getName())).getTime() + ","; } if
-                 * (champ.getType() == Integer.TYPE) { strJSON +=
-                 * rsObjet.getInt(champ.getName()) + ","; } if (champ.getType()
-                 * == Double.TYPE) { strJSON +=
-                 * rsObjet.getDouble(champ.getName()) + ","; } if
-                 * (champ.getType() == Long.TYPE) { strJSON +=
-                 * rsObjet.getLong(champ.getName()) + ","; } if (champ.getType()
-                 * == Vector.class) {
-                 *
-                 * //Normalement cette portion doit rester dans une méthode
-                 * !!!!! //Car ici dedans on fera la traduction du String de
-                 * liaison vers un vecteur d'objets System.out.println(" ***
-                 * Data content (à convertir) : " +
-                 * rsObjet.getObject(champ.getName())); System.out.println(" ***
-                 * Data Type (à convertir) : " + champ.getType());
-                 *
-                 * boolean isliaisonsClasses =
-                 * champ.getName().equals("liaisonsClasses"); //liaisonsClasses
-                 * boolean isliaisonsPeriodes =
-                 * champ.getName().equals("liaisonsPeriodes");
-                 * //liaisonsPeriodes boolean isliaisonsAyantdroit =
-                 * champ.getName().equals("listeLiaisons"); //listeLiaisons
-                 *
-                 * if (isliaisonsClasses == true) { Vector listeLiaison =
-                 * ReconsteurLiaison.getLiaison(LiaisonFraisClasse.class, "" +
-                 * rsObjet.getObject(champ.getName())); for (Object lisiason :
-                 * listeLiaison) { LiaisonFraisClasse lfc = (LiaisonFraisClasse)
-                 * lisiason; System.out.println(" \t\t\t*** liaison reconstituée
-                 * : " + lfc.toString()); } strJSON += getJSON(listeLiaison) +
-                 * ","; }
-                 *
-                 * if (isliaisonsPeriodes == true) { Vector listeLiaison =
-                 * ReconsteurLiaison.getLiaison(LiaisonFraisPeriode.class, "" +
-                 * rsObjet.getObject(champ.getName())); for (Object lisiason :
-                 * listeLiaison) { LiaisonFraisPeriode lfc =
-                 * (LiaisonFraisPeriode) lisiason; System.out.println("
-                 * \t\t\t*** liaison reconstituée : " + lfc.toString()); }
-                 * strJSON += getJSON(listeLiaison) + ","; }
-                 *
-                 * if (isliaisonsAyantdroit == true) { Vector listeLiaison =
-                 * ReconsteurLiaison.getLiaison(LiaisonFraisEleve.class, "" +
-                 * rsObjet.getObject(champ.getName())); for (Object lisiason :
-                 * listeLiaison) { LiaisonFraisEleve lfc = (LiaisonFraisEleve)
-                 * lisiason; System.out.println(" \t\t\t*** liaison reconstituée
-                 * : " + lfc.toString()); } strJSON += getJSON(listeLiaison) +
-                 * ","; } } else { //strJSON +=
-                 * rsObjet.getObject(champ.getName()) + ","; }
-                 * System.out.println(" ** champ " + champ.getName() + ", Type =
-                 * " + champ.getType() + " Data = " +
-                 * rsObjet.getObject(champ.getName())); }
-                 * //********************************* ancien code
-                 * ********************************
-                 *
-                 *
-                 *
-                 */
             }
 
-            //******** ancien code *****************
-            //strJSON += "\"beta\" : 0";
-            //strJSON += "}";
-            //System.out.println(strJSON);
-            //************** ancien code ************
-            
-            
             //******* nouveau code *************
             strJSON = getJSON(objetTempo);
             System.out.println(strJSON);
@@ -1759,6 +1673,12 @@ public class FileManager extends ObjetNetWork {
         }
     }
 }
+
+
+
+
+
+
 
 
 

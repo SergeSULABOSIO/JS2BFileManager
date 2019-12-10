@@ -95,9 +95,10 @@ public class FileManager extends ObjetNetWork {
 
     private Registre registre = new Registre(0, new Date());
     private Session session = null;
-    private String racine = "DataJ2BFees";
+    private static String racine = "DataJ2BFees";
     private String pref = racine + "/PREF.man";
     public static String MANIFESTE_DEL = "MANIFEST_DEL.man";
+    public static String SYNCHRONISER = racine + "/SYNCHRONISER.man";
     private EcouteurFenetre ecouteurFenetre = null;
     private String adresseServeur;
     private EcouteurLogo ecouteurLogo;
@@ -597,6 +598,8 @@ public class FileManager extends ObjetNetWork {
                     if (ecouteur != null) {
                         ecouteur.onDone("Enregistré avec succès.");
                     }
+                    //On active le suiveur d'édition
+                    fm_edition_automatique_activer(true);
                 } else {
                     if (ecouteur != null) {
                         ecouteur.onError("Désolé, erreur!");
@@ -750,10 +753,27 @@ public class FileManager extends ObjetNetWork {
             if (rep == true) {
                 //On actualise le fichier MANIFEST_DEL.man, utile pour la synchronisation par la suite avec le Serveur
                 UtilFileManager.ecrire_txt(dossier + MANIFESTE_DEL, signature + ",", true);
+                //On active aussi le suiveur d'édition
+                fm_edition_automatique_activer(true);
             }
             return rep;
         }
         return false;
+    }
+
+    private void fm_edition_automatique_activer(boolean oui) {
+        File fichSynchro = new File(FileManager.SYNCHRONISER);
+        if (oui == true) {
+            //Il faut vite créer le fichier Synchroniser.man afin que le système 
+            //force le user à valider la synchro
+            //On doit savoir quand est-ce que la dernière modification a eut lieu
+            //C'est la raison pour laquelle nous avons enregistré la date dans le fichier SYNCHRONISER.man
+            UtilFileManager.ecrire_txt(fichSynchro.getAbsolutePath(), UtilObjet.getDateFrancais(new Date()), false);
+        }else{
+            if(fichSynchro.exists()){
+                fichSynchro.delete();
+            }
+        }
     }
 
     public Object[] fm_getSignaturesDeleted(String table) {
@@ -1673,6 +1693,27 @@ public class FileManager extends ObjetNetWork {
         }
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

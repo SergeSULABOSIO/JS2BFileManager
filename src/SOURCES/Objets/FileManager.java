@@ -17,6 +17,7 @@ import SOURCES.Callback.EcouteurOuverture;
 import SOURCES.Callback.EcouteurParametreDecaissement;
 import SOURCES.Callback.EcouteurParametreEncaissement;
 import SOURCES.Callback.EcouteurPhotoDisqueDistant;
+import SOURCES.Callback.EcouteurSuiviEdition;
 import SOURCES.Callback.EcouteurSuppression;
 import SOURCES.Callback.EcouteurSynchronisation;
 import SOURCES.DB.ElementDistant;
@@ -110,6 +111,7 @@ public class FileManager extends ObjetNetWork {
     public String dbUser = "visiterl_s2bUser";
     public String dbUserPwd = "ssula@s2b-simple.com";
     public Vector<ImageManifeste> listeManifestesDistants = new Vector<>();
+    public EcouteurSuiviEdition ecouteurSuiviEdition = null;
 
     public FileManager(String adresseServeur, String pageProcesseur, JButton btLogo) {
         super(adresseServeur + "/" + pageProcesseur);
@@ -761,6 +763,10 @@ public class FileManager extends ObjetNetWork {
         return false;
     }
 
+    public void setEcouteurSuiviEdition(EcouteurSuiviEdition ese){
+        this.ecouteurSuiviEdition = ese;
+    }
+    
     private void fm_edition_automatique_activer(boolean oui) {
         File fichSynchro = new File(FileManager.SYNCHRONISER);
         if (oui == true) {
@@ -768,10 +774,17 @@ public class FileManager extends ObjetNetWork {
             //force le user à valider la synchro
             //On doit savoir quand est-ce que la dernière modification a eut lieu
             //C'est la raison pour laquelle nous avons enregistré la date dans le fichier SYNCHRONISER.man
-            UtilFileManager.ecrire_txt(fichSynchro.getAbsolutePath(), UtilObjet.getDateFrancais(new Date()), false);
+            Date dateEdit = new Date();
+            UtilFileManager.ecrire_txt(fichSynchro.getAbsolutePath(), UtilObjet.getDateFrancais(dateEdit), false);
+            if(ecouteurSuiviEdition != null){
+                this.ecouteurSuiviEdition.onSuiveurActive(dateEdit);
+            }
         }else{
             if(fichSynchro.exists()){
                 fichSynchro.delete();
+            }
+            if(ecouteurSuiviEdition != null){
+                this.ecouteurSuiviEdition.onSuiveurDesactive();
             }
         }
     }
@@ -1276,11 +1289,14 @@ public class FileManager extends ObjetNetWork {
                         fm_comparerDisques(photoDisqueLocal, photoDisqueDistant, ecouteurSynchronisation);
 
                         System.out.println("** Fin de la synchronisation **");
-
+                        
                         if (ecouteurSynchronisation != null) {
                             ecouteurSynchronisation.onProcessing("Done", 100);
                             ecouteurSynchronisation.onSuccess("Synchronisé !");
                         }
+                        
+                        //On désactive le suiveur d'édition
+                        fm_edition_automatique_activer(false);
                     }
 
                     @Override
@@ -1693,6 +1709,31 @@ public class FileManager extends ObjetNetWork {
         }
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

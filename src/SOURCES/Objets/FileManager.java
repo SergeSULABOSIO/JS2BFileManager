@@ -763,10 +763,10 @@ public class FileManager extends ObjetNetWork {
         return false;
     }
 
-    public void setEcouteurSuiviEdition(EcouteurSuiviEdition ese){
+    public void setEcouteurSuiviEdition(EcouteurSuiviEdition ese) {
         this.ecouteurSuiviEdition = ese;
     }
-    
+
     private void fm_edition_automatique_activer(boolean oui) {
         File fichSynchro = new File(FileManager.SYNCHRONISER);
         if (oui == true) {
@@ -776,14 +776,14 @@ public class FileManager extends ObjetNetWork {
             //C'est la raison pour laquelle nous avons enregistré la date dans le fichier SYNCHRONISER.man
             Date dateEdit = new Date();
             UtilFileManager.ecrire_txt(fichSynchro.getAbsolutePath(), UtilObjet.getDateFrancais(dateEdit), false);
-            if(ecouteurSuiviEdition != null){
+            if (ecouteurSuiviEdition != null) {
                 this.ecouteurSuiviEdition.onSuiveurActive(dateEdit);
             }
-        }else{
-            if(fichSynchro.exists()){
+        } else {
+            if (fichSynchro.exists()) {
                 fichSynchro.delete();
             }
-            if(ecouteurSuiviEdition != null){
+            if (ecouteurSuiviEdition != null) {
                 this.ecouteurSuiviEdition.onSuiveurDesactive();
             }
         }
@@ -1289,12 +1289,12 @@ public class FileManager extends ObjetNetWork {
                         fm_comparerDisques(photoDisqueLocal, photoDisqueDistant, ecouteurSynchronisation);
 
                         System.out.println("** Fin de la synchronisation **");
-                        
+
                         if (ecouteurSynchronisation != null) {
                             ecouteurSynchronisation.onProcessing("Done", 100);
                             ecouteurSynchronisation.onSuccess("Synchronisé !");
                         }
-                        
+
                         //On désactive le suiveur d'édition
                         fm_edition_automatique_activer(false);
                     }
@@ -1332,10 +1332,13 @@ public class FileManager extends ObjetNetWork {
                 System.out.println("Phase #1: Téléchargement (Du Serveur au Poste local)");
                 for (PhotoRubriqueDistante rubriqueDistante : photoDisqueDistant.getRubriques()) {
                     synchroniserDataVersPosteLocal(rubriqueDistante, photoDisqueLocal, fMDataUploader);
+                    if (ecouteurSynchronisation != null) {
+                        ecouteurSynchronisation.onProcessing("Phase #1: Réception de données - " + rubriqueDistante.getNom(), 50);
+                    }
                 }
 
                 if (ecouteurSynchronisation != null) {
-                    ecouteurSynchronisation.onProcessing("Phase #2...", 50);
+                    ecouteurSynchronisation.onProcessing("Phase #2...", 80);
                 }
                 //Phase #2: Chargement (Du Poste Local au Serveur)
                 //Etape #2-1: Données nouvelles
@@ -1347,6 +1350,10 @@ public class FileManager extends ObjetNetWork {
                     synchroniserDataVersServeur(rubriqueLocale, photoDisqueDistant, fMDataUploader);
                     //Envoi de la mise à jour du manifeste vers le serveur
                     synchroniserManifeste(rubriqueLocale.getNom(), fMDataUploader);
+                    
+                    if (ecouteurSynchronisation != null) {
+                        ecouteurSynchronisation.onProcessing("Phase #2: Envoie de données - " + rubriqueLocale.getNom(), 80);
+                    }
                 }
 
                 fMDataUploader.close();
@@ -1709,68 +1716,3 @@ public class FileManager extends ObjetNetWork {
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

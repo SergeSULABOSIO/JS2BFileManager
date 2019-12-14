@@ -5,6 +5,7 @@
  */
 package SOURCES.Utilitaires;
 
+import SOURCES.Callback.EcouteurInternet;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.BufferedReader;
 import java.io.File;
@@ -36,16 +37,24 @@ public class UtilFileManager {
         }
 
     }
-    
-    public static boolean isNewWorkAvailable(String pageWeb){
-        try {
-            URL url = new URL(pageWeb);//new URL("https://www.geeksforgeeks.org/"); 
-            URLConnection connection = url.openConnection(); 
-            connection.connect(); 
-            return true;
-        }catch (Exception e) { 
-            return false;
-        } 
+
+    public static void isNewWorkAvailable(String pageWeb, EcouteurInternet ei) {
+        if (ei != null) {
+            new Thread() {
+                public void run() {
+                    try {
+                        ei.onVerification("Vérification de la connexion Internet...");
+                        URL url = new URL(pageWeb);//new URL("https://www.geeksforgeeks.org/"); 
+                        URLConnection connection = url.openConnection();
+                        connection.connect();
+                        ei.onInternet(pageWeb);
+                    } catch (Exception e) {
+                        //e.printStackTrace();
+                        ei.onError();
+                    }
+                }
+            }.start();
+        }
     }
 
     public static boolean ecrire(String fichierDestination, Object objet) {
@@ -63,7 +72,7 @@ public class UtilFileManager {
         }
         return false;
     }
-    
+
     public static boolean ecrire_txt(String fichierDestination, String text, boolean append) {
         if (text.trim().length() != 0) {
             try {
@@ -104,7 +113,7 @@ public class UtilFileManager {
         }
         return obj;
     }
-    
+
     public static boolean containsSignature(String fichierSource, long signature) {
         String jsonString = "";
         if (new File(fichierSource).exists() == true) {
@@ -119,7 +128,7 @@ public class UtilFileManager {
                 //On transforme le texte lu en Objet JSON, puis en Objet Utilisateur
                 if (jsonString.length() != 0) {
                     System.out.println(jsonString);
-                    return jsonString.contains(signature+"");
+                    return jsonString.contains(signature + "");
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -127,7 +136,7 @@ public class UtilFileManager {
         }
         return false;
     }
-    
+
     public static Object[] lire_signaturesDeleted(String fichierSource) {
         Vector vectSign = new Vector();
         String stringData = "";
@@ -141,9 +150,9 @@ public class UtilFileManager {
                 }
                 reader.close();
                 if (stringData.length() != 0) {
-                    String[]  tabSignatures = stringData.split(",");
-                    for(String sign: tabSignatures){
-                        if(sign.trim().length() != 0 && !vectSign.contains(sign.trim())){
+                    String[] tabSignatures = stringData.split(",");
+                    for (String sign : tabSignatures) {
+                        if (sign.trim().length() != 0 && !vectSign.contains(sign.trim())) {
                             vectSign.add(sign.trim());
                         }
                     }
@@ -179,84 +188,3 @@ public class UtilFileManager {
         return obj;
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

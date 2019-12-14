@@ -1189,7 +1189,7 @@ public class FileManager extends ObjetNetWork {
             new Thread() {
                 public void run() {
                     try {
-                        epd.onProcessing("Synchronisation...");
+                        epd.onProcessing("Photographie de données distantes");
 
                         DataSource ds = MyDataSourceFactory.getMySQLDataSource(server, port, dbName, dbUser, userPwd);
                         Connection con = null;
@@ -1277,7 +1277,7 @@ public class FileManager extends ObjetNetWork {
 
             System.out.println("Synchronisation en cours...");
             if (ecouteurSynchronisation != null) {
-                ecouteurSynchronisation.onProcessing("Sync. en cours...", 5);
+                ecouteurSynchronisation.onProcessing("Photographie des données distantes", 30);
             }
             if (session != null) {
                 //Photo du disque distant

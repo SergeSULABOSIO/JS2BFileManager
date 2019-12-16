@@ -1093,9 +1093,10 @@ public class FileManager extends ObjetNetWork {
         return photoDisqueLocal;
     }
 
-    private void fm_loadPhotoRubriqueLeger(Statement stmt, ResultSet rs, int idExercice, PhotoDisqueDistant photoDisqueDistant) throws Exception {
+    private void fm_loadPhotoRubriqueLeger(Statement stmt, ResultSet rs, int idExercice, PhotoDisqueDistant photoDisqueDistant, EcouteurPhotoDisqueDistant epd, EcouteurSynchronisation ess) throws Exception {
         Entreprise ecole = session.getEntreprise();
-
+        
+        String strPhoto = "Photographie (données supprimées)";
         //Phase #0: Suppression en local de données supprimées du serveur distant
         System.out.println("Phase #0: Suppression en local de données supprimées du serveur distant");
         String sql = "SELECT * FROM BACKUP_DELETED_SIGNATURE;";
@@ -1104,10 +1105,14 @@ public class FileManager extends ObjetNetWork {
             long signature = rs.getLong("signature");
             String dossier = rs.getString("dossier");
             boolean rep = fm_detruireBasedOnSignature(dossier, signature);
-            System.out.println(" ** " + signature + ", " + dossier + ", detruit ? = " + rep);
+            String messageOutput = " ** " + signature + ", " + dossier + ", detruit ? = " + rep;
+            System.out.println(messageOutput);
+            epd.onProcessing(strPhoto + ": " + messageOutput);
+            ess.onProcessing(strPhoto + ": " + messageOutput, 45);
         }
 
         //Récupération des MANIFESTES distants
+        strPhoto = "Photographie (manifestes)";
         listeManifestesDistants.removeAllElements();
         System.out.println("MANIFESTES DISTANTS:");
         sql = "SELECT * FROM BACKUP_MANIFESTE WHERE idEntreprise = '" + ecole.getId() + "';";
@@ -1123,6 +1128,8 @@ public class FileManager extends ObjetNetWork {
             if (!listeManifestesDistants.contains(imgMan)) {
                 listeManifestesDistants.add(imgMan);
                 System.out.println("\t-" + imgMan.toString());
+                epd.onProcessing(strPhoto + ": " + imgMan.toString());
+                ess.onProcessing(strPhoto + ": " + imgMan.toString(), 60);
             }
         }
         System.out.println("..");
@@ -1152,13 +1159,15 @@ public class FileManager extends ObjetNetWork {
             };
         }
 
+        strPhoto = "Mies à jours des suppressions";
         for (String DOSSIER : tabDossiers) {
+            
             //On demande au serveur de supprimer les données qui ont été supprimées en local
             //En suite, on lui demande de garder en mémoire les signatures supprimées
             //Dans l'avenir il devra s'assurer que ces signatures (supprimées) ne puissent plus jamais apparaitre sur un poste local
             //Du côté de MySql, Table BACKUP_DELETED_SIGNATURE
             traiterSignaturesDeleted(DOSSIER, stmt, rs);
-
+            
             //On intérroge le serveur distant pour avoir la liste de données actuelles
             PhotoRubriqueDistante photoRubriqueDistante = new PhotoRubriqueDistante();
             photoRubriqueDistante.setNom("BACKUP_" + DOSSIER);
@@ -1180,16 +1189,18 @@ public class FileManager extends ObjetNetWork {
                 photoRubriqueDistante.ajouterContenu(new ElementDistant(id, ecole.getId(), idExercice, lastModifiedDate));
             }
             photoDisqueDistant.ajouterRubrique(photoRubriqueDistante);
+            epd.onProcessing(strPhoto + ": " + DOSSIER);
+            ess.onProcessing(strPhoto + ": " + DOSSIER, 75);
         }
     }
 
     //"www.visiterlardc.com", "3306", "visiterl_s2b", "visiterl_s2bUser", "ssula@s2b-simple.com"
-    public void fm_getPhotoDisqueDistant(int idExercice, String server, String port, String dbName, String dbUser, String userPwd, EcouteurPhotoDisqueDistant epd) {
+    public void fm_getPhotoDisqueDistant(int idExercice, String server, String port, String dbName, String dbUser, String userPwd, EcouteurSynchronisation ess, EcouteurPhotoDisqueDistant epd) {
         if (epd != null) {
             new Thread() {
                 public void run() {
                     try {
-                        epd.onProcessing("Photographie de données distantes");
+                        //epd.onProcessing("Photographie de données distantes");
 
                         DataSource ds = MyDataSourceFactory.getMySQLDataSource(server, port, dbName, dbUser, userPwd);
                         Connection con = null;
@@ -1199,7 +1210,7 @@ public class FileManager extends ObjetNetWork {
                             con = ds.getConnection();
                             stmt = con.createStatement();
                             PhotoDisqueDistant pdd = new PhotoDisqueDistant();
-                            fm_loadPhotoRubriqueLeger(stmt, rs, idExercice, pdd);
+                            fm_loadPhotoRubriqueLeger(stmt, rs, idExercice, pdd, epd, ess);
                             epd.onDone(pdd);
                         } catch (SQLException e) {
                             e.printStackTrace();
@@ -1281,7 +1292,7 @@ public class FileManager extends ObjetNetWork {
             }
             if (session != null) {
                 //Photo du disque distant
-                fm_getPhotoDisqueDistant(idExerciceEncours, server, port, dbName, dbUser, dbUserPwd, new EcouteurPhotoDisqueDistant() {
+                fm_getPhotoDisqueDistant(idExerciceEncours, server, port, dbName, dbUser, dbUserPwd, ecouteurSynchronisation, new EcouteurPhotoDisqueDistant() {
                     @Override
                     public void onDone(PhotoDisqueDistant photoDisqueDistant) {
                         //On lance la comparaison de ces deux disques

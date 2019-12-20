@@ -221,13 +221,13 @@ public class FileManager extends ObjetNetWork {
                                 if (dateExpiry != null) {
                                     if (today.after(dateExpiry)) {
                                         ecouteurLoginServeur.onError("Votre abonnement vient d'expirer ! Connectez vous à " + adresseServeur);
-                                        fm_lancerPageWebAdmin(adresseServeur);
+                                        //fm_lancerPageWebAdmin(adresseServeur);
                                     } else {
                                         ecouteurLoginServeur.onDone("Connexion reussie.", sessionWeb.getEntreprise(), sessionWeb.getUtilisateur(), sessionWeb.getPaiement());
                                     }
                                 } else {
                                     ecouteurLoginServeur.onError("Veuillez d'abord payer votre licence depuis " + adresseServeur);
-                                    fm_lancerPageWebAdmin(adresseServeur);
+                                    //fm_lancerPageWebAdmin(adresseServeur);
                                 }
                             }
                         } else {
@@ -1727,3 +1727,5 @@ public class FileManager extends ObjetNetWork {
         }
     }
 }
+
+

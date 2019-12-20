@@ -20,6 +20,7 @@ import SOURCES.Callback.EcouteurPhotoDisqueDistant;
 import SOURCES.Callback.EcouteurSuiviEdition;
 import SOURCES.Callback.EcouteurSuppression;
 import SOURCES.Callback.EcouteurSynchronisation;
+import SOURCES.Callback.EcouteurValiditeLicence;
 import SOURCES.DB.ElementDistant;
 import SOURCES.DB.FMDataUploader;
 import SOURCES.DB.InterpreteurSql;
@@ -96,6 +97,7 @@ public class FileManager extends ObjetNetWork {
 
     private Registre registre = new Registre(0, new Date());
     private Session session = null;
+    private SessionWeb sessionWeb = null;
     private static String racine = "DataJ2BFees";
     private String pref = racine + "/PREF.man";
     public static String MANIFESTE_DEL = "MANIFEST_DEL.man";
@@ -197,6 +199,22 @@ public class FileManager extends ObjetNetWork {
         }
     }
 
+    public void fm_isLicenceValide(EcouteurValiditeLicence ev) {
+        if (ev != null && sessionWeb != null) {
+            Date today = new Date();
+            Date dateExpiry = UtilFileManager.convertDatePaiement(sessionWeb.getPaiement().getDateExpiration());
+            if (dateExpiry != null) {
+                if (today.after(dateExpiry)) {
+                    ev.onFree();
+                } else {
+                    ev.onPremium();
+                }
+            } else {
+                ev.onFree();
+            }
+        }
+    }
+
     private void loginToServer(Thread processus, String idEcole, String email, String motDePasse, EcouteurLoginServeur ecouteurLoginServeur) {
         try {
             if (ecouteurLoginServeur != null) {
@@ -211,27 +229,13 @@ public class FileManager extends ObjetNetWork {
                 @Override
                 public void onDone(String jsonString) {
                     try {
-                        ObjectMapper mapper = new ObjectMapper();
-                        SessionWeb sessionWeb = mapper.readValue(jsonString.trim(), SessionWeb.class);
-                        //System.out.println("Paiement: " + sessionWeb.getPaiement().toString());
-                        if (sessionWeb != null && sessionWeb.getEntreprise() != null && sessionWeb.getUtilisateur() != null) {
-                            if (ecouteurLoginServeur != null) {
-                                Date today = new Date();
-                                Date dateExpiry = UtilFileManager.convertDatePaiement(sessionWeb.getPaiement().getDateExpiration());
-                                if (dateExpiry != null) {
-                                    if (today.after(dateExpiry)) {
-                                        ecouteurLoginServeur.onError("Votre abonnement vient d'expirer ! Connectez vous à " + adresseServeur);
-                                        //fm_lancerPageWebAdmin(adresseServeur);
-                                    } else {
-                                        ecouteurLoginServeur.onDone("Connexion reussie.", sessionWeb.getEntreprise(), sessionWeb.getUtilisateur(), sessionWeb.getPaiement());
-                                    }
-                                } else {
-                                    ecouteurLoginServeur.onError("Veuillez d'abord payer votre licence depuis " + adresseServeur);
-                                    //fm_lancerPageWebAdmin(adresseServeur);
-                                }
-                            }
-                        } else {
-                            if (ecouteurLoginServeur != null) {
+                        if (ecouteurLoginServeur != null) {
+                            ObjectMapper mapper = new ObjectMapper();
+                            sessionWeb = mapper.readValue(jsonString.trim(), SessionWeb.class);
+                            //System.out.println("Paiement: " + sessionWeb.getPaiement().toString());
+                            if (sessionWeb != null && sessionWeb.getEntreprise() != null && sessionWeb.getUtilisateur() != null) {
+                                ecouteurLoginServeur.onDone("Connexion reussie.", sessionWeb.getEntreprise(), sessionWeb.getUtilisateur(), sessionWeb.getPaiement());
+                            } else {
                                 ecouteurLoginServeur.onError("Identifiants non reconnus.");
                             }
                         }
@@ -1095,7 +1099,7 @@ public class FileManager extends ObjetNetWork {
 
     private void fm_loadPhotoRubriqueLeger(Statement stmt, ResultSet rs, int idExercice, PhotoDisqueDistant photoDisqueDistant, EcouteurPhotoDisqueDistant epd, EcouteurSynchronisation ess) throws Exception {
         Entreprise ecole = session.getEntreprise();
-        
+
         String strPhoto = "Photographie (données supprimées)";
         //Phase #0: Suppression en local de données supprimées du serveur distant
         System.out.println("Phase #0: Suppression en local de données supprimées du serveur distant");
@@ -1161,13 +1165,13 @@ public class FileManager extends ObjetNetWork {
 
         strPhoto = "Mies à jours des suppressions";
         for (String DOSSIER : tabDossiers) {
-            
+
             //On demande au serveur de supprimer les données qui ont été supprimées en local
             //En suite, on lui demande de garder en mémoire les signatures supprimées
             //Dans l'avenir il devra s'assurer que ces signatures (supprimées) ne puissent plus jamais apparaitre sur un poste local
             //Du côté de MySql, Table BACKUP_DELETED_SIGNATURE
             traiterSignaturesDeleted(DOSSIER, stmt, rs);
-            
+
             //On intérroge le serveur distant pour avoir la liste de données actuelles
             PhotoRubriqueDistante photoRubriqueDistante = new PhotoRubriqueDistante();
             photoRubriqueDistante.setNom("BACKUP_" + DOSSIER);
@@ -1361,7 +1365,7 @@ public class FileManager extends ObjetNetWork {
                     synchroniserDataVersServeur(rubriqueLocale, photoDisqueDistant, fMDataUploader);
                     //Envoi de la mise à jour du manifeste vers le serveur
                     synchroniserManifeste(rubriqueLocale.getNom(), fMDataUploader);
-                    
+
                     if (ecouteurSynchronisation != null) {
                         ecouteurSynchronisation.onProcessing("Phase #2: Envoie de données - " + rubriqueLocale.getNom(), 80);
                     }

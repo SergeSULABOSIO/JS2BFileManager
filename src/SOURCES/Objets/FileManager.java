@@ -20,7 +20,6 @@ import SOURCES.Callback.EcouteurPhotoDisqueDistant;
 import SOURCES.Callback.EcouteurSuiviEdition;
 import SOURCES.Callback.EcouteurSuppression;
 import SOURCES.Callback.EcouteurSynchronisation;
-import SOURCES.Callback.EcouteurValiditeLicence;
 import SOURCES.DB.ElementDistant;
 import SOURCES.DB.FMDataUploader;
 import SOURCES.DB.InterpreteurSql;
@@ -61,6 +60,7 @@ import Source.Objet.Utilisateur;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.awt.AlphaComposite;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Desktop;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -85,9 +85,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.sql.DataSource;
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -199,20 +202,34 @@ public class FileManager extends ObjetNetWork {
         }
     }
 
-    public void fm_isLicenceValide(EcouteurValiditeLicence ev) {
-        if (ev != null && sessionWeb != null) {
+    private void payer(JFrame parent, Icon icone) {
+        if (parent != null) {
+            String message = "Vous devez migrer vers le mode payant pour bénéficier de cette fonctionnalité.\nVoulez-vous payer maintenant ?";
+            int rep = JOptionPane.showConfirmDialog(parent, message, "Cette fonctionnalité payante", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, icone);
+            if (rep == JOptionPane.OK_OPTION) {
+                //On lance la boite de dialogue de paiement
+
+            }
+        }
+    }
+
+    public boolean fm_isLicenceValide(JFrame parent, Icon icone) {
+        if (sessionWeb != null) {
             Date today = new Date();
             Date dateExpiry = UtilFileManager.convertDatePaiement(sessionWeb.getPaiement().getDateExpiration());
             if (dateExpiry != null) {
                 if (today.after(dateExpiry)) {
-                    ev.onFree();
+                    payer(parent, icone);
+                    return false;
                 } else {
-                    ev.onPremium();
+                    return true;
                 }
             } else {
-                ev.onFree();
+                payer(parent, icone);
+                return false;
             }
         }
+        return false;
     }
 
     private void loginToServer(Thread processus, String idEcole, String email, String motDePasse, EcouteurLoginServeur ecouteurLoginServeur) {
@@ -1731,5 +1748,3 @@ public class FileManager extends ObjetNetWork {
         }
     }
 }
-
-

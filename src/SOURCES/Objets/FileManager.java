@@ -208,7 +208,7 @@ public class FileManager extends ObjetNetWork {
             int rep = JOptionPane.showConfirmDialog(parent, message, "Cette fonctionnalité payante", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, icone);
             if (rep == JOptionPane.OK_OPTION) {
                 //On lance la boite de dialogue de paiement
-                
+                UtilObjet.lancerPageWebAdmin(parent, session.getUtilisateur(), session.getEntreprise(), UtilObjet.ACTION_PAYER_LICENCE, icone);
             }
         }
     }
@@ -1748,6 +1748,13 @@ public class FileManager extends ObjetNetWork {
         }
     }
 }
+
+
+
+
+
+
+
 
 
 

@@ -209,7 +209,6 @@ public class FileManager extends ObjetNetWork {
             if (rep == JOptionPane.OK_OPTION) {
                 //On lance la boite de dialogue de paiement
                 UtilObjet.lancerPagePaiementEnLigne(session.getUtilisateur(), session.getEntreprise());
-                //UtilObjet.lancerPageWebAdmin(parent, session.getUtilisateur(), session.getEntreprise(), UtilObjet.ACTION_PAYER_LICENCE, icone);
             }
         }
     }
@@ -1749,6 +1748,7 @@ public class FileManager extends ObjetNetWork {
         }
     }
 }
+
 
 
 

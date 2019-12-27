@@ -205,7 +205,7 @@ public class FileManager extends ObjetNetWork {
     private void payer(JFrame parent, Icon icone) {
         if (parent != null) {
             String message = "Vous devez migrer vers le mode payant pour bénéficier de cette fonctionnalité.\nVoulez-vous payer maintenant ?";
-            int rep = JOptionPane.showConfirmDialog(parent, message, "Cette fonctionnalité payante", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, icone);
+            int rep = JOptionPane.showConfirmDialog(parent, message, "Fonctionnalité payante", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, icone);
             if (rep == JOptionPane.OK_OPTION) {
                 //On lance la boite de dialogue de paiement
                 UtilObjet.lancerPagePaiementEnLigne(session.getUtilisateur(), session.getEntreprise());

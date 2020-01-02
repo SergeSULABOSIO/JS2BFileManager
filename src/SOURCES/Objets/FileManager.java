@@ -46,7 +46,7 @@ import Source.Objet.Eleve;
 import Source.Objet.Encaissement;
 import Source.Objet.Entreprise;
 import Source.Objet.Annee;
-import Source.Objet.Fiche;
+import Source.Objet.Fiche_paie;
 import Source.Objet.Frais;
 import Source.Objet.LiaisonFraisClasse;
 import Source.Objet.LiaisonFraisEleve;
@@ -992,7 +992,7 @@ public class FileManager extends ObjetNetWork {
                 for (String id : tabIDs_paiement_salaires) {
                     ouvrirListener.onProcessing("Vérification en encours...");
 
-                    Fiche fiche = (Fiche) UtilFileManager.lire(racine + "/" + session.getEntreprise().getId() + "/" + UtilObjet.DOSSIER_FICHE_DE_PAIE + "/" + id, Fiche.class);
+                    Fiche_paie fiche = (Fiche_paie) UtilFileManager.lire(racine + "/" + session.getEntreprise().getId() + "/" + UtilObjet.DOSSIER_FICHE_DE_PAIE + "/" + id, Fiche_paie.class);
                     Decaissement objetDecaissement = getDecaissement(fiche, epe);
 
                     if (!objets_decaissements.contains(objetDecaissement)) {
@@ -1055,7 +1055,7 @@ public class FileManager extends ObjetNetWork {
         return new Encaissement(-100, destination, paiementFrais.getReference(), paiementFrais.getDate(), paiementFrais.getMontant(), idMonnaie, codeMonnaie, paiementFrais.getNomDepositaire(), motif, idRevenu, strRevenu, paiementFrais.getIdExercice(), idUtilisateur, UtilObjet.getSignature(), InterfaceEncaissement.BETA_EXISTANT);
     }
 
-    private Decaissement getDecaissement(Fiche fichePaie, EcouteurParametreDecaissement epd) {
+    private Decaissement getDecaissement(Fiche_paie fichePaie, EcouteurParametreDecaissement epd) {
         int source = InterfaceEncaissement.DESTINATION_CAISSE;
         int idMonnaie = fichePaie.getIdMonnaie();
         String codeMonnaie = "";
@@ -1295,7 +1295,7 @@ public class FileManager extends ObjetNetWork {
                     System.out.println(currentUser.getNom() + " ne peut pas contôler les inscriptions");
                 }
                 if (currentUser.getDroitPaie() == InterfaceUtilisateur.DROIT_CONTROLER) {
-                    dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_FICHE_DE_PAIE, Fiche.class));
+                    dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_FICHE_DE_PAIE, Fiche_paie.class));
                 } else {
                     System.out.println(currentUser.getNom() + " ne peut pas contôler la paie");
                 }

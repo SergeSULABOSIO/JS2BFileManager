@@ -1633,6 +1633,7 @@ public class FileManager extends ObjetNetWork {
                 //CHARGEMENT SUR LE SERVEUR
                 Object oObjet = fm_ouvrir(rubriqueLocale.getClasse(), nomRub, Integer.parseInt(el.getName()));
                 String sql = InterpreteurSql.getInsert(oObjet, el.lastModified());
+                System.out.println("sql: " + sql);
                 int rep = fMDataUploader.executerUpdate(sql);
                 System.out.println("\t\tChargement - Nouvelle données... = " + rep);
 

@@ -1551,24 +1551,28 @@ public class FileManager extends ObjetNetWork {
                     sql = "DELETE FROM `BACKUP_" + DOSSIER + "` WHERE `signature` = '" + signature + "';";
                     int repDelete = stmt.executeUpdate(sql);
 
-                    //S'il s'agit de Tables qui ont des liaison telles que FRAIS, CLASSE, ELEVE & PERIODE
-                    //Alors il faut aussi supprimer leurs liaisons respectives
-                    if (repDelete == 1 && DOSSIER.equals(UtilObjet.DOSSIER_CLASSE)) {
-                        sql = "DELETE FROM `BACKUP_LiaisonFraisClasse` WHERE `signatureClasse` = '" + signature + "';";
-                        stmt.executeUpdate(sql);
-                    }
-                    if (repDelete == 1 && DOSSIER.equals(UtilObjet.DOSSIER_ELEVE)) {
-                        sql = "DELETE FROM `BACKUP_LiaisonFraisEleve` WHERE `signatureEleve` = '" + signature + "';";
-                        stmt.executeUpdate(sql);
-                    }
-                    if (repDelete == 1 && DOSSIER.equals(UtilObjet.DOSSIER_FRAIS)) {
-                        sql = "DELETE FROM `BACKUP_LiaisonFraisEleve` WHERE `signatureFrais` = '" + signature + "';";
-                        stmt.executeUpdate(sql);
-                    }
-                    if (repDelete == 1 && DOSSIER.equals(UtilObjet.DOSSIER_PERIODE)) {
-                        sql = "DELETE FROM `BACKUP_LiaisonFraisPeriode` WHERE `signaturePeriode` = '" + signature + "';";
-                        stmt.executeUpdate(sql);
-                    }
+                    /*
+                        //S'il s'agit de Tables qui ont des liaison telles que FRAIS, CLASSE, ELEVE & PERIODE
+                        //Alors il faut aussi supprimer leurs liaisons respectives
+                        if (repDelete == 1 && DOSSIER.equals(UtilObjet.DOSSIER_CLASSE)) {
+                            sql = "DELETE FROM `BACKUP_LiaisonFraisClasse` WHERE `signatureClasse` = '" + signature + "';";
+                            stmt.executeUpdate(sql);
+                        }
+                        if (repDelete == 1 && DOSSIER.equals(UtilObjet.DOSSIER_ELEVE)) {
+                            sql = "DELETE FROM `BACKUP_LiaisonFraisEleve` WHERE `signatureEleve` = '" + signature + "';";
+                            stmt.executeUpdate(sql);
+                        }
+                        if (repDelete == 1 && DOSSIER.equals(UtilObjet.DOSSIER_FRAIS)) {
+                            sql = "DELETE FROM `BACKUP_LiaisonFraisEleve` WHERE `signatureFrais` = '" + signature + "';";
+                            stmt.executeUpdate(sql);
+                        }
+                        if (repDelete == 1 && DOSSIER.equals(UtilObjet.DOSSIER_PERIODE)) {
+                            sql = "DELETE FROM `BACKUP_LiaisonFraisPeriode` WHERE `signaturePeriode` = '" + signature + "';";
+                            stmt.executeUpdate(sql);
+                        }
+                    */
+                    
+                    
                 }
             }
         }
@@ -1749,6 +1753,9 @@ public class FileManager extends ObjetNetWork {
         }
     }
 }
+
+
+
 
 
 

@@ -213,23 +213,21 @@ public class FileManager extends ObjetNetWork {
         }
     }
 
-    public boolean fm_isLicenceValide(JFrame parent, Icon icone) {
-        if (sessionWeb != null) {
-            Date today = new Date();
-            Date dateExpiry = UtilFileManager.convertDatePaiement(sessionWeb.getPaiement().getDateExpiration());
-            if (dateExpiry != null) {
-                if (today.after(dateExpiry)) {
-                    payer(parent, icone);
-                    return false;
-                } else {
-                    return true;
-                }
-            } else {
+    public boolean fm_isLicenceValide(JFrame parent, Icon icone, PaiementLicence paiementLicence) {
+        Date today = new Date();
+        Date dateExpiry = UtilFileManager.convertDatePaiement(paiementLicence.getDateExpiration());
+        //Date dateExpiry = UtilFileManager.convertDatePaiement(sessionWeb.getPaiement().getDateExpiration());
+        if (dateExpiry != null) {
+            if (today.after(dateExpiry)) {
                 payer(parent, icone);
                 return false;
+            } else {
+                return true;
             }
+        } else {
+            payer(parent, icone);
+            return false;
         }
-        return false;
     }
 
     private void loginToServer(Thread processus, String idEcole, String email, String motDePasse, EcouteurLoginServeur ecouteurLoginServeur) {
@@ -1570,9 +1568,7 @@ public class FileManager extends ObjetNetWork {
                             sql = "DELETE FROM `BACKUP_LiaisonFraisPeriode` WHERE `signaturePeriode` = '" + signature + "';";
                             stmt.executeUpdate(sql);
                         }
-                    */
-                    
-                    
+                     */
                 }
             }
         }
@@ -1753,24 +1749,3 @@ public class FileManager extends ObjetNetWork {
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

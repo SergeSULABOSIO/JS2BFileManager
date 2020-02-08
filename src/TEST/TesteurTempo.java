@@ -5,9 +5,6 @@
  */
 package TEST;
 
-import SOURCES.Objets.FileManager;
-import java.io.File;
-
 /**
  *
  * @author user
@@ -15,7 +12,11 @@ import java.io.File;
 public class TesteurTempo {
 
     public static void main(String[] a) {
-
+        
+        String userHome = System.getProperty("user.home");
+        System.out.println(userHome);
+        //System.getProperties();
+        
     }
 }
 

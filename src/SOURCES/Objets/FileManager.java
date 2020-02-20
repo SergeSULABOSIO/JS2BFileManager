@@ -5,7 +5,9 @@
  */
 package SOURCES.Objets;
 
+import SOURCES.Synchronisateur.PhotoManifestePC;
 import BASE.ObjetNetWork;
+import static BASE.ObjetNetWork.getJSON;
 import Callback.CallBackObjetNetWork;
 import SOURCES.Callback.CallBackEcouteur;
 import SOURCES.Callback.CritereSuppression;
@@ -29,6 +31,14 @@ import SOURCES.DB.PhotoDisqueLocal;
 import SOURCES.DB.PhotoRubriqueDistante;
 import SOURCES.DB.PhotoRubriqueLocal;
 import SOURCES.DB.StatusElement;
+import SOURCES.Synchronisateur.EnregistrementServeur;
+import SOURCES.Synchronisateur.PhotoManifesteServeur;
+import SOURCES.Synchronisateur.PhotoSuppressionDistante;
+import SOURCES.Synchronisateur.PhotoSuppressionLocale;
+import SOURCES.Synchronisateur.SyncParametres;
+import SOURCES.Synchronisateur.Synchronisateur;
+import SOURCES.Synchronisateur.SynchronisateurListener;
+import SOURCES.Synchronisateur.SynchronisateurProgressListener;
 import SOURCES.Utilitaires.UtilFileManager;
 import Source.Callbacks.EcouteurStandard;
 import Source.Interface.InterfaceAyantDroit;
@@ -97,7 +107,7 @@ import javax.swing.JOptionPane;
  * @author user
  */
 public class FileManager extends ObjetNetWork {
-    
+
     private Registre registre = new Registre(0, new Date());
     private Session session = null;
     private SessionWeb sessionWeb = null;
@@ -109,15 +119,16 @@ public class FileManager extends ObjetNetWork {
     private String adresseServeur;
     private EcouteurLogo ecouteurLogo;
     private JButton btLogo;
-    
+
     public String server = "www.visiterlardc.com";
     public String port = "3306";
     public String dbName = "visiterl_s2b";
     public String dbUser = "visiterl_s2bUser";
     public String dbUserPwd = "ssula@s2b-simple.com";
-    public Vector<ImageManifeste> listeManifestesDistants = new Vector<>();
+    public Vector<PhotoManifestePC> listeManifestesDistants = new Vector<>();
     public EcouteurSuiviEdition ecouteurSuiviEdition = null;
-    
+    private Vector<Dossier> dossiersControledByCurrentUser = null;
+
     public FileManager(String adresseServeur, String pageProcesseur, JButton btLogo) {
         super(adresseServeur + "/" + pageProcesseur);
         try {
@@ -128,7 +139,7 @@ public class FileManager extends ObjetNetWork {
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Impossible de créer le dossier des paramètres " + racine);
         }
-        
+
         this.adresseServeur = adresseServeur;
         this.btLogo = btLogo;
         System.out.println("Initialisation de l'écouteur du logo");
@@ -142,31 +153,31 @@ public class FileManager extends ObjetNetWork {
                     e.printStackTrace();
                 }
             }
-            
+
             @Override
             public void onLogoDeleted() {
                 //System.out.println("Logo deleted avec succès.");
             }
-            
+
             @Override
             public void onLogoError(String message) {
                 System.err.println(message);
             }
-            
+
             @Override
             public void onLogoProcessing(String message) {
                 System.out.println(message);
             }
         };
-        
+
     }
-    
+
     private void processRoundedImage(File fichierLocaleLogo, int cornerRadius) throws Exception {
         if (btLogo != null) {
             //System.out.println("Taille du logo : w=" + btLogo.getWidth() + ", h=" + btLogo.getHeight());
             int w = 56;
             int h = 56;
-            
+
             BufferedImage image = ImageIO.read(fichierLocaleLogo);
             BufferedImage output = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
             Graphics2D g2 = output.createGraphics();
@@ -182,11 +193,11 @@ public class FileManager extends ObjetNetWork {
             btLogo.setIcon(imageIcon);
         }
     }
-    
+
     public Session fm_getSession() {
         return session;
     }
-    
+
     public void fm_setEcouteurFenetre(JFrame fenetre) {
         ecouteurFenetre = new EcouteurFenetre(fenetre, new CallBackEcouteur() {
             @Override
@@ -200,13 +211,13 @@ public class FileManager extends ObjetNetWork {
                 ecrire(pref, preference);
             }
         });
-        
+
         Preference savedPref = (Preference) UtilFileManager.lire(pref, Preference.class);
         if (savedPref != null) {
             fenetre.setBounds((int) savedPref.getFenetre_x(), (int) savedPref.getFenetre_y(), (int) savedPref.getFenetre_w(), (int) savedPref.getFenetre_h());
         }
     }
-    
+
     private void payer(JFrame parent, Icon icone) {
         if (parent != null) {
             String message = "Vous devez migrer vers le mode payant pour bénéficier de cette fonctionnalité.\nVoulez-vous payer maintenant ?";
@@ -217,7 +228,7 @@ public class FileManager extends ObjetNetWork {
             }
         }
     }
-    
+
     public boolean fm_isLicenceValide(JFrame parent, Icon icone, PaiementLicence paiementLicence) {
         Date today = new Date();
         Date dateExpiry = UtilFileManager.convertDatePaiement(paiementLicence.getDateExpiration());
@@ -234,7 +245,7 @@ public class FileManager extends ObjetNetWork {
             return false;
         }
     }
-    
+
     private void loginToServer(Thread processus, String idEcole, String email, String motDePasse, EcouteurLoginServeur ecouteurLoginServeur) {
         try {
             if (ecouteurLoginServeur != null) {
@@ -243,7 +254,7 @@ public class FileManager extends ObjetNetWork {
             if (processus != null) {
                 processus.sleep(100);
             }
-            
+
             String parametres = "action=" + UtilFileManager.ACTION_CONNEXION + "&id=" + idEcole + "&motDePasse=" + motDePasse + "&email=" + email;
             POST_CHARGER(parametres, new CallBackObjetNetWork() {
                 @Override
@@ -265,16 +276,16 @@ public class FileManager extends ObjetNetWork {
                             ecouteurLoginServeur.onError(e.getMessage());
                         }
                     }
-                    
+
                 }
-                
+
                 @Override
                 public void onError(String message) {
                     if (ecouteurLoginServeur != null) {
                         ecouteurLoginServeur.onError(message);
                     }
                 }
-                
+
                 @Override
                 public void onProcessing(String message) {
                     if (ecouteurLoginServeur != null) {
@@ -282,7 +293,7 @@ public class FileManager extends ObjetNetWork {
                     }
                 }
             });
-            
+
         } catch (Exception e) {
             e.printStackTrace();
             if (ecouteurLoginServeur != null) {
@@ -290,7 +301,7 @@ public class FileManager extends ObjetNetWork {
             }
         }
     }
-    
+
     public static boolean fm_lancerPageWebAdmin(String chemin) {
         Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
         if (desktop != null && desktop.isSupported(Desktop.Action.BROWSE)) {
@@ -303,7 +314,7 @@ public class FileManager extends ObjetNetWork {
         }
         return false;
     }
-    
+
     private void initSession(Thread processus, String idEcole, String email, String motDePasse, EcouteurLongin ecouteurLongin) {
         try {
             if (ecouteurLongin != null) {
@@ -317,7 +328,7 @@ public class FileManager extends ObjetNetWork {
                         if (ecouteurLongin != null) {
                             ecouteurLongin.onProcessing("Chargement des données...");
                         }
-                        
+
                         Date dateConnexion = new Date();
                         session = new Session(entreprise, utilisateur, paiement, dateConnexion.getTime() + "", dateConnexion);
 
@@ -325,7 +336,7 @@ public class FileManager extends ObjetNetWork {
                         if (ecouteurLongin != null) {
                             ecouteurLongin.onProcessing("Initialisation de la session...");
                         }
-                        
+
                         String sessionFolder = racine;
                         creerDossierSiNExistePas(sessionFolder);
                         if (new File(sessionFolder).exists() == true) {
@@ -352,14 +363,14 @@ public class FileManager extends ObjetNetWork {
                         }
                     }
                 }
-                
+
                 @Override
                 public void onError(String message) {
                     if (ecouteurLongin != null) {
                         ecouteurLongin.onEchec(message);
                     }
                 }
-                
+
                 @Override
                 public void onProcessing(String message) {
                     if (ecouteurLongin != null) {
@@ -374,7 +385,7 @@ public class FileManager extends ObjetNetWork {
             }
         }
     }
-    
+
     private void downloadLogoEtablissement(Session session) {
         //Ici on démarre le téléchargement du logo de l'établissement auquel le USER est connecté
         //Exemple: http://www.visiterlardc.com/s2b/logo/2_279279.png
@@ -402,7 +413,7 @@ public class FileManager extends ObjetNetWork {
                 ecouteurLogo.onLogoProcessing(" *** Logo enregistré avec succès. " + cheminLogo);//onProcessing("Fichier téléchargé puis enregistré avec succès.");
                 ecouteurLogo.onLogoReady(new File(cheminLogo));
             }
-            
+
         } catch (Exception ex) {
             if (ecouteurLogo != null) {
                 ecouteurLogo.onLogoError("Erreur: " + ex.getMessage());
@@ -410,7 +421,7 @@ public class FileManager extends ObjetNetWork {
             ex.printStackTrace();
         }
     }
-    
+
     public void fm_login(String idEcole, String email, String motDePasse, EcouteurLongin ecouteurLongin) {
         new Thread() {
             @Override
@@ -442,10 +453,10 @@ public class FileManager extends ObjetNetWork {
                     }
                 }
             }
-            
+
         }.start();
     }
-    
+
     private void deleteLogo() {
         if (session != null) {
             File fileToDelete = new File(new File(session.getEntreprise().getLogo()).getName());
@@ -469,7 +480,7 @@ public class FileManager extends ObjetNetWork {
             }
         }
     }
-    
+
     public void fm_logout(EcouteurStandard ecouteurStandard) {
         new Thread() {
             @Override
@@ -491,7 +502,7 @@ public class FileManager extends ObjetNetWork {
                             ecouteurStandard.onError("Impossible de supprimer votre session!");
                         }
                     }
-                    
+
                 } catch (Exception e) {
                     e.printStackTrace();
                     if (ecouteurStandard != null) {
@@ -499,10 +510,10 @@ public class FileManager extends ObjetNetWork {
                     }
                 }
             }
-            
+
         }.start();
     }
-    
+
     public void fm_loadSession(EcouteurLongin ecouteurLongin) {
         new Thread() {
             @Override
@@ -551,7 +562,7 @@ public class FileManager extends ObjetNetWork {
             }
         }.start();
     }
-    
+
     private boolean initDataFolder(String table) {
         //Initialisation
         creerDossierSiNExistePas(racine + "/" + session.getEntreprise().getId() + "/" + table);
@@ -561,34 +572,34 @@ public class FileManager extends ObjetNetWork {
         chargerRegistreEnMemoire(table);
         return registre != null;
     }
-    
+
     public boolean fm_reinitialiserRegistre(String table) {
         File ficRegistre = new File(racine + "/" + session.getEntreprise().getId() + "/" + table + "/" + Registre.fichierRegistre);
         return ecrire(ficRegistre.getAbsolutePath(), new Registre(0, new Date()));
     }
-    
+
     private void chargerRegistreEnMemoire(String table) {
         //System.out.println("Le fichier " + fichierREGISTRE + " existe.");
         registre = getRegistreEnMemoire(table);
     }
-    
+
     private Registre getRegistreEnMemoire(String table) {
         //System.out.println("Le fichier " + fichierREGISTRE + " existe.");
         return (Registre) ouvrir(Registre.class, racine + "/" + session.getEntreprise().getId() + "/" + table + "/" + Registre.fichierRegistre);
     }
-    
+
     private int getDernierID(String table) {
         //System.out.println("Le fichier " + fichierREGISTRE + " existe.");
         Registre reg = (Registre) ouvrir(Registre.class, racine + "/" + session.getEntreprise().getId() + "/" + table + "/" + Registre.fichierRegistre);
         registre = reg;
         return reg.getDernierID() + 1;
     }
-    
+
     public Registre fm_getRegistre(String table) {
         chargerRegistreEnMemoire(table);
         return registre;
     }
-    
+
     private boolean enregistrerDataFromServer(String JSONString, String table, String nomFichier, long lastModified, boolean ecraseAncien) {
         String dossier = racine + "/" + session.getEntreprise().getId() + "/" + table;
         File docc = new File(dossier);
@@ -601,7 +612,7 @@ public class FileManager extends ObjetNetWork {
         }
         return rep;
     }
-    
+
     private void enregistrer_NoThread(Object NewObj, String table, EcouteurStandard ecouteur) {
         try {
             //On doit initialiser le dossier des données avant toute chose 
@@ -619,13 +630,13 @@ public class FileManager extends ObjetNetWork {
                 if (ecouteur != null) {
                     ecouteur.onProcessing("Enregistrement...");
                 }
-                
+
                 boolean rep = ecrire(racine + "/" + session.getEntreprise().getId() + "/" + table + "/" + idNewObj, NewObj);
                 if (rep == true) {
                     registre.incrementer(mustIncrement);
                     saveRegistre(table);
                     chargerRegistreEnMemoire(table);
-                    
+
                     if (ecouteur != null) {
                         ecouteur.onDone("Enregistré avec succès.");
                     }
@@ -648,7 +659,7 @@ public class FileManager extends ObjetNetWork {
             }
         }
     }
-    
+
     public String[] fm_getContenusDossier(String table) {
         File dossier = new File(racine + "/" + session.getEntreprise().getId() + "/" + table);
         if (dossier.exists()) {
@@ -658,7 +669,7 @@ public class FileManager extends ObjetNetWork {
         }
         return new String[0];
     }
-    
+
     public Object[] fm_getSignatures(Class classe, String table, String[] tabIds) {
         File dossier = new File(racine + "/" + session.getEntreprise().getId() + "/" + table);
         Vector<Long> Vsign = new Vector();
@@ -670,14 +681,14 @@ public class FileManager extends ObjetNetWork {
                     long signature = (long) champSignature.get(oObj);
                     Vsign.add(signature);
                 }
-                
+
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
         return Vsign.toArray();
     }
-    
+
     public File[] fm_getContenusDossier_(String table) {
         File dossier = new File(racine + "/" + session.getEntreprise().getId() + "/" + table);
         if (dossier.exists()) {
@@ -687,7 +698,7 @@ public class FileManager extends ObjetNetWork {
         }
         return new File[0];
     }
-    
+
     public int fm_getTaille(String dossierDestination) {
         File dossier = new File(dossierDestination);
         if (dossier.exists()) {
@@ -697,7 +708,7 @@ public class FileManager extends ObjetNetWork {
         }
         return 0;
     }
-    
+
     public void fm_contains(Class NomClasse, String table, EcouteurContains ecc) {
         if (ecc != null) {
             try {
@@ -725,7 +736,7 @@ public class FileManager extends ObjetNetWork {
             }
         }
     }
-    
+
     public void fm_enregistrer(int vitesse, Vector NewObjs, String table, EcouteurStandard ecouteur) {
         new Thread() {
             @Override
@@ -753,7 +764,7 @@ public class FileManager extends ObjetNetWork {
             }
         }.start();
     }
-    
+
     public void fm_enregistrer(Object NewObj, String table, EcouteurStandard ecouteur) {
         if (ecouteur == null) {//Ici la méthode parent tourne déjà dans un Thread léger
             enregistrer_NoThread(NewObj, table, ecouteur);
@@ -763,19 +774,19 @@ public class FileManager extends ObjetNetWork {
                 public void run() {
                     enregistrer_NoThread(NewObj, table, ecouteur);
                 }
-                
+
             }.start();
         }
     }
-    
+
     private Object ouvrir(Class NomClasse, String fichierSource) {
         return UtilFileManager.lire(fichierSource, NomClasse);
     }
-    
+
     public Object fm_ouvrir(Class NomClasse, String table, int idObj) {
         return UtilFileManager.lire(racine + "/" + session.getEntreprise().getId() + "/" + table + "/" + idObj, NomClasse);
     }
-    
+
     public boolean fm_supprimer(String table, int idObj, Object signature) {
         String dossier = racine + "/" + session.getEntreprise().getId() + "/" + table + "/";
         File fichObjet = new File(dossier + idObj);
@@ -791,11 +802,11 @@ public class FileManager extends ObjetNetWork {
         }
         return false;
     }
-    
+
     public void setEcouteurSuiviEdition(EcouteurSuiviEdition ese) {
         this.ecouteurSuiviEdition = ese;
     }
-    
+
     private void fm_edition_automatique_activer(boolean oui) {
         File fichSynchro = new File(FileManager.SYNCHRONISER);
         if (oui == true) {
@@ -817,7 +828,7 @@ public class FileManager extends ObjetNetWork {
             }
         }
     }
-    
+
     public Object[] fm_getSignaturesDeleted(String table) {
         Object[] res = null;
         String cheminDeletedSignatures = racine + "/" + session.getEntreprise().getId() + "/" + table + "/" + MANIFESTE_DEL;
@@ -827,7 +838,7 @@ public class FileManager extends ObjetNetWork {
         }
         return res;
     }
-    
+
     public boolean fm_detruireSignaturesDeleted(String table) {
         Object[] res = null;
         String cheminDeletedSignatures = racine + "/" + session.getEntreprise().getId() + "/" + table + "/" + MANIFESTE_DEL;
@@ -838,7 +849,7 @@ public class FileManager extends ObjetNetWork {
             return true;
         }
     }
-    
+
     public boolean fm_detruireBasedOnSignature(String table, long signature) {
         String dossier = racine + "/" + session.getEntreprise().getId() + "/" + table;
         File fdossier = new File(dossier);
@@ -855,7 +866,7 @@ public class FileManager extends ObjetNetWork {
         }
         return false;
     }
-    
+
     public void fm_supprimerTout(Class classe, String table, EcouteurSuppression ecouteurSuppression) {
         new Thread() {
             @Override
@@ -873,7 +884,7 @@ public class FileManager extends ObjetNetWork {
             }
         }.start();
     }
-    
+
     public void fm_supprimerTout(String dossier, String[] tabIds, Object[] tabSignatures, EcouteurSuppression ecouteurSuppression) {
         new Thread() {
             @Override
@@ -891,7 +902,7 @@ public class FileManager extends ObjetNetWork {
             }
         }.start();
     }
-    
+
     private void deleteGroup(String[] tabIds, Object[] tabSignatures, String table, EcouteurSuppression ecouteurSuppression) {
         Vector tabIdsNotDeleted = new Vector();
         int index = 1;
@@ -915,7 +926,7 @@ public class FileManager extends ObjetNetWork {
             }
         }
     }
-    
+
     public void fm_ouvrirEncaissements(int pageActuelle, int taillePage, EcouteurParametreEncaissement epe, EcouteurOuverture ouvrirListener) {
         if (ouvrirListener != null) {
             //Objets MASTER
@@ -940,10 +951,10 @@ public class FileManager extends ObjetNetWork {
             if (tabIDs_paiement_frais.length != 0) {
                 for (String id : tabIDs_paiement_frais) {
                     ouvrirListener.onProcessing("Vérification en encours...");
-                    
+
                     Paiement paiement = (Paiement) UtilFileManager.lire(racine + "/" + session.getEntreprise().getId() + "/" + UtilObjet.DOSSIER_PAIEMENT + "/" + id, Paiement.class);
                     Encaissement objetEncaissement = getEncaissement(paiement, epe);
-                    
+
                     if (!objets_encaissements.contains(objetEncaissement)) {
                         if (ouvrirListener.isCriteresRespectes(objetEncaissement) == true) {
                             objets_encaissements.add(objetEncaissement);
@@ -958,7 +969,7 @@ public class FileManager extends ObjetNetWork {
             Vector objetsTrouves = new Vector();
             for (Object objTrouve : objets_encaissements) {
                 ouvrirListener.onProcessing("Chargement encours (" + (conteurElement + 1) + "/" + tabIDs_encaissements.length + ")...");
-                
+
                 if (objetsTrouves.size() < taillePage && page == pageActuelle) {//
                     if (!objetsTrouves.contains(objetsTrouves)) {
                         objetsTrouves.add(objTrouve);
@@ -970,11 +981,11 @@ public class FileManager extends ObjetNetWork {
                 }
                 conteurElement++;
             }
-            
+
             ouvrirListener.onDone("Chargé!", conteurElement, objets_encaissements);
         }
     }
-    
+
     public void fm_ouvrirDecaissements(int pageActuelle, int taillePage, EcouteurParametreDecaissement epe, EcouteurOuverture ouvrirListener) {
         if (ouvrirListener != null) {
             //Objets MASTER
@@ -999,10 +1010,10 @@ public class FileManager extends ObjetNetWork {
             if (tabIDs_paiement_salaires.length != 0) {
                 for (String id : tabIDs_paiement_salaires) {
                     ouvrirListener.onProcessing("Vérification en encours...");
-                    
+
                     Fiche_paie fiche = (Fiche_paie) UtilFileManager.lire(racine + "/" + session.getEntreprise().getId() + "/" + UtilObjet.DOSSIER_FICHE_DE_PAIE + "/" + id, Fiche_paie.class);
                     Decaissement objetDecaissement = getDecaissement(fiche, epe);
-                    
+
                     if (!objets_decaissements.contains(objetDecaissement)) {
                         if (ouvrirListener.isCriteresRespectes(objetDecaissement) == true) {
                             objets_decaissements.add(objetDecaissement);
@@ -1017,7 +1028,7 @@ public class FileManager extends ObjetNetWork {
             Vector objetsTrouves = new Vector();
             for (Object objTrouve : objets_decaissements) {
                 ouvrirListener.onProcessing("Chargement encours (" + (conteurElement + 1) + "/" + tabIDs_decaissements.length + ")...");
-                
+
                 if (objetsTrouves.size() < taillePage && page == pageActuelle) {//
                     if (!objetsTrouves.contains(objetsTrouves)) {
                         objetsTrouves.add(objTrouve);
@@ -1029,11 +1040,11 @@ public class FileManager extends ObjetNetWork {
                 }
                 conteurElement++;
             }
-            
+
             ouvrirListener.onDone("Chargé!", conteurElement, objets_decaissements);
         }
     }
-    
+
     private Encaissement getEncaissement(Paiement paiementFrais, EcouteurParametreEncaissement epe) {
         int destination = InterfaceEncaissement.DESTINATION_BANQUE;
         if (paiementFrais.getMode() == InterfacePaiement.MODE_CAISSE) {
@@ -1062,7 +1073,7 @@ public class FileManager extends ObjetNetWork {
         }
         return new Encaissement(-100, destination, paiementFrais.getReference(), paiementFrais.getDate(), paiementFrais.getMontant(), idMonnaie, codeMonnaie, paiementFrais.getNomDepositaire(), motif, idRevenu, strRevenu, paiementFrais.getIdExercice(), idUtilisateur, UtilObjet.getSignature(), InterfaceEncaissement.BETA_EXISTANT);
     }
-    
+
     private Decaissement getDecaissement(Fiche_paie fichePaie, EcouteurParametreDecaissement epd) {
         int source = InterfaceEncaissement.DESTINATION_CAISSE;
         int idMonnaie = fichePaie.getIdMonnaie();
@@ -1078,13 +1089,13 @@ public class FileManager extends ObjetNetWork {
             beneficiaire = agentEncours.getNom() + " " + agentEncours.getPostnom() + " " + agentEncours.getPrenom();
             motif = "Salaire " + fichePaie.getMois();
         }
-        
+
         double avoire = 0;
         avoire += fichePaie.getAutresGains();
         avoire += fichePaie.getLogement();
         avoire += fichePaie.getSalaireBase();
         avoire += fichePaie.getTransport();
-        
+
         double retenu = 0;
         retenu += fichePaie.getRetenu_ABSENCE();
         retenu += fichePaie.getRetenu_AVANCE_SALAIRE();
@@ -1093,9 +1104,9 @@ public class FileManager extends ObjetNetWork {
         retenu += fichePaie.getRetenu_IPR();
         retenu += fichePaie.getRetenu_ORDINATEUR();
         retenu += fichePaie.getRetenu_SYNDICAT();
-        
+
         double montant = avoire - retenu;
-        
+
         int idCharge = -1;
         String nomCharge = "";
         Charge rr = epd.getCharge();
@@ -1105,7 +1116,7 @@ public class FileManager extends ObjetNetWork {
         }
         return new Decaissement(-100, source, fichePaie.getId() + "", fichePaie.getDateEnregistrement(), montant, idMonnaie, codeMonnaie, beneficiaire, motif, idCharge, nomCharge, fichePaie.getIdExercice(), fichePaie.getIdUtilisateur(), UtilObjet.getSignature(), InterfaceDecaissement.BETA_EXISTANT);
     }
-    
+
     public PhotoDisqueLocal fm_getPhotoDisqueLocal(Vector<Dossier> dossiers) {
         //System.out.println("Parcours des dossiers:");
         PhotoDisqueLocal photoDisqueLocal = new PhotoDisqueLocal();
@@ -1121,10 +1132,10 @@ public class FileManager extends ObjetNetWork {
         }
         return photoDisqueLocal;
     }
-    
+
     private void fm_loadPhotoRubriqueLeger(Statement stmt, ResultSet rs, int idExercice, PhotoDisqueDistant photoDisqueDistant, EcouteurPhotoDisqueDistant epd, EcouteurSynchronisation ess) throws Exception {
         Entreprise ecole = session.getEntreprise();
-        
+
         String strPhoto = "Photographie (données supprimées)";
         //Phase #0: Suppression en local de données supprimées du serveur distant
         System.out.println("Phase #0: Suppression en local de données supprimées du serveur distant");
@@ -1153,7 +1164,7 @@ public class FileManager extends ObjetNetWork {
             String dossier = rs.getString("dossier");
             int dernierID = rs.getInt("dernierID");
             long dateEnregistrement = rs.getLong("dateEnregistrement");
-            ImageManifeste imgMan = new ImageManifeste(id, idEntreprise, idUtilisateur, dossier, dernierID, dateEnregistrement);
+            PhotoManifestePC imgMan = new PhotoManifestePC(idEntreprise, idUtilisateur, dossier, dernierID, dateEnregistrement);
             if (!listeManifestesDistants.contains(imgMan)) {
                 listeManifestesDistants.add(imgMan);
                 System.out.println("\t-" + imgMan.toString());
@@ -1165,7 +1176,7 @@ public class FileManager extends ObjetNetWork {
 
         //Parcours du tableau de tous les DOSSIERS EXISTANTS
         String[] tabDossiers = null;
-        
+
         if (idExercice == -1) {
             tabDossiers = new String[]{UtilObjet.DOSSIER_ANNEE};
         } else {
@@ -1187,7 +1198,7 @@ public class FileManager extends ObjetNetWork {
                 UtilObjet.DOSSIER_FICHE_DE_PAIE
             };
         }
-        
+
         strPhoto = "Mies à jours des suppressions";
         for (String DOSSIER : tabDossiers) {
 
@@ -1200,7 +1211,7 @@ public class FileManager extends ObjetNetWork {
             //On intérroge le serveur distant pour avoir la liste de données actuelles
             PhotoRubriqueDistante photoRubriqueDistante = new PhotoRubriqueDistante();
             photoRubriqueDistante.setNom("BACKUP_" + DOSSIER);
-            
+
             sql = "";
             if (DOSSIER.trim().equals(UtilObjet.DOSSIER_ANNEE)) {
                 if (idExercice != -1) {
@@ -1268,12 +1279,139 @@ public class FileManager extends ObjetNetWork {
             }.start();
         }
     }
-    
+
+    public Vector<Dossier> fm_getDossiersDuUser(Utilisateur currentUser, int idExerciceEncours) {
+        Vector<Dossier> dossiersControledByCurrentUser = new Vector<>();
+        if (currentUser != null) {
+            if (idExerciceEncours == -1) {
+                dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_ANNEE, Annee.class));
+                System.out.println("SYNCHRONISATION D'EXERCICES UNIQUEMENT !");
+            } else {
+                dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_ANNEE, Annee.class));
+                dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_AGENT, Agent.class));
+                dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_CHARGE, Charge.class));
+                dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_CLASSE, Classe.class));
+                dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_FRAIS, Frais.class));
+                dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_PERIODE, Periode.class));
+                dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_REVENU, Revenu.class));
+                dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_COURS, Cours.class));
+                dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_MONNAIE, Monnaie.class));
+                dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_PAIEMENT, Paiement.class));
+                dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_ELEVE, Eleve.class));
+                dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_AYANT_DROIT, Ayantdroit.class));
+                dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_FICHE_DE_PAIE, Fiche_paie.class));
+                dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_DECAISSEMENT, Decaissement.class));
+                dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_ENCAISSEMENT, Encaissement.class));
+            }
+        }
+        return dossiersControledByCurrentUser;
+    }
+
+    public void fm_synchroniser_Json(Utilisateur utilisateur, int idExerciceEncours, SynchronisateurProgressListener progressListener) {
+        if (utilisateur != null && progressListener != null && session != null) {
+            dossiersControledByCurrentUser = fm_getDossiersDuUser(utilisateur, idExerciceEncours);
+
+            String email = utilisateur.getEmail();  //"sulabosiog@gmail.com";
+            String motDePasse = utilisateur.getMotDePasse();  //"abc";
+            int idEcole = utilisateur.getIdEntreprise();  //2;
+            SyncParametres params = new SyncParametres(idEcole, idExerciceEncours, motDePasse, email);
+
+            new Synchronisateur(params, new SynchronisateurListener() {
+                @Override
+                public boolean onDeleteSignature(PhotoSuppressionDistante photoSignature) {
+                    if(photoSignature != null){
+                        if(photoSignature.getSignature().trim().length() != 0){
+                            return fm_detruireBasedOnSignature(photoSignature.getDossier(), Long.parseLong(photoSignature.getSignature()));
+                        }else{
+                            return false;
+                        }
+                    }else{
+                        return false;
+                    }
+                    
+                }
+
+                @Override
+                public boolean onSaveManifeste(PhotoManifesteServeur photoManifeste) {
+                    return saveRegistre(photoManifeste.getDossier(), new Registre(photoManifeste.getDernierID(), new Date(photoManifeste.getDateEnregistrement())));
+                }
+
+                @Override
+                public Vector<PhotoSuppressionLocale> onCopieSuppressionsDuPC() {
+                    Vector<PhotoSuppressionLocale> listeSuppressionsDuPC = new Vector<>();
+                    for (Dossier dossier : dossiersControledByCurrentUser) {
+                        Object[] tabDeletedLocalSignatures = fm_getSignaturesDeleted(dossier.getNom());
+                        if (tabDeletedLocalSignatures != null) {
+                            for (Object signature : tabDeletedLocalSignatures) {
+                                System.out.println(" - " + signature + " - Dossier: " + dossier.getNom());
+                                listeSuppressionsDuPC.add(new PhotoSuppressionLocale(signature + "", dossier.getNom(), session.getEntreprise().getId()));
+                            }
+                        }
+                    }
+                    return listeSuppressionsDuPC;
+                }
+
+                @Override
+                public Vector<PhotoManifestePC> onCopieManifestesDuPC() {
+                    Vector<PhotoManifestePC> listeManifestesPC = new Vector<>();
+                    for (Dossier dossier : dossiersControledByCurrentUser) {
+                        Registre regLoc = getRegistreEnMemoire(dossier.getNom());
+                        if (utilisateur != null && dossier != null && regLoc != null) {
+                            PhotoManifestePC photoManifestePC = new PhotoManifestePC(utilisateur.getIdEntreprise(), utilisateur.getId(), dossier.getNom(), regLoc.getDernierID(), regLoc.getDateEnregistrement().getTime());
+                            listeManifestesPC.add(photoManifestePC);
+                        }
+                    }
+                    return listeManifestesPC;
+                }
+
+                @Override
+                public PhotoDisqueLocal onCopieLePC() {
+                    return fm_getPhotoDisqueLocal(dossiersControledByCurrentUser);
+                }
+
+                @Override
+                public Object onLoadData(Class classe, String dossier, int id) {
+                    return fm_ouvrir(classe, dossier, id);
+                }
+
+                @Override
+                public boolean onSaveData(EnregistrementServeur enregistrementServeur) {
+                    if (enregistrementServeur != null) {
+                        Object object = enregistrementServeur.getDonnee();
+                        if (object != null) {
+                            String strJSON = getJSON(object);
+                            return enregistrerDataFromServer(strJSON, enregistrementServeur.getDossier(), enregistrementServeur.getId() + "", enregistrementServeur.getLastModified(), true);
+                        } else {
+                            return false;
+                        }
+                    } else {
+                        return false;
+                    }
+                }
+
+                @Override
+                public void onAfficheProgression(int total, int actuel, String message) {
+                    progressListener.onAffiche(total, actuel, message);
+                }
+
+                @Override
+                public void onSuccess(String message) {
+                    progressListener.onSuccess(message);
+                }
+
+                @Override
+                public void onEchec(String message) {
+                    progressListener.onEchec(message);
+                }
+            }).demarrer();
+        }
+    }
+
     public void fm_synchroniser(Utilisateur currentUser, int idExerciceEncours, EcouteurSynchronisation ecouteurSynchronisation) {
-        
+
         if (currentUser != null) {
             Vector<Dossier> dossiersControledByCurrentUser = new Vector<>();
-            
+
             if (idExerciceEncours == -1) {
                 dossiersControledByCurrentUser.add(new Dossier(UtilObjet.DOSSIER_ANNEE, Annee.class));
                 System.out.println("SYNCHRONISATION D'EXERCICES UNIQUEMENT !");
@@ -1314,7 +1452,7 @@ public class FileManager extends ObjetNetWork {
                     System.out.println(currentUser.getNom() + " ne peut pas contôler la trésorerie");
                 }
             }
-            
+
             System.out.println("Synchronisation en cours...");
             if (ecouteurSynchronisation != null) {
                 ecouteurSynchronisation.onProcessing("Photographie des données distantes", 30);
@@ -1327,9 +1465,9 @@ public class FileManager extends ObjetNetWork {
                         //On lance la comparaison de ces deux disques
                         PhotoDisqueLocal photoDisqueLocal = fm_getPhotoDisqueLocal(dossiersControledByCurrentUser);
                         fm_comparerDisques(photoDisqueLocal, photoDisqueDistant, ecouteurSynchronisation);
-                        
+
                         System.out.println("** Fin de la synchronisation **");
-                        
+
                         if (ecouteurSynchronisation != null) {
                             ecouteurSynchronisation.onProcessing("Done", 100);
                             ecouteurSynchronisation.onSuccess("Synchronisé !");
@@ -1338,7 +1476,7 @@ public class FileManager extends ObjetNetWork {
                         //On désactive le suiveur d'édition
                         fm_edition_automatique_activer(false);
                     }
-                    
+
                     @Override
                     public void onEchec(String message) {
                         System.out.println(message);
@@ -1346,7 +1484,7 @@ public class FileManager extends ObjetNetWork {
                             ecouteurSynchronisation.onEchec(message);
                         }
                     }
-                    
+
                     @Override
                     public void onProcessing(String message) {
                         System.out.println(message);
@@ -1355,13 +1493,13 @@ public class FileManager extends ObjetNetWork {
             }
         }
     }
-    
+
     private void fm_comparerDisques(PhotoDisqueLocal photoDisqueLocal, PhotoDisqueDistant photoDisqueDistant, EcouteurSynchronisation ecouteurSynchronisation) {
         if (photoDisqueDistant != null & photoDisqueLocal != null) {
             FMDataUploader fMDataUploader = null;
             try {
                 fMDataUploader = new FMDataUploader(server, port, dbName, dbUser, dbUserPwd);
-                
+
                 if (ecouteurSynchronisation != null) {
                     ecouteurSynchronisation.onProcessing("Phase #1...", 10);
                 }
@@ -1376,7 +1514,7 @@ public class FileManager extends ObjetNetWork {
                         ecouteurSynchronisation.onProcessing("Phase #1: Réception de données - " + rubriqueDistante.getNom(), 50);
                     }
                 }
-                
+
                 if (ecouteurSynchronisation != null) {
                     ecouteurSynchronisation.onProcessing("Phase #2...", 80);
                 }
@@ -1390,12 +1528,12 @@ public class FileManager extends ObjetNetWork {
                     synchroniserDataVersServeur(rubriqueLocale, photoDisqueDistant, fMDataUploader);
                     //Envoi de la mise à jour du manifeste vers le serveur
                     synchroniserManifeste(rubriqueLocale.getNom(), fMDataUploader);
-                    
+
                     if (ecouteurSynchronisation != null) {
                         ecouteurSynchronisation.onProcessing("Phase #2: Envoie de données - " + rubriqueLocale.getNom(), 80);
                     }
                 }
-                
+
                 fMDataUploader.close();
             } catch (Exception e) {
                 e.printStackTrace();
@@ -1405,7 +1543,7 @@ public class FileManager extends ObjetNetWork {
             }
         }
     }
-    
+
     public void fm_ouvrirTout(int vitesseTraiement, Class NomClasseMaster, String table, int pageActuelle, int taillePage, EcouteurOuverture ouvrirListener) {
         if (ouvrirListener != null) {
             //Objets MASTER
@@ -1431,7 +1569,7 @@ public class FileManager extends ObjetNetWork {
             Vector objetsTrouves = new Vector();
             for (Object objTrouve : objetsMaster) {
                 ouvrirListener.onProcessing("Chargement encours (" + (conteurElement + 1) + "/" + tabIDs_master.length + ")...");
-                
+
                 if (objetsTrouves.size() < taillePage && page == pageActuelle) {//
                     if (!objetsTrouves.contains(objetsTrouves)) {
                         objetsTrouves.add(objTrouve);
@@ -1443,11 +1581,11 @@ public class FileManager extends ObjetNetWork {
                 }
                 conteurElement++;
             }
-            
+
             ouvrirListener.onDone("Chargé!", conteurElement, objetsMaster);
         }
     }
-    
+
     public void fm_supprimerTout(Class NomClasseMaster, String table, EcouteurSuppression ecouteurSuppression, CritereSuppression critereSuppression) {
         try {
             String[] tabIDs_master = fm_getContenusDossier(table);
@@ -1485,7 +1623,7 @@ public class FileManager extends ObjetNetWork {
             }
         }
     }
-    
+
     private int getIdObjet(Object obj) throws Exception {
         Field champID = obj.getClass().getDeclaredField("id");
         if (champID != null) {
@@ -1494,22 +1632,22 @@ public class FileManager extends ObjetNetWork {
             return -1;
         }
     }
-    
+
     private void setIdToNewObject(Object obj, int newid) throws Exception {
         Field champID = obj.getClass().getDeclaredField("id");
         if (champID != null) {
             champID.set(obj, newid);
         }
     }
-    
+
     private int getIdDisponible(String table) {
         return getDernierID(table);
     }
-    
+
     private void saveRegistre(String table) {
         ecrire(new File(racine + "/" + session.getEntreprise().getId() + "/" + table + "/" + Registre.fichierRegistre).getAbsolutePath(), registre);
     }
-    
+
     private boolean saveRegistre(String table, Registre newRegistre) {
         String dossier = racine + "/" + session.getEntreprise().getId() + "/" + table;
         File docc = new File(dossier);
@@ -1518,11 +1656,11 @@ public class FileManager extends ObjetNetWork {
         }
         return ecrire(new File(dossier + "/" + Registre.fichierRegistre).getAbsolutePath(), newRegistre);
     }
-    
+
     private boolean ecrire(String chemin, Object obj) {
         return UtilFileManager.ecrire(chemin, obj);
     }
-    
+
     private boolean creerDossierSiNExistePas(String cheminComplet) {
         try {
             File dossier = new File(cheminComplet);
@@ -1536,7 +1674,7 @@ public class FileManager extends ObjetNetWork {
             return false;
         }
     }
-    
+
     private void traiterSignaturesDeleted(String DOSSIER, Statement stmt, ResultSet rs) throws Exception {
         Object[] tabDeletedLocalSignatures = fm_getSignaturesDeleted(DOSSIER);
         if (tabDeletedLocalSignatures != null) {
@@ -1553,43 +1691,22 @@ public class FileManager extends ObjetNetWork {
                     repUpdate = 1;
                     System.out.println("Mais je continue...");
                 }
-                
+
                 if (repUpdate == 1) {
                     //On supprime du serveur
                     sql = "DELETE FROM `BACKUP_" + DOSSIER + "` WHERE `signature` = '" + signature + "';";
                     int repDelete = stmt.executeUpdate(sql);
-
-                    /*
-                        //S'il s'agit de Tables qui ont des liaison telles que FRAIS, CLASSE, ELEVE & PERIODE
-                        //Alors il faut aussi supprimer leurs liaisons respectives
-                        if (repDelete == 1 && DOSSIER.equals(UtilObjet.DOSSIER_CLASSE)) {
-                            sql = "DELETE FROM `BACKUP_LiaisonFraisClasse` WHERE `signatureClasse` = '" + signature + "';";
-                            stmt.executeUpdate(sql);
-                        }
-                        if (repDelete == 1 && DOSSIER.equals(UtilObjet.DOSSIER_ELEVE)) {
-                            sql = "DELETE FROM `BACKUP_LiaisonFraisEleve` WHERE `signatureEleve` = '" + signature + "';";
-                            stmt.executeUpdate(sql);
-                        }
-                        if (repDelete == 1 && DOSSIER.equals(UtilObjet.DOSSIER_FRAIS)) {
-                            sql = "DELETE FROM `BACKUP_LiaisonFraisEleve` WHERE `signatureFrais` = '" + signature + "';";
-                            stmt.executeUpdate(sql);
-                        }
-                        if (repDelete == 1 && DOSSIER.equals(UtilObjet.DOSSIER_PERIODE)) {
-                            sql = "DELETE FROM `BACKUP_LiaisonFraisPeriode` WHERE `signaturePeriode` = '" + signature + "';";
-                            stmt.executeUpdate(sql);
-                        }
-                     */
                 }
             }
         }
-        
+
         boolean repDestructionMANIFESTE_DEL = fm_detruireSignaturesDeleted(DOSSIER);
         System.out.println("MANFEST_DEL.man du dossier " + DOSSIER + " supprimé = " + repDestructionMANIFESTE_DEL);
     }
-    
+
     private void synchroniserManifeste(String dossier, FMDataUploader fMDataUploader) {
-        ImageManifeste imgManOnLine = null;
-        for (ImageManifeste imgMan : listeManifestesDistants) {
+        PhotoManifestePC imgManOnLine = null;
+        for (PhotoManifestePC imgMan : listeManifestesDistants) {
             if (imgMan.getDossier().equals(dossier)) {
                 imgManOnLine = imgMan;
             }
@@ -1601,7 +1718,7 @@ public class FileManager extends ObjetNetWork {
             if (imgManOnLine == null) {
                 System.out.println("\t\tMan Local: " + regLoc.getDernierID() + ", " + regLoc.getDateEnregistrement());
                 System.out.println("\t\tMan Distant: NULL");
-                
+
                 String sql = InterpreteurSql.getInsertManifeste(ecole.getId(), user.getId(), dossier, regLoc.getDernierID(), regLoc.getDateEnregistrement().getTime() + "");
                 int rep = fMDataUploader.executerUpdate(sql);
                 System.out.println("\t\t\tChargement du manifeste = " + rep);
@@ -1630,15 +1747,15 @@ public class FileManager extends ObjetNetWork {
             }
         }
     }
-    
+
     private void synchroniserDataVersServeur(PhotoRubriqueLocal rubriqueLocale, PhotoDisqueDistant photoDisqueDistant, FMDataUploader fMDataUploader) {
         System.out.println(rubriqueLocale.getNom() + ":");
         for (File el : rubriqueLocale.getContenus()) {
             String nomRub = rubriqueLocale.getNom();
             StatusElement ste = photoDisqueDistant.comparer(nomRub, el);
-            
+
             System.out.println("\t" + el.getName() + ", lastMidified: " + el.lastModified() + " - " + ste.toString());
-            
+
             if (ste.isIsNew() == true) {
                 //CHARGEMENT SUR LE SERVEUR
                 Object oObjet = fm_ouvrir(rubriqueLocale.getClasse(), nomRub, Integer.parseInt(el.getName()));
@@ -1646,18 +1763,18 @@ public class FileManager extends ObjetNetWork {
                 System.out.println("sql: " + sql);
                 int rep = fMDataUploader.executerUpdate(sql);
                 System.out.println("\t\tChargement - Nouvelle données... = " + rep);
-                
+
             } else if (ste.isIsNew() == false && ste.isIsRecent() == true) {
                 //CHARGEMENT SUR LE SERVEUR
                 Object oObjet = fm_ouvrir(rubriqueLocale.getClasse(), nomRub, Integer.parseInt(el.getName()));
                 String sql = InterpreteurSql.getUpdate(oObjet, el.lastModified());
                 int rep = fMDataUploader.executerUpdate(sql);
                 System.out.println("\t\tChargement - Données modifiées... = " + rep);
-                
+
             }
         }
     }
-    
+
     private void synchroniserDataVersPosteLocal(PhotoRubriqueDistante rubriqueDistante, PhotoDisqueLocal photoDisqueLocal, FMDataUploader fMDataUploader) throws Exception {
         System.out.println(rubriqueDistante.getNom() + ":");
         for (ElementDistant ed : rubriqueDistante.getContenus()) {
@@ -1673,7 +1790,7 @@ public class FileManager extends ObjetNetWork {
             }
         }
     }
-    
+
     private void saveNewDate(boolean ecraseAncien, String nomTable, String dossier, PhotoDisqueLocal photoDisqueLocal, FMDataUploader fMDataUploader, ElementDistant ed) throws Exception {
         String sql = "";
         if (nomTable.equals("BACKUP_ANNEE")) {
@@ -1681,7 +1798,7 @@ public class FileManager extends ObjetNetWork {
         } else {
             sql = "SELECT * FROM " + nomTable + " WHERE idEntreprise = " + ed.getIdEntreprise() + " AND id = " + ed.getId() + " AND idExercice = " + ed.getIdExercice() + ";";
         }
-        
+
         ResultSet rsObjet = fMDataUploader.executerQuery(sql);
 
         //Note: il faut prendre en compte les liaisons et savoir les reconstituer en local
@@ -1749,7 +1866,7 @@ public class FileManager extends ObjetNetWork {
             //******* nouveau code *************
             strJSON = getJSON(objetTempo);
             System.out.println(strJSON);
-            
+
             long lastModified = rsObjet.getLong("lastModified");
             if (fileName != null) {
                 boolean repSaveData = enregistrerDataFromServer(strJSON, dossier, fileName, lastModified, ecraseAncien);

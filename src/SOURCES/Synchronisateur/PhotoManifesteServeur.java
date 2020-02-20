@@ -3,21 +3,24 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package SOURCES.Objets;
+package SOURCES.Synchronisateur;
 
 /**
  *
- * @author user
+ * @author HP Pavilion
  */
-public class ImageManifeste {
-    private int id;
-    private int idEntreprise;
-    private int idUtilisateur;
-    private String dossier;
-    private int dernierID;
-    private long dateEnregistrement;
+public class PhotoManifesteServeur {
+    public int id;
+    public int idEntreprise;
+    public int idUtilisateur;
+    public String dossier;
+    public int dernierID;
+    public long dateEnregistrement;
 
-    public ImageManifeste(int id, int idEntreprise, int idUtilisateur, String dossier, int dernierID, long dateEnregistrement) {
+    public PhotoManifesteServeur() {
+    }
+
+    public PhotoManifesteServeur(int id, int idEntreprise, int idUtilisateur, String dossier, int dernierID, long dateEnregistrement) {
         this.id = id;
         this.idEntreprise = idEntreprise;
         this.idUtilisateur = idUtilisateur;
@@ -76,21 +79,7 @@ public class ImageManifeste {
 
     @Override
     public String toString() {
-        return "ImageManifeste{" + "id=" + id + ", idEntreprise=" + idEntreprise + ", idUtilisateur=" + idUtilisateur + ", dossier=" + dossier + ", dernierID=" + dernierID + ", dateEnregistrement=" + dateEnregistrement + '}';
-    }    
+        return "ManifesteDistant{" + "id=" + id + ", idEntreprise=" + idEntreprise + ", idUtilisateur=" + idUtilisateur + ", dossier=" + dossier + ", dernierID=" + dernierID + ", dateEnregistrement=" + dateEnregistrement + '}';
+    }
+    
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

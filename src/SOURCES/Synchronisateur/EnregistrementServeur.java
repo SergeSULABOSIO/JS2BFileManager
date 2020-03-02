@@ -61,6 +61,8 @@ public class EnregistrementServeur {
 
     @Override
     public String toString() {
-        return "EnregistrementServeur{" + "dossier=" + dossier + ", donnee=" + donnee + '}';
+        return "EnregistrementServeur{" + "dossier=" + dossier + ", id=" + id + ", lastModified=" + lastModified + ", donnee=" + donnee + '}';
     }
+
+    
 }

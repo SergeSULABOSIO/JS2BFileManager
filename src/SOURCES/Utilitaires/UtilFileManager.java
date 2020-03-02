@@ -127,7 +127,7 @@ public class UtilFileManager {
                 reader.close();
                 //On transforme le texte lu en Objet JSON, puis en Objet Utilisateur
                 if (jsonString.length() != 0) {
-                    System.out.println(jsonString);
+                    //System.out.println(jsonString);
                     return jsonString.contains(signature + "");
                 }
             } catch (Exception e) {
@@ -136,6 +136,8 @@ public class UtilFileManager {
         }
         return false;
     }
+    
+    
 
     public static Object[] lire_signaturesDeleted(String fichierSource) {
         Vector vectSign = new Vector();

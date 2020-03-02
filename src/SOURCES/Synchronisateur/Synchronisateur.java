@@ -49,12 +49,12 @@ public class Synchronisateur extends ObjetNetWork {
     }
 
     public void demarrer() {
-        new Thread(){
+        new Thread() {
             @Override
             public void run() {
                 synchro_getCopieServeur();
             }
-            
+
         }.start();
     }
 
@@ -71,7 +71,7 @@ public class Synchronisateur extends ObjetNetWork {
                     if (eps != null) {
                         eps.onAfficheProgression(100, 100, Str_Etape + ": Téléchargement réussi!");
                     }
-                    System.out.println("DataServer: " + object);
+                    //System.out.println("DataServer: " + object);
                     ObjectMapper mapper = new ObjectMapper();
                     dataServeur = mapper.readValue(object + "", DataServeur.class);
 
@@ -92,7 +92,7 @@ public class Synchronisateur extends ObjetNetWork {
 
             @Override
             public void onErreur(String message) {
-                System.out.println(message);
+                //System.out.println(message);
                 if (eps != null) {
                     eps.onAfficheProgression(100, 100, Str_Etape + ": " + message);
                     eps.onEchec(Str_Etape + ": " + message);
@@ -121,10 +121,9 @@ public class Synchronisateur extends ObjetNetWork {
                     if (eps != null) {
                         eps.onAfficheProgression(100, 100, Str_Etape + ": Image du serveur reçue!");
                     }
-                    System.out.println("JsonObject: " + JsonObject);
+                    //System.out.println("JsonObject: " + JsonObject);
                     ObjectMapper mapper = new ObjectMapper();
                     photoServeur = mapper.readValue(JsonObject.trim(), PhotoServeur.class);
-                    
 
                     //1. On supprime ce qui a été supprimé au serveur
                     //Résultat: Ce qui est supprimé au serveur doit aussi être supprimé localement
@@ -168,7 +167,7 @@ public class Synchronisateur extends ObjetNetWork {
 
             @Override
             public void onError(String message) {
-                System.out.println(message);
+                //System.out.println(message);
                 if (eps != null) {
                     eps.onAfficheProgression(100, 100, Str_Etape + ": " + message);
                     eps.onEchec(Str_Etape + ": " + message);
@@ -190,15 +189,20 @@ public class Synchronisateur extends ObjetNetWork {
         int total = photoServeur.getListeSignaturesSupprimees().size();
         int actuel = 1;
         for (PhotoSuppressionDistante ps : photoServeur.getListeSignaturesSupprimees()) {
-            System.out.println(ps);
             if (eps != null) {
                 boolean rep = false;
                 if (params.getIdExercice() == -1) { //Synchronisation légère: on travaille uniquement sur le dossier ANNEE
                     if (ps.getDossier().equals(UtilObjet.DOSSIER_ANNEE)) {
                         rep = eps.onDeleteSignature(ps);
+                        if (rep == true) {
+                            System.out.println(" - " + ps);
+                        }
                     }
                 } else {
                     rep = eps.onDeleteSignature(ps);
+                    if (rep == true) {
+                        System.out.println(" - " + ps);
+                    }
                 }
                 eps.onAfficheProgression(total, actuel, Str_Etape + ": Atualisation - Suppression au PC (" + rep + "): " + ps.getDossier() + " - " + ps.getSignature());
                 actuel++;
@@ -211,7 +215,7 @@ public class Synchronisateur extends ObjetNetWork {
         if (eps != null) {
             eps.onAfficheProgression(100, 50, Str_Etape + ": Chargement - Signature supprimées du PC...");
             A_Charger_listeSuppressionDuPC = eps.onCopieSuppressionsDuPC();
-            System.out.println(A_Charger_listeSuppressionDuPC);
+            //System.out.println(A_Charger_listeSuppressionDuPC);
             eps.onAfficheProgression(100, 100, Str_Etape + ": Chargement effectué!");
         }
     }
@@ -224,24 +228,27 @@ public class Synchronisateur extends ObjetNetWork {
             int total = photoServeur.getListeManifestes().size();
             boolean rep = false;
             for (PhotoManifesteServeur manifesteServeur : photoServeur.getListeManifestes()) {
-                System.out.println(manifesteServeur);
+
+                boolean isNew = true;
                 boolean isRecent = false;
-                PhotoManifesteServeur manifesteServeur_cible = null;
+
                 for (PhotoManifestePC manifestePC : listeManifesteDuPC) {
                     if (manifesteServeur.getDossier().equals(manifestePC.getDossier())) {
-                        manifesteServeur_cible = manifesteServeur;
+                        isNew = false;
                         if (new Date(manifesteServeur.getDateEnregistrement()).after(new Date(manifestePC.getDateEnregistrement()))) {
                             isRecent = true;
                         }
                     }
                 }
-                if ((manifesteServeur_cible == null) || (manifesteServeur_cible != null && isRecent == true)) {  //Nouveau Manifeste à enregistrer sur le poste ou PC local
+                if (isNew == true || isRecent == true) {  //Nouveau Manifeste à enregistrer sur le poste ou PC local
                     if (params.getIdExercice() == -1) { // Synchronisation légère : on ne synchronise que le dossier ANNEE
                         if (manifesteServeur.getDossier().equals(UtilObjet.DOSSIER_ANNEE)) {
                             rep = eps.onSaveManifeste(manifesteServeur);
+                            System.out.println(" - " + manifesteServeur.toString());
                         }
                     } else {
                         rep = eps.onSaveManifeste(manifesteServeur);
+                        System.out.println(" - " + manifesteServeur.toString());
                     }
 
                 }
@@ -260,28 +267,31 @@ public class Synchronisateur extends ObjetNetWork {
             A_Charger_listeManifesteDuPC.removeAllElements();
             boolean rep = false;
             for (PhotoManifestePC manifestePC : listeManifesteDuPC) {
-                System.out.println(manifestePC);
+
                 boolean isRecent = false;
-                PhotoManifestePC manifestePC_cible = null;
+                boolean isNew = true;
+
                 for (PhotoManifesteServeur manifesteServeur : photoServeur.getListeManifestes()) {
                     if (manifestePC.getDossier().equals(manifesteServeur.getDossier())) {
-                        manifestePC_cible = manifestePC;
+                        isNew = false;
                         if (new Date(manifestePC.getDateEnregistrement()).after(new Date(manifesteServeur.getDateEnregistrement()))) {
                             isRecent = true;
                         }
                     }
                 }
-                if ((manifestePC_cible == null) || (manifestePC_cible != null && isRecent == true)) {  //Nouveau Manifeste à charger sur le serveur
+                if (isNew == true || isRecent == true) {  //Nouveau Manifeste à charger sur le serveur
                     if (params.getIdExercice() == -1) {   //Synchronisation légère: on travaille seulement sur le dossier ANNEE
                         if (manifestePC.getDossier().equals(UtilObjet.DOSSIER_ANNEE)) {
                             if (!A_Charger_listeManifesteDuPC.contains(manifestePC)) {
                                 A_Charger_listeManifesteDuPC.add(manifestePC);
+                                System.out.println(" - " + manifestePC.toString());
                                 rep = true;
                             }
                         }
                     } else {
                         if (!A_Charger_listeManifesteDuPC.contains(manifestePC)) {
                             A_Charger_listeManifesteDuPC.add(manifestePC);
+                            System.out.println(" - " + manifestePC.toString());
                             rep = true;
                         }
                     }
@@ -298,43 +308,50 @@ public class Synchronisateur extends ObjetNetWork {
         if (eps != null) {
             eps.onAfficheProgression(100, 50, Str_Etape + ": Copie de l'image du PC Local...");
             photoPC = eps.onCopieLePC();
-            System.out.println(photoPC);
+            //System.out.println(photoPC);
             eps.onAfficheProgression(100, 100, Str_Etape + ": Copie du PC Local effectuée!");
         }
     }
 
     public void F_recherche_donnees_serveur_telechargeables_sur_pc() {
-        System.out.println("***** F_recherche_donnees_serveur_telechargeables_sur_pc");
+        System.out.println("****** F_recherche_donnees_serveur_telechargeables_sur_pc");
         if (eps != null) {
             int actuel = 1;
             int total = photoServeur.getListeDonneeEnligne().size();
             boolean rep = false;
             A_Charger_listeDonneeATelecharger.removeAllElements();
             for (PhotoDonneeEnligne donneeOnline : photoServeur.getListeDonneeEnligne()) {
-                System.out.println(donneeOnline);
+
                 boolean isRecent = false;
-                PhotoDonneeEnligne donneeOnline_cible = null;
+                boolean isNew = true;
+                long lastModifiedLocal = 0;
+
                 for (PhotoRubriqueLocal rubriqueLocale : photoPC.getRubriques()) {
-                    for (File donneeLocal : rubriqueLocale.getContenus()) {
-                        if (donneeLocal.getName().equals(donneeOnline.getId() + "")) {
-                            donneeOnline_cible = donneeOnline;
-                            if (new Date(donneeOnline.getLastModified()).after(new Date(donneeLocal.lastModified()))) {
-                                isRecent = true;
+                    if (donneeOnline.getDossier().equals(rubriqueLocale.getNom())) {
+                        for (File donneeLocal : rubriqueLocale.getContenus()) {
+                            if (donneeLocal.getName().equals(donneeOnline.getId() + "")) {
+                                isNew = false;
+                                if (new Date(donneeOnline.getLastModified()).after(new Date(donneeLocal.lastModified()))) {
+                                    lastModifiedLocal = donneeLocal.lastModified();
+                                    isRecent = true;
+                                }
                             }
                         }
                     }
                 }
-                if ((donneeOnline_cible == null) || (donneeOnline_cible != null && isRecent == true)) {
+                if (isNew == true | isRecent == true) {
                     if (params.getIdExercice() == -1) {   //Synchronisation légère: on ne travaille que sur le dossier ANNEE
                         if (donneeOnline.getDossier().equals(UtilObjet.DOSSIER_ANNEE)) {
                             if (!A_Charger_listeDonneeATelecharger.contains(donneeOnline)) {
                                 A_Charger_listeDonneeATelecharger.add(donneeOnline);
+                                System.out.println(" - (" + lastModifiedLocal + "|" + donneeOnline.getLastModified() + ") " + donneeOnline.toString());
                                 rep = true;
                             }
                         }
                     } else {
                         if (!A_Charger_listeDonneeATelecharger.contains(donneeOnline)) {
                             A_Charger_listeDonneeATelecharger.add(donneeOnline);
+                            System.out.println(" - (" + lastModifiedLocal + "|" + donneeOnline.getLastModified() + ") " + donneeOnline.toString());
                             rep = true;
                         }
                     }
@@ -356,22 +373,32 @@ public class Synchronisateur extends ObjetNetWork {
                 boolean rep = false;
                 for (File donneeLocal : rubriquePC.getContenus()) {
                     boolean isRecent = false;
-                    File donneeLocal_cible = null;
+                    boolean isNew = true;
+                    Date dateLocal = null;
+                    Date dateDistante = null;
                     for (PhotoDonneeEnligne donneeOnline : photoServeur.getListeDonneeEnligne()) {
-                        if (donneeLocal.getName().equals(donneeOnline.getId() + "")) {
-                            donneeLocal_cible = donneeLocal;
-                            if (new Date(donneeLocal.lastModified()).after(new Date(donneeOnline.getLastModified()))) {
-                                isRecent = true;
+                        if (donneeOnline.getDossier().equals(rubriquePC.getNom())) {
+                            dateLocal = new Date(Long.parseLong(donneeLocal.lastModified() + ""));
+                            dateDistante = new Date(Long.parseLong(donneeOnline.getLastModified() + ""));
+
+                            if (donneeLocal.getName().equals(donneeOnline.getId() + "")) {
+                                isNew = false;
+                                if (dateLocal.after(dateDistante)) {
+                                    isRecent = true;
+                                }
                             }
                         }
+
                     }
-                    if ((donneeLocal_cible == null) || (donneeLocal_cible != null && isRecent == true)) {
+
+                    if (isNew == true || isRecent == true) {
                         if (params.getIdExercice() == -1) {   //Synchronisation légère: on ne travaille que sur le dossier ANNEE
                             if (rubriquePC.getNom().equals(UtilObjet.DOSSIER_ANNEE)) {
                                 Object donneeLocal_brutte = eps.onLoadData(rubriquePC.getClasse(), rubriquePC.getNom(), Integer.parseInt(donneeLocal.getName().trim()));
                                 PhotoDonneePC rawData = new PhotoDonneePC(Integer.parseInt(donneeLocal.getName().trim()), donneeLocal.lastModified(), rubriquePC.getNom(), donneeLocal_brutte, params.getIdEcole());
                                 if (!A_Charger_listeDonneeAChargerSurServeur.contains(rawData)) {
                                     A_Charger_listeDonneeAChargerSurServeur.add(rawData);
+                                    System.out.println(" - " + rawData.toString());
                                     rep = true;
                                 }
                             }
@@ -380,10 +407,10 @@ public class Synchronisateur extends ObjetNetWork {
                             PhotoDonneePC rawData = new PhotoDonneePC(Integer.parseInt(donneeLocal.getName().trim()), donneeLocal.lastModified(), rubriquePC.getNom(), donneeLocal_brutte, params.getIdEcole());
                             if (!A_Charger_listeDonneeAChargerSurServeur.contains(rawData)) {
                                 A_Charger_listeDonneeAChargerSurServeur.add(rawData);
+                                System.out.println(" - " + rawData.toString());
                                 rep = true;
                             }
                         }
-
                     }
                     eps.onAfficheProgression(total, actuel, Str_Etape + ": Recherche - Chargeables sur Serveur (" + rep + "): " + rubriquePC.getNom() + "/" + donneeLocal.getName() + " - " + donneeLocal.lastModified());
                     actuel++;
@@ -393,6 +420,7 @@ public class Synchronisateur extends ObjetNetWork {
     }
 
     public void H_ecritureDataSurPC() {
+        System.out.println("****** H_ecritureDataSurPC");
         int total = dataServeur.getListeEnregistrements().size();
         int actuel = 1;
         for (EnregistrementServeur enregistrement : dataServeur.getListeEnregistrements()) {
@@ -401,9 +429,15 @@ public class Synchronisateur extends ObjetNetWork {
                 if (params.getIdExercice() == -1) { //Synchronisation légère: on travaille uniquement sur le dossier ANNEE
                     if (enregistrement.getDossier().equals(UtilObjet.DOSSIER_ANNEE)) {
                         rep = eps.onSaveData(enregistrement);
+                        if (rep == true) {
+                            System.out.println(" - (" + enregistrement.getLastModified() + " ou " + new Date(enregistrement.getLastModified()) + ") " + enregistrement.toString());
+                        }
                     }
                 } else {
                     rep = eps.onSaveData(enregistrement);
+                    if (rep == true) {
+                        System.out.println(" - (" + enregistrement.getLastModified() + " ou " + new Date(enregistrement.getLastModified()) + ") " + enregistrement.toString());
+                    }
                 }
                 eps.onAfficheProgression(total, actuel, Str_Etape + ": Enregistrement sur PC (" + rep + "): " + enregistrement.getDossier() + " - " + enregistrement.getDonnee());
                 actuel++;
@@ -417,7 +451,7 @@ public class Synchronisateur extends ObjetNetWork {
         int idEcole = 2;
         int idExercice = 1;
         SyncParametres params = new SyncParametres(idEcole, idExercice, motDePasse, email);
-        
+
         new Synchronisateur(params, new SynchronisateurListener() {
             @Override
             public boolean onDeleteSignature(PhotoSuppressionDistante photoSignature) {

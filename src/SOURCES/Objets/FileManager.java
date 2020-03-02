@@ -218,9 +218,9 @@ public class FileManager extends ObjetNetWork {
         }
     }
 
-    private void payer(JFrame parent, Icon icone) {
+    private void payer(JFrame parent, Icon icone, String fonctionalite) {
         if (parent != null) {
-            String message = "Vous devez migrer vers le mode payant pour bénéficier de cette fonctionnalité.\nVoulez-vous payer maintenant ?";
+            String message = "Vous devez migrer vers le mode payant pour bénéficier de cette fonctionnalité"+ fonctionalite +".\nVoulez-vous payer maintenant ?";
             int rep = JOptionPane.showConfirmDialog(parent, message, "Fonctionnalité payante", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, icone);
             if (rep == JOptionPane.OK_OPTION) {
                 //On lance la boite de dialogue de paiement
@@ -229,19 +229,19 @@ public class FileManager extends ObjetNetWork {
         }
     }
 
-    public boolean fm_isLicenceValide(JFrame parent, Icon icone, PaiementLicence paiementLicence) {
+    public boolean fm_isLicenceValide(String fonctionalite, JFrame parent, Icon icone, PaiementLicence paiementLicence) {
         Date today = new Date();
         Date dateExpiry = UtilFileManager.convertDatePaiement(paiementLicence.getDateExpiration());
         //Date dateExpiry = UtilFileManager.convertDatePaiement(sessionWeb.getPaiement().getDateExpiration());
         if (dateExpiry != null) {
             if (today.after(dateExpiry)) {
-                payer(parent, icone);
+                payer(parent, icone, fonctionalite);
                 return false;
             } else {
                 return true;
             }
         } else {
-            payer(parent, icone);
+            payer(parent, icone, fonctionalite);
             return false;
         }
     }
@@ -326,7 +326,7 @@ public class FileManager extends ObjetNetWork {
                 public void onDone(String message, Entreprise entreprise, Utilisateur utilisateur, PaiementLicence paiement) {
                     if (Integer.parseInt(idEcole.trim()) == entreprise.getId() && motDePasse.trim().equals(utilisateur.getMotDePasse().trim())) {
                         if (ecouteurLongin != null) {
-                            ecouteurLongin.onProcessing("Chargement des données...");
+                            ecouteurLongin.onProcessing("Systement des données...");
                         }
 
                         Date dateConnexion = new Date();
@@ -791,14 +791,14 @@ public class FileManager extends ObjetNetWork {
         String dossier = racine + "/" + session.getEntreprise().getId() + "/" + table + "/";
         File fichObjet = new File(dossier + idObj);
         if (fichObjet.exists()) {
-            boolean rep = fichObjet.delete();
-            if (rep == true) {
-                //On actualise le fichier MANIFEST_DEL.man, utile pour la synchronisation par la suite avec le Serveur
+            fichObjet.delete();
+            if (fichObjet.exists() == false) {
+                //On actualise le fichier MANIFEST_DEL.man, utilé pour la synchronisation par la suite avec le Serveur
                 UtilFileManager.ecrire_txt(dossier + MANIFESTE_DEL, signature + ",", true);
                 //On active aussi le suiveur d'édition
                 fm_edition_automatique_activer(true);
+                return true;
             }
-            return rep;
         }
         return false;
     }
@@ -857,16 +857,21 @@ public class FileManager extends ObjetNetWork {
             String[] tabIDs = fm_getContenusDossier(table);
             if (tabIDs.length != 0) {
                 for (String ID_master : tabIDs) {
-                    boolean rep = UtilFileManager.containsSignature(dossier + "/" + ID_master, signature);
-                    if (rep == true) {
-                        return (new File(dossier + "/" + ID_master)).delete();
+                    File ficAsup = new File(dossier + "/" + ID_master);
+                    if (ficAsup.exists()) {
+                        boolean rep = UtilFileManager.containsSignature(dossier + "/" + ID_master, signature);
+                        if (rep == true) {
+                            ficAsup.delete();
+                            return !(ficAsup.exists());
+                        }
                     }
                 }
             }
         }
         return false;
     }
-
+    
+    
     public void fm_supprimerTout(Class classe, String table, EcouteurSuppression ecouteurSuppression) {
         new Thread() {
             @Override
@@ -1071,7 +1076,7 @@ public class FileManager extends ObjetNetWork {
             strRevenu = revenu.getNom();
             idRevenu = revenu.getId();
         }
-        return new Encaissement(-100, destination, paiementFrais.getReference(), paiementFrais.getDate(), paiementFrais.getMontant(), idMonnaie, codeMonnaie, paiementFrais.getNomDepositaire(), motif, idRevenu, strRevenu, paiementFrais.getIdExercice(), idUtilisateur, UtilObjet.getSignature(), InterfaceEncaissement.BETA_EXISTANT);
+        return new Encaissement(-100, destination, paiementFrais.getReference(), paiementFrais.getDate(), paiementFrais.getMontant(), idMonnaie, codeMonnaie, paiementFrais.getNomDepositaire(), motif, idRevenu, strRevenu, paiementFrais.getIdEntreprise(), paiementFrais.getIdExercice(), idUtilisateur, UtilObjet.getSignature(), InterfaceEncaissement.BETA_EXISTANT);
     }
 
     private Decaissement getDecaissement(Fiche_paie fichePaie, EcouteurParametreDecaissement epd) {
@@ -1114,7 +1119,7 @@ public class FileManager extends ObjetNetWork {
             nomCharge = rr.getNom();
             idCharge = rr.getId();
         }
-        return new Decaissement(-100, source, fichePaie.getId() + "", fichePaie.getDateEnregistrement(), montant, idMonnaie, codeMonnaie, beneficiaire, motif, idCharge, nomCharge, fichePaie.getIdExercice(), fichePaie.getIdUtilisateur(), UtilObjet.getSignature(), InterfaceDecaissement.BETA_EXISTANT);
+        return new Decaissement(-100, source, fichePaie.getId() + "", fichePaie.getDateEnregistrement(), montant, idMonnaie, codeMonnaie, beneficiaire, motif, idCharge, nomCharge, fichePaie.getIdEntreprise(), fichePaie.getIdExercice(), fichePaie.getIdUtilisateur(), UtilObjet.getSignature(), InterfaceDecaissement.BETA_EXISTANT);
     }
 
     public PhotoDisqueLocal fm_getPhotoDisqueLocal(Vector<Dossier> dossiers) {
@@ -1146,7 +1151,7 @@ public class FileManager extends ObjetNetWork {
             String dossier = rs.getString("dossier");
             boolean rep = fm_detruireBasedOnSignature(dossier, signature);
             String messageOutput = " ** " + signature + ", " + dossier + ", detruit ? = " + rep;
-            System.out.println(messageOutput);
+            //System.out.println(messageOutput);
             epd.onProcessing(strPhoto + ": " + messageOutput);
             ess.onProcessing(strPhoto + ": " + messageOutput, 45);
         }
@@ -1319,16 +1324,21 @@ public class FileManager extends ObjetNetWork {
             new Synchronisateur(params, new SynchronisateurListener() {
                 @Override
                 public boolean onDeleteSignature(PhotoSuppressionDistante photoSignature) {
-                    if(photoSignature != null){
-                        if(photoSignature.getSignature().trim().length() != 0){
-                            return fm_detruireBasedOnSignature(photoSignature.getDossier(), Long.parseLong(photoSignature.getSignature()));
-                        }else{
+                    if (photoSignature != null) {
+                        if (photoSignature.getSignature().trim().length() != 0) {
+                            try {
+                                long signature = Long.parseLong(photoSignature.getSignature());
+                                return fm_detruireBasedOnSignature(photoSignature.getDossier(), signature);
+                            } catch (Exception e) {
+                                return false;
+                            }
+                        } else {
                             return false;
                         }
-                    }else{
+                    } else {
                         return false;
                     }
-                    
+
                 }
 
                 @Override
@@ -1340,13 +1350,14 @@ public class FileManager extends ObjetNetWork {
                 public Vector<PhotoSuppressionLocale> onCopieSuppressionsDuPC() {
                     Vector<PhotoSuppressionLocale> listeSuppressionsDuPC = new Vector<>();
                     for (Dossier dossier : dossiersControledByCurrentUser) {
-                        Object[] tabDeletedLocalSignatures = fm_getSignaturesDeleted(dossier.getNom());
-                        if (tabDeletedLocalSignatures != null) {
-                            for (Object signature : tabDeletedLocalSignatures) {
-                                System.out.println(" - " + signature + " - Dossier: " + dossier.getNom());
-                                listeSuppressionsDuPC.add(new PhotoSuppressionLocale(signature + "", dossier.getNom(), session.getEntreprise().getId()));
+                        if (idExerciceEncours == -1) {
+                            if (dossier.getNom().equals(UtilObjet.DOSSIER_ANNEE)) {
+                                fm_loadDeletedSignatureOnPC(dossier, listeSuppressionsDuPC);
                             }
+                        } else {
+                            fm_loadDeletedSignatureOnPC(dossier, listeSuppressionsDuPC);
                         }
+
                     }
                     return listeSuppressionsDuPC;
                 }
@@ -1355,11 +1366,14 @@ public class FileManager extends ObjetNetWork {
                 public Vector<PhotoManifestePC> onCopieManifestesDuPC() {
                     Vector<PhotoManifestePC> listeManifestesPC = new Vector<>();
                     for (Dossier dossier : dossiersControledByCurrentUser) {
-                        Registre regLoc = getRegistreEnMemoire(dossier.getNom());
-                        if (utilisateur != null && dossier != null && regLoc != null) {
-                            PhotoManifestePC photoManifestePC = new PhotoManifestePC(utilisateur.getIdEntreprise(), utilisateur.getId(), dossier.getNom(), regLoc.getDernierID(), regLoc.getDateEnregistrement().getTime());
-                            listeManifestesPC.add(photoManifestePC);
+                        if (idExerciceEncours == -1) {
+                            if (dossier.getNom().equals(UtilObjet.DOSSIER_ANNEE)) {
+                                fm_loadRegistrePC(utilisateur, dossier, listeManifestesPC);
+                            }
+                        } else {
+                            fm_loadRegistrePC(utilisateur, dossier, listeManifestesPC);
                         }
+
                     }
                     return listeManifestesPC;
                 }
@@ -1378,12 +1392,7 @@ public class FileManager extends ObjetNetWork {
                 public boolean onSaveData(EnregistrementServeur enregistrementServeur) {
                     if (enregistrementServeur != null) {
                         Object object = enregistrementServeur.getDonnee();
-                        if (object != null) {
-                            String strJSON = getJSON(object);
-                            return enregistrerDataFromServer(strJSON, enregistrementServeur.getDossier(), enregistrementServeur.getId() + "", enregistrementServeur.getLastModified(), true);
-                        } else {
-                            return false;
-                        }
+                        return enregistrerDataFromServer(getJSON(object), enregistrementServeur.getDossier(), enregistrementServeur.getId() + "", Long.parseLong(enregistrementServeur.getLastModified() + ""), true);
                     } else {
                         return false;
                     }
@@ -1404,6 +1413,24 @@ public class FileManager extends ObjetNetWork {
                     progressListener.onEchec(message);
                 }
             }).demarrer();
+        }
+    }
+
+    public void fm_loadRegistrePC(Utilisateur utilisateur, Dossier dossier, Vector<PhotoManifestePC> listeManifestesPC) {
+        Registre regLoc = getRegistreEnMemoire(dossier.getNom());
+        if (utilisateur != null && regLoc != null) {
+            PhotoManifestePC photoManifestePC = new PhotoManifestePC(utilisateur.getIdEntreprise(), utilisateur.getId(), dossier.getNom(), regLoc.getDernierID(), regLoc.getDateEnregistrement().getTime());
+            listeManifestesPC.add(photoManifestePC);
+        }
+    }
+
+    public void fm_loadDeletedSignatureOnPC(Dossier dossier, Vector<PhotoSuppressionLocale> listeSuppressionsDuPC) {
+        Object[] tabDeletedLocalSignatures = fm_getSignaturesDeleted(dossier.getNom());
+        if (tabDeletedLocalSignatures != null) {
+            for (Object signature : tabDeletedLocalSignatures) {
+                //System.out.println(" - " + signature + " - Dossier: " + dossier.getNom());
+                listeSuppressionsDuPC.add(new PhotoSuppressionLocale(signature + "", dossier.getNom(), session.getEntreprise().getId()));
+            }
         }
     }
 
@@ -1678,9 +1705,9 @@ public class FileManager extends ObjetNetWork {
     private void traiterSignaturesDeleted(String DOSSIER, Statement stmt, ResultSet rs) throws Exception {
         Object[] tabDeletedLocalSignatures = fm_getSignaturesDeleted(DOSSIER);
         if (tabDeletedLocalSignatures != null) {
-            System.out.println("SIGNATURES LOCALES SUPPRIMEES (A SUPPRIMER AUSSI DEPUIS LE SERVEUR:");
+            //System.out.println("SIGNATURES LOCALES SUPPRIMEES (A SUPPRIMER AUSSI DEPUIS LE SERVEUR:");
             for (Object signature : tabDeletedLocalSignatures) {
-                System.out.println(" - " + signature + " - Dossier: " + DOSSIER);
+                //System.out.println(" - " + signature + " - Dossier: " + DOSSIER);
                 //On charge cette signature sur le serveur (BACKUP_DELETED_SIGNATURE)
                 String sql = "INSERT INTO `BACKUP_DELETED_SIGNATURE` (`signature`, `dossier`) VALUES ('" + signature + "', '" + DOSSIER + "');";
                 int repUpdate = -1;
@@ -1701,7 +1728,7 @@ public class FileManager extends ObjetNetWork {
         }
 
         boolean repDestructionMANIFESTE_DEL = fm_detruireSignaturesDeleted(DOSSIER);
-        System.out.println("MANFEST_DEL.man du dossier " + DOSSIER + " supprimé = " + repDestructionMANIFESTE_DEL);
+        //System.out.println("MANFEST_DEL.man du dossier " + DOSSIER + " supprimé = " + repDestructionMANIFESTE_DEL);
     }
 
     private void synchroniserManifeste(String dossier, FMDataUploader fMDataUploader) {
@@ -1865,7 +1892,7 @@ public class FileManager extends ObjetNetWork {
 
             //******* nouveau code *************
             strJSON = getJSON(objetTempo);
-            System.out.println(strJSON);
+            //System.out.println(strJSON);
 
             long lastModified = rsObjet.getLong("lastModified");
             if (fileName != null) {

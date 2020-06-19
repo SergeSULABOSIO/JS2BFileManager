@@ -390,7 +390,7 @@ public class FileManager extends ObjetNetWork {
         //Ici on démarre le téléchargement du logo de l'établissement auquel le USER est connecté
         //Exemple: http://www.visiterlardc.com/s2b/logo/2_279279.png
 
-        String urlDuLogo = adresseServeur + "/" + session.getEntreprise().getLogo();
+        String urlDuLogo = "https://" + adresseServeur + "/" + session.getEntreprise().getLogo();
         File ficServer = new File(urlDuLogo);
         try {
             URL url = new URL(urlDuLogo);

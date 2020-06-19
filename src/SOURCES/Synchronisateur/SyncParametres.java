@@ -26,6 +26,7 @@ public class SyncParametres {
         this.idExercice = idExercice;
         this.motDePasse = motDePasse;
         this.email = email;
+        adresseServeur = UtilObjet.pageWeb + "/mon-compte/sync/processeur.php";
     }
 
     public int getIdEcole() {

@@ -5,6 +5,8 @@
  */
 package SOURCES.Synchronisateur;
 
+import Source.Objet.UtilObjet;
+
 /**
  *
  * @author HP Pavilion
@@ -14,7 +16,7 @@ public class SyncParametres {
     public int idExercice;
     public String motDePasse;
     public String email;
-    public String adresseServeur = "www.visiterlardc.com/s2b/sync/processeur.php";
+    public String adresseServeur = UtilObjet.pageWeb + "/mon-compte/sync/processeur.php"; //"www.visiterlardc.com/s2b/sync/processeur.php";
 
     public SyncParametres() {
     }
